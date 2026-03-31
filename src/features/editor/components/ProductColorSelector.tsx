@@ -14,9 +14,9 @@ export function ProductColorSelector({
   const supportedColors = product.colors.filter(
     (color) => color.availability === 'real',
   )
-  const fallbackColors = product.colors.filter(
-    (color) => color.availability === 'fallback',
-  )
+  // const fallbackColors = product.colors.filter(
+  //   (color) => color.availability === 'fallback',
+  // )
 
   return (
     <div className="rounded-[1.1rem] border border-stone-200 bg-white px-3 py-2.5">
