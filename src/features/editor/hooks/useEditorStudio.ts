@@ -29,17 +29,13 @@ const initialColor = initialProduct?.colors[0]
 const initialElementsByView = {
   front: null,
   back: null,
-  left: null,
-  right: null,
-  detail: null,
+  custom: null,
 } satisfies Record<ProductViewId, DesignElement | null>
 
 const initialSelectionByView = {
   front: null,
   back: null,
-  left: null,
-  right: null,
-  detail: null,
+  custom: null,
 } satisfies Record<ProductViewId, EditorElementId | null>
 
 export function useEditorStudio() {
@@ -54,6 +50,7 @@ export function useEditorStudio() {
   >(initialElementsByView)
   const [logoErrorMessage, setLogoErrorMessage] = useState<string | null>(null)
   const [activeView, setActiveView] = useState<ProductViewId>('front')
+  const [customPlacement, setCustomPlacement] = useState('')
   const [selectedElementIdByView, setSelectedElementIdByView] =
     useState<Record<ProductViewId, EditorElementId | null>>(
       initialSelectionByView,
@@ -69,11 +66,11 @@ export function useEditorStudio() {
     () => getAvailableViews(selectedColor),
     [selectedColor],
   )
-  const resolvedActiveView = availableViews.includes(activeView)
+  const resolvedActiveView: ProductViewId = availableViews.includes(activeView)
     ? activeView
-    : availableViews[0]
+    : (availableViews[0] ?? 'front')
   const activeProductView =
-    selectedColor && resolvedActiveView
+    selectedColor && resolvedActiveView !== 'custom'
       ? selectedColor.views[resolvedActiveView] ?? null
       : null
   const activeLogoElement =
@@ -326,7 +323,9 @@ export function useEditorStudio() {
 
     setSelectedColorId(nextColor.id)
     setActiveView(
-      nextColor.views[activeView] ? activeView : nextView,
+      activeView === 'custom' || nextColor.views[activeView]
+        ? activeView
+        : nextView,
     )
   }
 
@@ -335,6 +334,7 @@ export function useEditorStudio() {
     activeProductView,
     activeView: resolvedActiveView ?? activeView,
     availableViews,
+    customPlacement,
     handleElementSelect,
     handleColorSelect,
     handleLogoControlsChange,
@@ -350,6 +350,7 @@ export function useEditorStudio() {
     selectedColorId: selectedColor?.id ?? selectedColorId,
     selectedElementId,
     selectedProduct,
+    setCustomPlacement,
     setActiveView,
   }
 }
@@ -359,9 +360,11 @@ function getAvailableViews(color: ProductColor | undefined) {
     return [] as ProductViewId[]
   }
 
-  return (Object.keys(color.views) as ProductViewId[]).filter(
+  const baseViews = (Object.keys(color.views) as ProductViewId[]).filter(
     (viewId) => Boolean(color.views[viewId]),
   )
+
+  return [...baseViews, 'custom'] as ProductViewId[]
 }
 
 function isAcceptedLogoMimeType(

@@ -12,6 +12,7 @@ export function EditorLayout() {
     activeProductView,
     activeView,
     availableViews,
+    customPlacement,
     handleColorSelect,
     handleElementSelect,
     handleLogoControlsChange,
@@ -27,10 +28,11 @@ export function EditorLayout() {
     selectedColorId,
     selectedElementId,
     selectedProduct,
+    setCustomPlacement,
     setActiveView,
   } = useEditorStudio()
 
-  if (!selectedProduct || !selectedColor || !activeProductView) {
+  if (!selectedProduct || !selectedColor) {
     return null
   }
 
@@ -62,6 +64,8 @@ export function EditorLayout() {
           productColor={selectedColor}
           activeView={activeView}
           availableViews={availableViews}
+          customPlacement={customPlacement}
+          onCustomPlacementChange={setCustomPlacement}
           onViewSelect={setActiveView}
           productView={activeProductView}
           selectionSafeAreaRef={logoInspectorRef}

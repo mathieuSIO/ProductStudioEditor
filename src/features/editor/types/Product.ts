@@ -6,12 +6,7 @@ export type ProductId = 'cap' | 'other' | 'polo' | 'sweatshirt' | 'tshirt'
 
 export type ProductMockup = 'cap' | 'generic' | 'polo' | 'sweatshirt' | 'tshirt'
 
-export type ProductViewId =
-  | 'back'
-  | 'detail'
-  | 'front'
-  | 'left'
-  | 'right'
+export type ProductViewId = 'back' | 'custom' | 'front'
 
 export type ProductColorId = 'black' | 'navy' | 'white'
 

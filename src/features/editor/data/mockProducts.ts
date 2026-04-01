@@ -25,18 +25,6 @@ const tshirtPrintableAreas = {
     width: 58,
     height: 60,
   },
-  left: {
-    x: 38,
-    y: 24,
-    width: 17,
-    height: 44,
-  },
-  right: {
-    x: 46,
-    y: 24,
-    width: 17,
-    height: 44,
-  },
 } satisfies Partial<Record<ProductViewId, PrintableArea>>
 
 const sweatshirtPrintableAreas = {
@@ -51,18 +39,6 @@ const sweatshirtPrintableAreas = {
     y: 20,
     width: 58,
     height: 54,
-  },
-  left: {
-    x: 38,
-    y: 24,
-    width: 18,
-    height: 46,
-  },
-  right: {
-    x: 45,
-    y: 24,
-    width: 18,
-    height: 46,
   },
 } satisfies Partial<Record<ProductViewId, PrintableArea>>
 
@@ -79,18 +55,6 @@ const poloPrintableAreas = {
     width: 50,
     height: 48,
   },
-  left: {
-    x: 39,
-    y: 27,
-    width: 15,
-    height: 36,
-  },
-  right: {
-    x: 46,
-    y: 27,
-    width: 15,
-    height: 36,
-  },
 } satisfies Partial<Record<ProductViewId, PrintableArea>>
 
 const capPrintableAreas = {
@@ -106,18 +70,6 @@ const capPrintableAreas = {
     width: 32,
     height: 18,
   },
-  left: {
-    x: 40,
-    y: 31,
-    width: 16,
-    height: 20,
-  },
-  right: {
-    x: 45,
-    y: 31,
-    width: 16,
-    height: 20,
-  },
 } satisfies Partial<Record<ProductViewId, PrintableArea>>
 
 const genericPrintableAreas = {
@@ -132,18 +84,6 @@ const genericPrintableAreas = {
     y: 18,
     width: 56,
     height: 56,
-  },
-  left: {
-    x: 38,
-    y: 21,
-    width: 17,
-    height: 46,
-  },
-  right: {
-    x: 46,
-    y: 21,
-    width: 17,
-    height: 46,
   },
 } satisfies Partial<Record<ProductViewId, PrintableArea>>
 
@@ -166,8 +106,6 @@ export const mockProducts = [
           'T-shirt blanc vue arriere',
           tshirtPrintableAreas.back,
         ),
-        left: createFallbackView('tshirt', 'Blanc', tshirtPrintableAreas.left),
-        right: createFallbackView('tshirt', 'Blanc', tshirtPrintableAreas.right),
       }),
       createRealColor('black', 'Noir', '#1C1917', 'tshirt', {
         front: createImageView(
@@ -182,14 +120,10 @@ export const mockProducts = [
           'T-shirt noir vue arriere',
           tshirtPrintableAreas.back,
         ),
-        left: createFallbackView('tshirt', 'Noir', tshirtPrintableAreas.left),
-        right: createFallbackView('tshirt', 'Noir', tshirtPrintableAreas.right),
       }),
       createFallbackColor('navy', 'Marine', '#1E3A5F', 'tshirt', {
         front: tshirtPrintableAreas.front,
         back: tshirtPrintableAreas.back,
-        left: tshirtPrintableAreas.left,
-        right: tshirtPrintableAreas.right,
       }),
     ],
   },

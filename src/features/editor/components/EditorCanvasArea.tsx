@@ -9,6 +9,7 @@ import type {
   ProductView,
   ProductViewId,
 } from '../types'
+import { CustomPlacementCard } from './CustomPlacementCard'
 import { ProductMockupPreview } from './ProductMockupPreview'
 
 type EditorCanvasAreaProps = {
@@ -19,9 +20,11 @@ type EditorCanvasAreaProps = {
   onElementSelect: (elementId: EditorElementId | null) => void
   product: Product
   productColor: ProductColor
-  productView: ProductView
+  productView: ProductView | null
   activeView: ProductViewId
   availableViews: ProductViewId[]
+  customPlacement: string
+  onCustomPlacementChange: (value: string) => void
   onViewSelect: (view: ProductViewId) => void
   selectionSafeAreaRef: RefObject<HTMLDivElement | null>
 }
@@ -37,6 +40,8 @@ export function EditorCanvasArea({
   productView,
   activeView,
   availableViews,
+  customPlacement,
+  onCustomPlacementChange,
   onViewSelect,
   selectionSafeAreaRef,
 }: EditorCanvasAreaProps) {
@@ -63,30 +68,41 @@ export function EditorCanvasArea({
             <div className="relative z-10 flex h-full w-full max-w-none flex-col items-center gap-2.5 px-0.5 sm:gap-3 sm:px-1.5 xl:gap-3">
               <div className="flex w-full flex-1 items-center">
                 <div className="w-full rounded-[1.45rem] border border-white/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,248,247,0.96))] px-1.5 py-2.5 shadow-[0_24px_56px_-42px_rgba(120,113,108,0.28)] sm:px-3 sm:py-3.5 xl:px-4 xl:py-4">
-                  <ProductMockupPreview
-                    logoElement={logoElement}
-                    onLogoPositionChange={onLogoPositionChange}
-                    onLogoSizeChange={onLogoSizeChange}
-                    selectedElementId={selectedElementId}
-                    onElementSelect={onElementSelect}
-                    productName={product.name}
-                    productColorLabel={productColor.label}
-                    productView={productView}
-                    activeView={activeView}
-                    selectionSafeAreaRef={selectionSafeAreaRef}
-                  />
+                  {activeView === 'custom' || !productView ? (
+                    <CustomPlacementCard
+                      productName={product.name}
+                      value={customPlacement}
+                      onChange={onCustomPlacementChange}
+                    />
+                  ) : (
+                    <ProductMockupPreview
+                      logoElement={logoElement}
+                      onLogoPositionChange={onLogoPositionChange}
+                      onLogoSizeChange={onLogoSizeChange}
+                      selectedElementId={selectedElementId}
+                      onElementSelect={onElementSelect}
+                      productName={product.name}
+                      productColorLabel={productColor.label}
+                      productView={productView}
+                      activeView={activeView}
+                      selectionSafeAreaRef={selectionSafeAreaRef}
+                    />
+                  )}
                 </div>
               </div>
 
               <div className="w-full">
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-4">
+                <div className="grid grid-cols-3 gap-2">
                   {availableViews.map((view) => {
                     const isActive = view === activeView
-                    const viewConfig = productColor.views[view]
+                    const viewConfig =
+                      view === 'custom' ? null : productColor.views[view]
 
-                    if (!viewConfig) {
+                    if (view !== 'custom' && !viewConfig) {
                       return null
                     }
+
+                    const resolvedViewConfig = view === 'custom' ? null : viewConfig
 
                     return (
                       <button
@@ -108,10 +124,20 @@ export function EditorCanvasArea({
                                 : 'border-stone-200 bg-[linear-gradient(180deg,rgba(250,250,249,0.95),rgba(241,240,239,0.92))]'
                             }`}
                           >
-                            {viewConfig.asset.kind === 'image' ? (
+                            {view === 'custom' ? (
+                              <div className="pointer-events-none flex h-full w-full items-center justify-center">
+                                <span
+                                  className={`text-lg font-semibold ${
+                                    isActive ? 'text-white' : 'text-stone-600'
+                                  }`}
+                                >
+                                  ?
+                                </span>
+                              </div>
+                            ) : resolvedViewConfig?.asset.kind === 'image' ? (
                               <img
-                                src={viewConfig.asset.src}
-                                alt={viewConfig.asset.alt}
+                                src={resolvedViewConfig.asset.src}
+                                alt={resolvedViewConfig.asset.alt}
                                 className="pointer-events-none h-full w-full object-contain"
                                 draggable={false}
                               />
@@ -119,7 +145,7 @@ export function EditorCanvasArea({
                               <div className="pointer-events-none flex h-full w-full items-center justify-center">
                                 <div
                                   className={`shadow-[0_14px_20px_-18px_rgba(120,113,108,0.48)] ${getThumbnailMockupClasses(
-                                    viewConfig.mockup,
+                                    resolvedViewConfig!.mockup,
                                     view,
                                   )}`}
                                   style={{ backgroundColor: productColor.swatchHex }}
@@ -139,7 +165,13 @@ export function EditorCanvasArea({
                                 isActive ? 'text-white/72' : 'text-stone-500'
                               }`}
                             >
-                              {isActive ? 'Vue active' : 'Basculer'}
+                              {view === 'custom'
+                                ? isActive
+                                  ? 'Demande active'
+                                  : 'Decrire'
+                                : isActive
+                                  ? 'Vue active'
+                                  : 'Basculer'}
                             </p>
                           </div>
                         </div>
@@ -190,12 +222,8 @@ function getViewLabel(view: ProductViewId) {
       return 'avant'
     case 'back':
       return 'arriere'
-    // case 'left':
-    //   return 'gauche'
-    // case 'right':
-      return 'droite'
-    case 'detail':
-      return 'detail'
+    case 'custom':
+      return 'autre'
     default:
       return view
   }

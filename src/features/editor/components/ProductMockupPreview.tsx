@@ -315,12 +315,8 @@ function getViewLabel(view: ProductViewId) {
       return 'avant'
     case 'back':
       return 'arriere'
-    // case 'left':
-    //   return 'gauche'
-    // case 'right':
-      return 'droite'
-    case 'detail':
-      return 'detail'
+    case 'custom':
+      return 'autre'
     default:
       return view
   }
