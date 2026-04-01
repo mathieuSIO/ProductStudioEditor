@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import {
   getCenteredLogoPosition,
@@ -19,6 +19,8 @@ import type {
   Product,
   ProductColor,
   ProductColorId,
+  ProductId,
+  ProductSize,
   ProductViewId,
 } from '../types'
 import { createUploadedLogoFromFile } from '../utils/createUploadedLogoFromFile'
@@ -38,6 +40,29 @@ const initialSelectionByView = {
   custom: null,
 } satisfies Record<ProductViewId, EditorElementId | null>
 
+type QuantitiesByProduct = Record<ProductId, Record<string, number>>
+
+const initialQuantitiesByProduct = mockProducts.reduce<QuantitiesByProduct>(
+  (accumulator, product) => {
+    accumulator[product.id] = product.sizes.reduce<Record<string, number>>(
+      (sizeAccumulator, size) => {
+        sizeAccumulator[size] = 0
+        return sizeAccumulator
+      },
+      {},
+    )
+
+    return accumulator
+  },
+  {
+    cap: {},
+    other: {},
+    polo: {},
+    sweatshirt: {},
+    tshirt: {},
+  },
+)
+
 export function useEditorStudio() {
   const [selectedProductId, setSelectedProductId] = useState(
     initialProduct?.id ?? '',
@@ -51,6 +76,9 @@ export function useEditorStudio() {
   const [logoErrorMessage, setLogoErrorMessage] = useState<string | null>(null)
   const [activeView, setActiveView] = useState<ProductViewId>('front')
   const [customPlacement, setCustomPlacement] = useState('')
+  const [quantitiesByProduct, setQuantitiesByProduct] = useState<QuantitiesByProduct>(
+    initialQuantitiesByProduct,
+  )
   const [selectedElementIdByView, setSelectedElementIdByView] =
     useState<Record<ProductViewId, EditorElementId | null>>(
       initialSelectionByView,
@@ -62,10 +90,7 @@ export function useEditorStudio() {
   const selectedColor =
     selectedProduct?.colors.find((color) => color.id === selectedColorId) ??
     selectedProduct?.colors[0]
-  const availableViews = useMemo(
-    () => getAvailableViews(selectedColor),
-    [selectedColor],
-  )
+  const availableViews = getAvailableViews(selectedColor)
   const resolvedActiveView: ProductViewId = availableViews.includes(activeView)
     ? activeView
     : (availableViews[0] ?? 'front')
@@ -77,6 +102,14 @@ export function useEditorStudio() {
     elementsByView[resolvedActiveView ?? 'front']
   const selectedElementId =
     selectedElementIdByView[resolvedActiveView ?? 'front']
+  const selectedProductQuantities =
+    quantitiesByProduct[selectedProduct?.id ?? initialProduct.id] ?? {}
+  const totalQuantity = selectedProduct
+    ? selectedProduct.sizes.reduce(
+        (total, size) => total + (selectedProductQuantities[size] ?? 0),
+        0,
+      )
+    : 0
   const isLogoSelected = selectedElementId === activeLogoElement?.id
   const logoControls =
     isLogoSelected && activeLogoElement
@@ -329,6 +362,22 @@ export function useEditorStudio() {
     )
   }
 
+  function handleQuantityChange(size: ProductSize, value: number) {
+    if (!selectedProduct) {
+      return
+    }
+
+    const nextValue = Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0
+
+    setQuantitiesByProduct((currentQuantitiesByProduct) => ({
+      ...currentQuantitiesByProduct,
+      [selectedProduct.id]: {
+        ...currentQuantitiesByProduct[selectedProduct.id],
+        [size]: nextValue,
+      },
+    }))
+  }
+
   return {
     activeLogoElement,
     activeProductView,
@@ -343,15 +392,18 @@ export function useEditorStudio() {
     handleLogoRemove,
     handleLogoSizeChange,
     handleProductSelect,
+    handleQuantityChange,
     logoControls,
     logoErrorMessage,
     products: mockProducts,
+    quantitiesByProduct: selectedProductQuantities,
     selectedColor,
     selectedColorId: selectedColor?.id ?? selectedColorId,
     selectedElementId,
     selectedProduct,
     setCustomPlacement,
     setActiveView,
+    totalQuantity,
   }
 }
 

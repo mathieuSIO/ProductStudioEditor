@@ -92,6 +92,7 @@ export const mockProducts = [
     id: 'tshirt',
     name: 'T-shirt',
     category: 'top',
+    sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'],
     colors: [
       createRealColor('white', 'Blanc', '#F5F5F4', 'tshirt', {
         front: createImageView(
@@ -131,6 +132,7 @@ export const mockProducts = [
     id: 'sweatshirt',
     name: 'Pull',
     category: 'top',
+    sizes: ['S', 'M', 'L', 'XL', 'XXL'],
     colors: [
       createFallbackColor('white', 'Blanc', '#F5F5F4', 'sweatshirt', sweatshirtPrintableAreas),
       createFallbackColor('black', 'Noir', '#1C1917', 'sweatshirt', sweatshirtPrintableAreas),
@@ -141,6 +143,7 @@ export const mockProducts = [
     id: 'polo',
     name: 'Polo',
     category: 'top',
+    sizes: ['S', 'M', 'L', 'XL', 'XXL'],
     colors: [
       createFallbackColor('white', 'Blanc', '#F5F5F4', 'polo', poloPrintableAreas),
       createFallbackColor('black', 'Noir', '#1C1917', 'polo', poloPrintableAreas),
@@ -151,6 +154,7 @@ export const mockProducts = [
     id: 'cap',
     name: 'Casquette',
     category: 'headwear',
+    sizes: ['TU'],
     colors: [
       createFallbackColor('white', 'Blanc', '#F5F5F4', 'cap', capPrintableAreas),
       createFallbackColor('black', 'Noir', '#1C1917', 'cap', capPrintableAreas),
@@ -161,6 +165,7 @@ export const mockProducts = [
     id: 'other',
     name: 'Autre',
     category: 'other',
+    sizes: ['TU'],
     colors: [
       createFallbackColor('white', 'Blanc', '#F5F5F4', 'generic', genericPrintableAreas),
       createFallbackColor('black', 'Noir', '#1C1917', 'generic', genericPrintableAreas),

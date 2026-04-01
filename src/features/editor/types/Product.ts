@@ -8,6 +8,16 @@ export type ProductMockup = 'cap' | 'generic' | 'polo' | 'sweatshirt' | 'tshirt'
 
 export type ProductViewId = 'back' | 'custom' | 'front'
 
+export type ProductSize =
+  | 'XS'
+  | 'S'
+  | 'M'
+  | 'L'
+  | 'XL'
+  | 'XXL'
+  | 'XXXL'
+  | 'TU'
+
 export type ProductColorId = 'black' | 'navy' | 'white'
 
 export type ProductMockupAsset =
@@ -41,4 +51,5 @@ export type Product = {
   colors: ProductColor[]
   id: ProductId
   name: string
+  sizes: ProductSize[]
 }

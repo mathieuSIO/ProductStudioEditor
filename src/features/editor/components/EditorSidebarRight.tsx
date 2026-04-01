@@ -5,21 +5,26 @@ import type {
   LogoManualControls,
   Product,
   ProductColor,
+  ProductSize,
   ProductView,
   ProductViewId,
 } from '../types'
 import { LogoControlsPanel } from './LogoControlsPanel'
 import { LogoInspectorPanel } from './LogoInspectorPanel'
+import { ProductQuantityPanel } from './ProductQuantityPanel'
 
 type EditorSidebarRightProps = {
   activeView: ProductViewId
   logoElement: DesignElement | null
   logoControls: LogoManualControls | null
   onLogoControlsChange: (controls: LogoManualControls) => void
+  onQuantityChange: (size: ProductSize, value: number) => void
   product: Product
   productColor: ProductColor
   productView: ProductView | null
+  quantities: Record<string, number>
   selectedElementId: EditorElementId | null
+  totalQuantity: number
 }
 
 export function EditorSidebarRight({
@@ -27,10 +32,13 @@ export function EditorSidebarRight({
   logoElement,
   logoControls,
   onLogoControlsChange,
+  onQuantityChange,
   product,
   productColor,
   productView,
+  quantities,
   selectedElementId,
+  totalQuantity,
 }: EditorSidebarRightProps) {
   return (
     <aside className="flex flex-col gap-2.5">
@@ -113,6 +121,13 @@ export function EditorSidebarRight({
             />
           </div>
         </div>
+
+        <ProductQuantityPanel
+          quantities={quantities}
+          sizes={product.sizes}
+          totalQuantity={totalQuantity}
+          onQuantityChange={onQuantityChange}
+        />
       </PanelCard>
     </aside>
   )

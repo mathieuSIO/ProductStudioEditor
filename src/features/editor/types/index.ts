@@ -12,6 +12,7 @@ export type {
   ProductId,
   ProductMockupAsset,
   ProductMockup,
+  ProductSize,
   ProductView,
   ProductViewId,
 } from './Product'

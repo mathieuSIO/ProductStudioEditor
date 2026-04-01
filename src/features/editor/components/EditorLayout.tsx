@@ -21,15 +21,18 @@ export function EditorLayout() {
     handleLogoRemove,
     handleLogoSizeChange,
     handleProductSelect,
+    handleQuantityChange,
     logoControls,
     logoErrorMessage,
     products,
+    quantitiesByProduct,
     selectedColor,
     selectedColorId,
     selectedElementId,
     selectedProduct,
     setCustomPlacement,
     setActiveView,
+    totalQuantity,
   } = useEditorStudio()
 
   if (!selectedProduct || !selectedColor) {
@@ -84,7 +87,10 @@ export function EditorLayout() {
           product={selectedProduct}
           productColor={selectedColor}
           productView={activeProductView}
+          quantities={quantitiesByProduct}
           selectedElementId={selectedElementId}
+          totalQuantity={totalQuantity}
+          onQuantityChange={handleQuantityChange}
         />
       </div>
     </section>
