@@ -32,8 +32,8 @@ export function EditorLayout() {
   }
 
   return (
-    <section className="grid gap-3 md:gap-4 lg:grid-cols-[minmax(15rem,16.5rem)_minmax(0,1fr)] xl:grid-cols-[14rem_minmax(0,1.95fr)_15rem] xl:items-start 2xl:grid-cols-[14.5rem_minmax(0,2.15fr)_15.5rem]">
-      <div className="order-2 lg:order-1 xl:order-1 xl:max-w-[14rem]">
+    <section className="grid gap-2.5 md:gap-3 lg:grid-cols-[minmax(13.5rem,14.25rem)_minmax(0,1fr)] xl:grid-cols-[13.5rem_minmax(0,2.2fr)_14.25rem] xl:items-start 2xl:grid-cols-[13.75rem_minmax(0,2.4fr)_14.5rem]">
+      <div className="order-2 lg:order-1 xl:order-1 xl:max-w-[13.5rem]">
         <EditorSidebarLeft
           logo={activeLogoElement?.asset ?? null}
           logoErrorMessage={logoErrorMessage}
@@ -64,7 +64,7 @@ export function EditorLayout() {
         />
       </div>
 
-      <div className="order-3 lg:order-2 xl:order-3 xl:max-w-[15.5rem] xl:justify-self-end">
+      <div className="order-3 lg:order-2 xl:order-3 xl:max-w-[14.5rem] xl:justify-self-end">
         <EditorSidebarRight
           activeView={activeView}
           logoElement={activeLogoElement}

@@ -33,33 +33,24 @@ export function EditorSidebarRight({
   selectedElementId,
 }: EditorSidebarRightProps) {
   return (
-    <aside className="flex flex-col gap-3">
+    <aside className="flex flex-col gap-2.5">
       <PanelCard
         eyebrow="Panneau droit"
-        title="Panneau d'edition"
-        description="Cette colonne regroupe le contexte produit et les proprietes du logo selectionne."
+        title="Inspector"
+        description="Reglages du logo selectionne et contexte de la vue active."
         aside={
-          <span className="rounded-full border border-stone-200 bg-stone-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500">
+          <span className="rounded-full border border-stone-200 bg-stone-50 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500">
             Edition
           </span>
         }
       >
-        <div className="rounded-[1.15rem] border border-stone-200 bg-stone-50/80 p-3">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-400">
-            Contexte produit
-          </p>
-          <div className="mt-3 grid gap-2">
-            <ContextRow label="Produit" value={product.name} />
-            <ContextRow label="Couleur" value={productColor.label} />
-            <ContextRow
-              label="Zone imprimable"
-              value={`${productView.printableArea.width}% x ${productView.printableArea.height}%`}
-            />
-          </div>
-        </div>
-
         <LogoControlsPanel
           controls={logoControls}
+          logoAspectRatio={
+            logoElement && logoElement.size.height > 0
+              ? logoElement.size.width / logoElement.size.height
+              : 1
+          }
           onChange={onLogoControlsChange}
         />
 
@@ -70,6 +61,26 @@ export function EditorSidebarRight({
           productView={productView}
           selectedElementId={selectedElementId}
         />
+
+        <div className="rounded-[1rem] border border-stone-200 bg-stone-50/70 p-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-400">
+              Contexte produit
+            </p>
+            <span className="rounded-full border border-stone-200 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-500">
+              Vue {getViewLabel(activeView)}
+            </span>
+          </div>
+
+          <div className="mt-2 grid gap-1.5">
+            <ContextRow label="Produit" value={product.name} />
+            <ContextRow label="Couleur" value={productColor.label} />
+            <ContextRow
+              label="Zone"
+              value={`${productView.printableArea.width}% x ${productView.printableArea.height}%`}
+            />
+          </div>
+        </div>
       </PanelCard>
     </aside>
   )
@@ -82,11 +93,24 @@ type ContextRowProps = {
 
 function ContextRow({ label, value }: ContextRowProps) {
   return (
-    <div className="rounded-[0.95rem] border border-stone-200 bg-white px-3 py-2.5">
+    <div className="rounded-[0.9rem] border border-stone-200 bg-white px-2.5 py-2">
       <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-400">
         {label}
       </p>
-      <p className="mt-1.5 text-sm font-medium text-stone-800">{value}</p>
+      <p className="mt-1 text-sm font-medium text-stone-800">{value}</p>
     </div>
   )
+}
+
+function getViewLabel(view: ProductViewId) {
+  switch (view) {
+    case 'front':
+      return 'avant'
+    case 'back':
+      return 'arriere'
+    case 'detail':
+      return 'detail'
+    default:
+      return view
+  }
 }

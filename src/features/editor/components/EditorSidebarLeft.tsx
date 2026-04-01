@@ -30,18 +30,18 @@ export function EditorSidebarLeft({
   selectedProductId,
 }: EditorSidebarLeftProps) {
   return (
-    <aside className="flex flex-col gap-3">
+    <aside className="flex flex-col gap-2.5">
       <PanelCard
         eyebrow=""
         title="Outils du studio"
-        description=""
+        description="Selection produit, couleur et import du visuel."
         aside={
-          <span className="rounded-full border border-stone-200 bg-stone-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500">
+          <span className="rounded-full border border-stone-200 bg-stone-50 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500">
             Outils
           </span>
         }
       >
-        <div className="rounded-[1.15rem] border border-stone-200 bg-stone-50/80 p-2.5">
+        <div className="rounded-[1rem] border border-stone-200 bg-stone-50/75 p-2">
           <ProductSelector
             products={products}
             selectedProductId={selectedProductId}
@@ -61,7 +61,6 @@ export function EditorSidebarLeft({
           onFileSelect={onLogoFileSelect}
           onRemove={onLogoRemove}
         />
-
       </PanelCard>
     </aside>
   )

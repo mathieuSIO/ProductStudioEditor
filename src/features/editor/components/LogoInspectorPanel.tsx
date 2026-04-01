@@ -25,12 +25,17 @@ export function LogoInspectorPanel({
     selectedElementId === logoElement?.id && Boolean(logoElement)
 
   return (
-    <div className="rounded-[1.15rem] border border-stone-200 bg-stone-50/80 p-3">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-400">
-        Inspection
-      </p>
+    <div className="rounded-[1rem] border border-stone-200 bg-stone-50/80 p-2.5">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-400">
+          Inspection
+        </p>
+        <span className="rounded-full border border-stone-200 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-500">
+          {hasActiveLogoSelection ? 'Actif' : 'Info'}
+        </span>
+      </div>
 
-      <div className="mt-3 grid gap-2">
+      <div className="mt-2.5 grid gap-1.5">
         <InspectorTile
           label="Element actif"
           title={
@@ -40,10 +45,10 @@ export function LogoInspectorPanel({
           }
           description={
             hasActiveLogoSelection
-              ? 'Le logo importe peut etre ajuste depuis les proprietes au-dessus.'
+              ? 'Le logo importe peut etre ajuste depuis les reglages ci-dessus.'
               : logoElement
-                ? 'Le logo est visible dans la scene. Clique dessus pour afficher ses guides et ses proprietes.'
-                : "Importe d'abord un logo depuis le panneau gauche pour commencer la personnalisation."
+                ? 'Le logo est visible dans la scene. Clique dessus pour afficher ses reglages.'
+                : "Importe d'abord un logo pour commencer la personnalisation."
           }
         />
 
@@ -79,11 +84,11 @@ type InspectorTileProps = {
 
 function InspectorTile({ description, label, title }: InspectorTileProps) {
   return (
-    <div className="rounded-[0.95rem] border border-stone-200 bg-white px-3 py-2.5 shadow-[0_14px_30px_-24px_rgba(120,113,108,0.16)]">
+    <div className="rounded-[0.9rem] border border-stone-200 bg-white px-2.5 py-2 shadow-[0_14px_26px_-24px_rgba(120,113,108,0.14)]">
       <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-400">
         {label}
       </p>
-      <p className="mt-1.5 text-sm font-medium text-stone-800">{title}</p>
+      <p className="mt-1 text-sm font-medium text-stone-800">{title}</p>
       <p className="mt-1 text-sm leading-5 text-stone-500">{description}</p>
     </div>
   )
