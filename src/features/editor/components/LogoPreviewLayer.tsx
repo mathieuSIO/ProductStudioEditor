@@ -242,25 +242,35 @@ export function LogoPreviewLayer({
         }}
       >
         <div
-          className={`pointer-events-none absolute -inset-2 rounded-[1rem] border border-sky-500/20 transition-all duration-150 ${
+          className={`pointer-events-none absolute -inset-2.5 rounded-[1.1rem] border transition-all duration-150 ${
             isSelected
-              ? 'opacity-100 shadow-[0_0_0_4px_rgba(14,165,233,0.08)]'
+              ? 'border-sky-500/25 opacity-100 shadow-[0_0_0_4px_rgba(14,165,233,0.08),0_18px_34px_-22px_rgba(14,165,233,0.22)]'
               : 'opacity-0'
           }`}
         />
         <div
-          className={`relative flex h-full w-full items-center justify-center rounded-[0.9rem] border transition-[box-shadow,background-color,border-color,transform] duration-150 ${
-            interactionMode || isSelected
-              ? 'scale-[1.01] border-sky-500/55 bg-white/34 shadow-[0_20px_32px_-20px_rgba(14,165,233,0.38)]'
+          className={`relative flex h-full w-full items-center justify-center rounded-[0.95rem] border transition-[box-shadow,background-color,border-color,transform] duration-150 ${
+            interactionMode
+              ? 'scale-[1.01] border-sky-500/75 bg-white/36 shadow-[0_20px_32px_-20px_rgba(14,165,233,0.42)]'
+              : isSelected
+                ? 'scale-[1.01] border-sky-500/60 bg-white/30 shadow-[0_18px_28px_-22px_rgba(14,165,233,0.3)]'
               : 'border-transparent bg-transparent'
           }`}
         >
           <div
-            className={`pointer-events-none absolute inset-1 rounded-[0.7rem] border border-dashed transition-opacity duration-150 ${
+            className={`pointer-events-none absolute inset-[5px] rounded-[0.8rem] border transition-opacity duration-150 ${
               isInteractive
-                ? 'border-sky-500/40 opacity-100'
+                ? 'border-sky-500/42 opacity-100'
                 : 'border-transparent opacity-0'
             }`}
+            style={{
+              borderStyle: 'dashed',
+            }}
+          />
+          <div
+            className={`pointer-events-none absolute inset-0 rounded-[0.95rem] transition-opacity duration-150 ${
+              isInteractive ? 'opacity-100' : 'opacity-0'
+            } bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1),transparent_68%)]`}
           />
           <div
             className={`pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 rounded-full border border-sky-500/15 bg-white/92 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-sky-700 shadow-sm transition-all duration-150 ${
@@ -280,11 +290,11 @@ export function LogoPreviewLayer({
           <button
             type="button"
             aria-label="Redimensionner le logo"
-            className={`absolute -bottom-3 -right-3 flex h-8 w-8 touch-none items-center justify-center rounded-full border border-white/90 bg-stone-900/92 text-white shadow-[0_12px_22px_-14px_rgba(28,25,23,0.65)] transition-[transform,background-color,box-shadow,opacity] duration-150 ${
+            className={`absolute -bottom-4 -right-4 flex h-11 w-11 touch-none items-center justify-center rounded-full border border-white/95 text-white transition-[transform,background-color,box-shadow,opacity] duration-150 ${
               interactionMode === 'resize'
                 ? 'scale-110 cursor-se-resize bg-sky-600 opacity-100 shadow-[0_16px_28px_-14px_rgba(14,116,144,0.65)]'
                 : isSelected
-                  ? 'cursor-se-resize opacity-100'
+                  ? 'cursor-se-resize bg-stone-900/96 opacity-100 shadow-[0_12px_22px_-14px_rgba(28,25,23,0.65)]'
                   : 'cursor-se-resize opacity-0'
             }`}
             onPointerDown={(event) => {
@@ -299,11 +309,26 @@ export function LogoPreviewLayer({
               resetDocumentFeedback()
             }}
           >
-            <span className="pointer-events-none relative block h-3.5 w-3.5">
-              <span className="absolute bottom-[1px] right-[1px] h-[2px] w-2.5 rounded-full bg-white" />
-              <span className="absolute bottom-[1px] right-[1px] h-2.5 w-[2px] rounded-full bg-white" />
+            <span className="pointer-events-none relative block h-4.5 w-4.5">
+              <span className="absolute inset-[4px] rounded-[2px] border-r-2 border-b-2 border-white" />
             </span>
           </button>
+
+          <div
+            className={`pointer-events-none absolute -left-2 -top-2 h-3.5 w-3.5 rounded-full border border-white/95 bg-sky-500 shadow-[0_8px_18px_-12px_rgba(14,165,233,0.55)] transition-opacity duration-150 ${
+              isSelected ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
+          <div
+            className={`pointer-events-none absolute -right-2 -top-2 h-3.5 w-3.5 rounded-full border border-white/95 bg-sky-500 shadow-[0_8px_18px_-12px_rgba(14,165,233,0.55)] transition-opacity duration-150 ${
+              isSelected ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
+          <div
+            className={`pointer-events-none absolute -bottom-2 -left-2 h-3.5 w-3.5 rounded-full border border-white/95 bg-sky-500 shadow-[0_8px_18px_-12px_rgba(14,165,233,0.55)] transition-opacity duration-150 ${
+              isSelected ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
         </div>
       </div>
     </div>

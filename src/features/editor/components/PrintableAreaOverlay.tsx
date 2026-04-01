@@ -9,7 +9,7 @@ export function PrintableAreaOverlay({
 }: PrintableAreaOverlayProps) {
   return (
     <div
-      className="pointer-events-none absolute rounded-[1rem] border border-dashed border-sky-500/40 bg-[linear-gradient(180deg,rgba(186,230,253,0.06),rgba(186,230,253,0.02))] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.28)]"
+      className="pointer-events-none absolute rounded-[1.05rem] border border-sky-500/55 bg-[linear-gradient(180deg,rgba(186,230,253,0.08),rgba(255,255,255,0.03))] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.38),0_0_0_1px_rgba(14,165,233,0.04)]"
       style={{
         height: `${area.height}%`,
         left: `${area.x}%`,
@@ -17,14 +17,15 @@ export function PrintableAreaOverlay({
         width: `${area.width}%`,
       }}
     >
-      <div className="absolute inset-1 rounded-[0.8rem] border border-white/25" />
-      <div className="absolute -top-2 left-2 rounded-full border border-sky-500/10 bg-white/88 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-sky-700/90 shadow-sm">
+      <div className="absolute inset-[5px] rounded-[0.85rem] border border-white/30" />
+      <div className="absolute inset-0 rounded-[1.05rem] bg-[linear-gradient(135deg,rgba(255,255,255,0.18),transparent_42%)]" />
+      <div className="absolute -top-2 left-2 rounded-full border border-sky-500/12 bg-white/90 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-sky-700/90 shadow-sm">
         Zone imprimable
       </div>
-      <div className="absolute left-1 top-1 h-3 w-3 rounded-tl-[0.65rem] border-l-2 border-t-2 border-sky-500/50" />
-      <div className="absolute right-1 top-1 h-3 w-3 rounded-tr-[0.65rem] border-r-2 border-t-2 border-sky-500/50" />
-      <div className="absolute bottom-1 left-1 h-3 w-3 rounded-bl-[0.65rem] border-b-2 border-l-2 border-sky-500/50" />
-      <div className="absolute bottom-1 right-1 h-3 w-3 rounded-br-[0.65rem] border-b-2 border-r-2 border-sky-500/50" />
+      <div className="absolute left-1.5 top-1.5 h-3.5 w-3.5 rounded-tl-[0.75rem] border-l-2 border-t-2 border-sky-500/65" />
+      <div className="absolute right-1.5 top-1.5 h-3.5 w-3.5 rounded-tr-[0.75rem] border-r-2 border-t-2 border-sky-500/65" />
+      <div className="absolute bottom-1.5 left-1.5 h-3.5 w-3.5 rounded-bl-[0.75rem] border-b-2 border-l-2 border-sky-500/65" />
+      <div className="absolute bottom-1.5 right-1.5 h-3.5 w-3.5 rounded-br-[0.75rem] border-b-2 border-r-2 border-sky-500/65" />
     </div>
   )
 }
