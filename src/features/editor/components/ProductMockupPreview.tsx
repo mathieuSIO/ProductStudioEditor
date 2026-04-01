@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import type { RefObject } from 'react'
 
 import type {
   DesignElement,
@@ -21,6 +22,7 @@ type ProductMockupPreviewProps = {
   productColorLabel: string
   productView: ProductView
   activeView: ProductViewId
+  selectionSafeAreaRef: RefObject<HTMLDivElement | null>
 }
 
 export function ProductMockupPreview({
@@ -33,6 +35,7 @@ export function ProductMockupPreview({
   productColorLabel,
   productView,
   activeView,
+  selectionSafeAreaRef,
 }: ProductMockupPreviewProps) {
   const logoLayerRef = useRef<HTMLDivElement | null>(null)
   const realMockupAsset =
@@ -55,7 +58,11 @@ export function ProductMockupPreview({
 
       if (
         eventTarget instanceof Node &&
-        logoLayerRef.current.contains(eventTarget)
+        isWithinSelectionSafeArea(
+          eventTarget,
+          logoLayerRef.current,
+          selectionSafeAreaRef.current,
+        )
       ) {
         return
       }
@@ -72,7 +79,7 @@ export function ProductMockupPreview({
         true,
       )
     }
-  }, [isLogoSelected, onElementSelect])
+  }, [isLogoSelected, onElementSelect, selectionSafeAreaRef])
 
   return (
     <div className="mx-auto flex min-h-[18rem] w-full max-w-[28rem] items-center justify-center sm:min-h-[20rem] sm:max-w-[34rem] lg:max-w-[40rem] xl:max-w-[46rem] 2xl:max-w-[50rem]">
@@ -167,6 +174,21 @@ export function ProductMockupPreview({
         </div>
       </div>
     </div>
+  )
+}
+
+function isWithinSelectionSafeArea(
+  eventTarget: Node,
+  logoLayerElement: HTMLDivElement,
+  selectionSafeAreaElement: HTMLDivElement | null,
+) {
+  if (logoLayerElement.contains(eventTarget)) {
+    return true
+  }
+
+  return Boolean(
+    selectionSafeAreaElement &&
+      selectionSafeAreaElement.contains(eventTarget),
   )
 }
 

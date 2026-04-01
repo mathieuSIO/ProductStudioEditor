@@ -1,9 +1,12 @@
+import { useRef } from 'react'
+
 import { useEditorStudio } from '../hooks/useEditorStudio'
 import { EditorCanvasArea } from './EditorCanvasArea'
 import { EditorSidebarLeft } from './EditorSidebarLeft'
 import { EditorSidebarRight } from './EditorSidebarRight'
 
 export function EditorLayout() {
+  const logoInspectorRef = useRef<HTMLDivElement | null>(null)
   const {
     activeLogoElement,
     activeProductView,
@@ -61,10 +64,14 @@ export function EditorLayout() {
           availableViews={availableViews}
           onViewSelect={setActiveView}
           productView={activeProductView}
+          selectionSafeAreaRef={logoInspectorRef}
         />
       </div>
 
-      <div className="order-3 lg:order-2 xl:order-3 xl:max-w-[14.5rem] xl:justify-self-end">
+      <div
+        ref={logoInspectorRef}
+        className="order-3 lg:order-2 xl:order-3 xl:max-w-[14.5rem] xl:justify-self-end"
+      >
         <EditorSidebarRight
           activeView={activeView}
           logoElement={activeLogoElement}

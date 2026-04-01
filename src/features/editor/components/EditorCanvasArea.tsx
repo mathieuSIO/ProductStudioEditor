@@ -1,3 +1,5 @@
+import type { RefObject } from 'react'
+
 import { PanelCard } from '../../../components/ui/PanelCard'
 import type {
   DesignElement,
@@ -21,6 +23,7 @@ type EditorCanvasAreaProps = {
   activeView: ProductViewId
   availableViews: ProductViewId[]
   onViewSelect: (view: ProductViewId) => void
+  selectionSafeAreaRef: RefObject<HTMLDivElement | null>
 }
 
 export function EditorCanvasArea({
@@ -35,6 +38,7 @@ export function EditorCanvasArea({
   activeView,
   availableViews,
   onViewSelect,
+  selectionSafeAreaRef,
 }: EditorCanvasAreaProps) {
   return (
     <section className="flex min-h-[420px] flex-col xl:min-h-[760px]">
@@ -69,6 +73,7 @@ export function EditorCanvasArea({
                     productColorLabel={productColor.label}
                     productView={productView}
                     activeView={activeView}
+                    selectionSafeAreaRef={selectionSafeAreaRef}
                   />
                 </div>
               </div>
