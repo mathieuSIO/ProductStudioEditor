@@ -1,7 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 
-import { minLogoSizePercent } from '../constants/logoPlacement'
-import type { DesignElement, LogoPosition, LogoSize, PrintableArea } from '../types'
+import { minLogoSizePercent } from '../../constants/logoPlacement'
+import type {
+  DesignElement,
+  LogoPosition,
+  LogoSize,
+  PrintableArea,
+} from '../../types'
 
 type LogoPreviewLayerProps = {
   area: PrintableArea

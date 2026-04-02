@@ -1,6 +1,6 @@
 import { useId } from 'react'
 
-import type { Product, ProductMockup } from '../types'
+import type { Product, ProductMockup } from '../../types'
 
 type ProductSelectorProps = {
   onSelect: (productId: Product['id']) => void

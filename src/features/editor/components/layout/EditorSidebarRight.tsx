@@ -1,4 +1,4 @@
-import { PanelCard } from '../../../components/ui/PanelCard'
+import { PanelCard } from '../../../../components/ui/PanelCard'
 import type {
   DesignElement,
   EditorElementId,
@@ -8,10 +8,10 @@ import type {
   ProductSize,
   ProductView,
   ProductViewId,
-} from '../types'
-import { LogoControlsPanel } from './LogoControlsPanel'
-import { LogoInspectorPanel } from './LogoInspectorPanel'
-import { ProductQuantityPanel } from './ProductQuantityPanel'
+} from '../../types'
+import { LogoControlsPanel } from '../panels/LogoControlsPanel'
+import { LogoInspectorPanel } from '../panels/LogoInspectorPanel'
+import { ProductQuantityPanel } from '../panels/ProductQuantityPanel'
 
 type EditorSidebarRightProps = {
   activeView: ProductViewId

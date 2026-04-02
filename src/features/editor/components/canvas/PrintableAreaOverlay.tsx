@@ -1,4 +1,4 @@
-import type { PrintableArea } from '../types'
+import type { PrintableArea } from '../../types'
 
 type PrintableAreaOverlayProps = {
   area: PrintableArea

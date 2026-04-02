@@ -1,9 +1,9 @@
-export { EditorLayout } from './components/EditorLayout'
+export { EditorLayout } from './components/layout/EditorLayout'
 export { useEditorStudio } from './hooks/useEditorStudio'
-export { LogoControlsPanel } from './components/LogoControlsPanel'
-export { LogoPreviewLayer } from './components/LogoPreviewLayer'
-export { LogoUploadPanel } from './components/LogoUploadPanel'
-export { ProductSelector } from './components/ProductSelector'
+export { LogoControlsPanel } from './components/panels/LogoControlsPanel'
+export { LogoPreviewLayer } from './components/canvas/LogoPreviewLayer'
+export { LogoUploadPanel } from './components/panels/LogoUploadPanel'
+export { ProductSelector } from './components/selectors/ProductSelector'
 export { mockProducts } from './data/mockProducts'
 export type {
   LogoManualControls,

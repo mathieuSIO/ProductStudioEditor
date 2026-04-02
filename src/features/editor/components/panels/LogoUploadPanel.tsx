@@ -1,7 +1,7 @@
 import { useId, useRef } from 'react'
 
-import { acceptedLogoMimeTypes } from '../constants/logoUpload'
-import type { UploadedLogo } from '../types'
+import { acceptedLogoMimeTypes } from '../../constants/logoUpload'
+import type { UploadedLogo } from '../../types'
 
 type LogoUploadPanelProps = {
   errorMessage: string | null

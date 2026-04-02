@@ -4,7 +4,7 @@ import type {
   Product,
   ProductView,
   ProductViewId,
-} from '../types'
+} from '../../types'
 
 type LogoInspectorPanelProps = {
   activeView: ProductViewId

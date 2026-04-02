@@ -8,7 +8,7 @@ import type {
   ProductMockup,
   ProductView,
   ProductViewId,
-} from '../types'
+} from '../../types'
 import { LogoPreviewLayer } from './LogoPreviewLayer'
 import { PrintableAreaOverlay } from './PrintableAreaOverlay'
 
@@ -118,44 +118,17 @@ export function ProductMockupPreview({
             </div>
           </div>
         ) : (
-          <div className={getFallbackMockupClasses(productView.mockup, activeView)}>
-            <div ref={logoLayerRef} className="absolute inset-0 z-30">
-              <LogoPreviewLayer
-                area={productView.printableArea}
-                isSelected={isLogoSelected}
-                element={logoElement}
-                onPositionChange={onLogoPositionChange}
-                onSizeChange={onLogoSizeChange}
-                onSelect={() => onElementSelect('logo')}
-              />
-            </div>
-
-            {isLogoSelected ? (
-              <div className="pointer-events-none absolute inset-0 z-20">
-                <PrintableAreaOverlay area={productView.printableArea} />
-              </div>
-            ) : null}
-
-            {renderMockupDetails(productView.mockup, activeView)}
-
-            {activeView === 'front' ? (
-              <>
-                <div className="pointer-events-none absolute inset-x-[14%] top-[12%] h-[10%] rounded-t-[1.25rem] bg-white/82 blur-[1px]" />
-                <div className="pointer-events-none absolute inset-x-[18%] bottom-[14%] h-[18%] rounded-[1.5rem] bg-stone-300/45 blur-xl" />
-                <div className="pointer-events-none absolute inset-x-[22%] top-[22%] h-[36%] rounded-[1.75rem] bg-white/16" />
-              </>
-            ) : (
-              <>
-                <div className="pointer-events-none absolute inset-x-[18%] top-[16%] h-[12%] rounded-[1.25rem] bg-stone-200/65 blur-lg" />
-                <div className="pointer-events-none absolute inset-x-[24%] top-[26%] h-[28%] rounded-[1.75rem] border border-white/40 bg-white/10" />
-                <div className="pointer-events-none absolute inset-x-[20%] bottom-[16%] h-[14%] rounded-[1.5rem] bg-stone-300/38 blur-xl" />
-              </>
-            )}
-
-            <div className="pointer-events-none absolute left-3 top-3 rounded-full border border-stone-200 bg-white/92 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 shadow-sm">
-              {fallbackMockupAsset?.note}
-            </div>
-          </div>
+          <FallbackMockupPreview
+            activeView={activeView}
+            fallbackNote={fallbackMockupAsset?.note}
+            isLogoSelected={isLogoSelected}
+            logoElement={logoElement}
+            logoLayerRef={logoLayerRef}
+            onElementSelect={onElementSelect}
+            onLogoPositionChange={onLogoPositionChange}
+            onLogoSizeChange={onLogoSizeChange}
+            productView={productView}
+          />
         )}
 
         {isLogoSelected ? (
@@ -172,6 +145,71 @@ export function ProductMockupPreview({
             Vue {getViewLabel(activeView)}
           </p>
         </div>
+      </div>
+    </div>
+  )
+}
+
+type FallbackMockupPreviewProps = {
+  activeView: ProductViewId
+  fallbackNote: string | undefined
+  isLogoSelected: boolean
+  logoElement: DesignElement | null
+  logoLayerRef: RefObject<HTMLDivElement | null>
+  onElementSelect: (elementId: EditorElementId | null) => void
+  onLogoPositionChange: (position: DesignElement['position']) => void
+  onLogoSizeChange: (size: DesignElement['size']) => void
+  productView: ProductView
+}
+
+function FallbackMockupPreview({
+  activeView,
+  fallbackNote,
+  isLogoSelected,
+  logoElement,
+  logoLayerRef,
+  onElementSelect,
+  onLogoPositionChange,
+  onLogoSizeChange,
+  productView,
+}: FallbackMockupPreviewProps) {
+  return (
+    <div className={getFallbackMockupClasses(productView.mockup, activeView)}>
+      <div ref={logoLayerRef} className="absolute inset-0 z-30">
+        <LogoPreviewLayer
+          area={productView.printableArea}
+          isSelected={isLogoSelected}
+          element={logoElement}
+          onPositionChange={onLogoPositionChange}
+          onSizeChange={onLogoSizeChange}
+          onSelect={() => onElementSelect('logo')}
+        />
+      </div>
+
+      {isLogoSelected ? (
+        <div className="pointer-events-none absolute inset-0 z-20">
+          <PrintableAreaOverlay area={productView.printableArea} />
+        </div>
+      ) : null}
+
+      {renderMockupDetails(productView.mockup, activeView)}
+
+      {activeView === 'front' ? (
+        <>
+          <div className="pointer-events-none absolute inset-x-[14%] top-[12%] h-[10%] rounded-t-[1.25rem] bg-white/82 blur-[1px]" />
+          <div className="pointer-events-none absolute inset-x-[18%] bottom-[14%] h-[18%] rounded-[1.5rem] bg-stone-300/45 blur-xl" />
+          <div className="pointer-events-none absolute inset-x-[22%] top-[22%] h-[36%] rounded-[1.75rem] bg-white/16" />
+        </>
+      ) : (
+        <>
+          <div className="pointer-events-none absolute inset-x-[18%] top-[16%] h-[12%] rounded-[1.25rem] bg-stone-200/65 blur-lg" />
+          <div className="pointer-events-none absolute inset-x-[24%] top-[26%] h-[28%] rounded-[1.75rem] border border-white/40 bg-white/10" />
+          <div className="pointer-events-none absolute inset-x-[20%] bottom-[16%] h-[14%] rounded-[1.5rem] bg-stone-300/38 blur-xl" />
+        </>
+      )}
+
+      <div className="pointer-events-none absolute left-3 top-3 rounded-full border border-stone-200 bg-white/92 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500 shadow-sm">
+        {fallbackNote}
       </div>
     </div>
   )

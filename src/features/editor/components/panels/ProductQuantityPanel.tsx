@@ -1,4 +1,4 @@
-import type { ProductSize } from '../types'
+import type { ProductSize } from '../../types'
 
 type ProductQuantityPanelProps = {
   quantities: Record<string, number>

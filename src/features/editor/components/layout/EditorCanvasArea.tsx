@@ -1,6 +1,6 @@
 import type { RefObject } from 'react'
 
-import { PanelCard } from '../../../components/ui/PanelCard'
+import { PanelCard } from '../../../../components/ui/PanelCard'
 import type {
   DesignElement,
   EditorElementId,
@@ -8,9 +8,9 @@ import type {
   ProductColor,
   ProductView,
   ProductViewId,
-} from '../types'
-import { CustomPlacementCard } from './CustomPlacementCard'
-import { ProductMockupPreview } from './ProductMockupPreview'
+} from '../../types'
+import { ProductMockupPreview } from '../canvas/ProductMockupPreview'
+import { CustomPlacementCard } from '../panels/CustomPlacementCard'
 
 type EditorCanvasAreaProps = {
   logoElement: DesignElement | null
@@ -91,100 +91,122 @@ export function EditorCanvasArea({
                 </div>
               </div>
 
-              <div className="w-full">
-                <div className="grid grid-cols-3 gap-2">
-                  {availableViews.map((view) => {
-                    const isActive = view === activeView
-                    const viewConfig =
-                      view === 'custom' ? null : productColor.views[view]
-
-                    if (view !== 'custom' && !viewConfig) {
-                      return null
-                    }
-
-                    const resolvedViewConfig = view === 'custom' ? null : viewConfig
-
-                    return (
-                      <button
-                        key={view}
-                        type="button"
-                        onClick={() => onViewSelect(view)}
-                        aria-pressed={isActive}
-                        className={`rounded-[1rem] border px-2 py-2 text-left transition-all ${
-                          isActive
-                            ? 'border-stone-900 bg-stone-900 text-white shadow-[0_16px_28px_-22px_rgba(28,25,23,0.55)]'
-                            : 'border-stone-200 bg-white/92 text-stone-700 hover:border-stone-300 hover:bg-white'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <div
-                            className={`relative flex h-12 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[0.85rem] border ${
-                              isActive
-                                ? 'border-white/15 bg-white/10'
-                                : 'border-stone-200 bg-[linear-gradient(180deg,rgba(250,250,249,0.95),rgba(241,240,239,0.92))]'
-                            }`}
-                          >
-                            {view === 'custom' ? (
-                              <div className="pointer-events-none flex h-full w-full items-center justify-center">
-                                <span
-                                  className={`text-lg font-semibold ${
-                                    isActive ? 'text-white' : 'text-stone-600'
-                                  }`}
-                                >
-                                  ?
-                                </span>
-                              </div>
-                            ) : resolvedViewConfig?.asset.kind === 'image' ? (
-                              <img
-                                src={resolvedViewConfig.asset.src}
-                                alt={resolvedViewConfig.asset.alt}
-                                className="pointer-events-none h-full w-full object-contain"
-                                draggable={false}
-                              />
-                            ) : (
-                              <div className="pointer-events-none flex h-full w-full items-center justify-center">
-                                <div
-                                  className={`shadow-[0_14px_20px_-18px_rgba(120,113,108,0.48)] ${getThumbnailMockupClasses(
-                                    resolvedViewConfig!.mockup,
-                                    view,
-                                  )}`}
-                                  style={{ backgroundColor: productColor.swatchHex }}
-                                />
-                              </div>
-                            )}
-
-                            <div className="absolute inset-x-2 bottom-1.5 h-2 rounded-full bg-stone-300/25 blur-sm" />
-                          </div>
-
-                          <div className="min-w-0">
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.18em]">
-                              {getViewLabel(view)}
-                            </p>
-                            <p
-                              className={`mt-0.5 text-[11px] ${
-                                isActive ? 'text-white/72' : 'text-stone-500'
-                              }`}
-                            >
-                              {view === 'custom'
-                                ? isActive
-                                  ? 'Demande active'
-                                  : 'Decrire'
-                                : isActive
-                                  ? 'Vue active'
-                                  : 'Basculer'}
-                            </p>
-                          </div>
-                        </div>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
+              <EditorViewSelector
+                activeView={activeView}
+                availableViews={availableViews}
+                productColor={productColor}
+                onViewSelect={onViewSelect}
+              />
             </div>
           </div>
         </div>
       </PanelCard>
     </section>
+  )
+}
+
+type EditorViewSelectorProps = {
+  activeView: ProductViewId
+  availableViews: ProductViewId[]
+  productColor: ProductColor
+  onViewSelect: (view: ProductViewId) => void
+}
+
+function EditorViewSelector({
+  activeView,
+  availableViews,
+  productColor,
+  onViewSelect,
+}: EditorViewSelectorProps) {
+  return (
+    <div className="w-full">
+      <div className="grid grid-cols-3 gap-2">
+        {availableViews.map((view) => {
+          const isActive = view === activeView
+          const viewConfig = view === 'custom' ? null : productColor.views[view]
+
+          if (view !== 'custom' && !viewConfig) {
+            return null
+          }
+
+          const resolvedViewConfig = view === 'custom' ? null : viewConfig
+
+          return (
+            <button
+              key={view}
+              type="button"
+              onClick={() => onViewSelect(view)}
+              aria-pressed={isActive}
+              className={`rounded-[1rem] border px-2 py-2 text-left transition-all ${
+                isActive
+                  ? 'border-stone-900 bg-stone-900 text-white shadow-[0_16px_28px_-22px_rgba(28,25,23,0.55)]'
+                  : 'border-stone-200 bg-white/92 text-stone-700 hover:border-stone-300 hover:bg-white'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <div
+                  className={`relative flex h-12 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[0.85rem] border ${
+                    isActive
+                      ? 'border-white/15 bg-white/10'
+                      : 'border-stone-200 bg-[linear-gradient(180deg,rgba(250,250,249,0.95),rgba(241,240,239,0.92))]'
+                  }`}
+                >
+                  {view === 'custom' ? (
+                    <div className="pointer-events-none flex h-full w-full items-center justify-center">
+                      <span
+                        className={`text-lg font-semibold ${
+                          isActive ? 'text-white' : 'text-stone-600'
+                        }`}
+                      >
+                        ?
+                      </span>
+                    </div>
+                  ) : resolvedViewConfig?.asset.kind === 'image' ? (
+                    <img
+                      src={resolvedViewConfig.asset.src}
+                      alt={resolvedViewConfig.asset.alt}
+                      className="pointer-events-none h-full w-full object-contain"
+                      draggable={false}
+                    />
+                  ) : (
+                    <div className="pointer-events-none flex h-full w-full items-center justify-center">
+                      <div
+                        className={`shadow-[0_14px_20px_-18px_rgba(120,113,108,0.48)] ${getThumbnailMockupClasses(
+                          resolvedViewConfig!.mockup,
+                          view,
+                        )}`}
+                        style={{ backgroundColor: productColor.swatchHex }}
+                      />
+                    </div>
+                  )}
+
+                  <div className="absolute inset-x-2 bottom-1.5 h-2 rounded-full bg-stone-300/25 blur-sm" />
+                </div>
+
+                <div className="min-w-0">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em]">
+                    {getViewLabel(view)}
+                  </p>
+                  <p
+                    className={`mt-0.5 text-[11px] ${
+                      isActive ? 'text-white/72' : 'text-stone-500'
+                    }`}
+                  >
+                    {view === 'custom'
+                      ? isActive
+                        ? 'Demande active'
+                        : 'Decrire'
+                      : isActive
+                        ? 'Vue active'
+                        : 'Basculer'}
+                  </p>
+                </div>
+              </div>
+            </button>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 

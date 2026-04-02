@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 
-import { useEditorStudio } from '../hooks/useEditorStudio'
+import { useEditorStudio } from '../../hooks/useEditorStudio'
 import { EditorCanvasArea } from './EditorCanvasArea'
 import { EditorSidebarLeft } from './EditorSidebarLeft'
 import { EditorSidebarRight } from './EditorSidebarRight'

@@ -1,8 +1,8 @@
-import { PanelCard } from '../../../components/ui/PanelCard'
-import type { Product, ProductColorId, UploadedLogo } from '../types'
-import { LogoUploadPanel } from './LogoUploadPanel'
-import { ProductColorSelector } from './ProductColorSelector'
-import { ProductSelector } from './ProductSelector'
+import { PanelCard } from '../../../../components/ui/PanelCard'
+import type { Product, ProductColorId, UploadedLogo } from '../../types'
+import { LogoUploadPanel } from '../panels/LogoUploadPanel'
+import { ProductColorSelector } from '../selectors/ProductColorSelector'
+import { ProductSelector } from '../selectors/ProductSelector'
 
 type EditorSidebarLeftProps = {
   logo: UploadedLogo | null

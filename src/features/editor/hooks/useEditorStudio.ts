@@ -84,32 +84,22 @@ export function useEditorStudio() {
       initialSelectionByView,
     )
 
-  const selectedProduct =
-    mockProducts.find((product) => product.id === selectedProductId) ??
-    initialProduct
-  const selectedColor =
-    selectedProduct?.colors.find((color) => color.id === selectedColorId) ??
-    selectedProduct?.colors[0]
+  const selectedProduct = getSelectedProduct(selectedProductId)
+  const selectedColor = getSelectedColor(selectedProduct, selectedColorId)
   const availableViews = getAvailableViews(selectedColor)
-  const resolvedActiveView: ProductViewId = availableViews.includes(activeView)
-    ? activeView
-    : (availableViews[0] ?? 'front')
+  const resolvedActiveView = getResolvedActiveView(activeView, availableViews)
   const activeProductView =
     selectedColor && resolvedActiveView !== 'custom'
       ? selectedColor.views[resolvedActiveView] ?? null
       : null
-  const activeLogoElement =
-    elementsByView[resolvedActiveView ?? 'front']
-  const selectedElementId =
-    selectedElementIdByView[resolvedActiveView ?? 'front']
+  const activeLogoElement = elementsByView[resolvedActiveView]
+  const selectedElementId = selectedElementIdByView[resolvedActiveView]
   const selectedProductQuantities =
     quantitiesByProduct[selectedProduct?.id ?? initialProduct.id] ?? {}
-  const totalQuantity = selectedProduct
-    ? selectedProduct.sizes.reduce(
-        (total, size) => total + (selectedProductQuantities[size] ?? 0),
-        0,
-      )
-    : 0
+  const totalQuantity = getTotalQuantityForProduct(
+    selectedProduct,
+    selectedProductQuantities,
+  )
   const isLogoSelected = selectedElementId === activeLogoElement?.id
   const logoControls =
     isLogoSelected && activeLogoElement
@@ -162,15 +152,10 @@ export function useEditorStudio() {
       return
     }
 
-    if (!isAcceptedLogoMimeType(file.type)) {
-      setLogoErrorMessage(
-        'Fichier invalide. Utilise un logo PNG, JPG, JPEG, SVG ou PDF.',
-      )
-      return
-    }
+    const logoFileError = validateLogoFile(file)
 
-    if (file.size > maxLogoFileSizeInBytes) {
-      setLogoErrorMessage('Fichier trop lourd. Utilise un logo de 5 Mo maximum.')
+    if (logoFileError) {
+      setLogoErrorMessage(logoFileError)
       return
     }
 
@@ -182,24 +167,25 @@ export function useEditorStudio() {
           activeProductView.printableArea.height,
       )
 
-      setElementsByView((currentElementsByView) => {
-        const currentElement = currentElementsByView[resolvedActiveView]
+      setElementsByView((currentElementsByView) =>
+        updateElementForView(
+          currentElementsByView,
+          resolvedActiveView,
+          (currentElement) => {
+            if (currentElement) {
+              URL.revokeObjectURL(currentElement.asset.src)
+            }
 
-        if (currentElement) {
-          URL.revokeObjectURL(currentElement.asset.src)
-        }
-
-        return {
-          ...currentElementsByView,
-          [resolvedActiveView]: {
-            asset: uploadedLogo,
-            id: 'logo',
-            position: getCenteredLogoPosition(nextSize),
-            size: nextSize,
-            type: 'image',
+            return {
+              asset: uploadedLogo,
+              id: 'logo',
+              position: getCenteredLogoPosition(nextSize),
+              size: nextSize,
+              type: 'image',
+            }
           },
-        }
-      })
+        ),
+      )
       setLogoErrorMessage(null)
       setSelectedElementIdByView((currentSelectionByView) => ({
         ...currentSelectionByView,
@@ -219,18 +205,19 @@ export function useEditorStudio() {
       return
     }
 
-    setElementsByView((currentElementsByView) => {
-      const currentElement = currentElementsByView[resolvedActiveView]
+    setElementsByView((currentElementsByView) =>
+      updateElementForView(
+        currentElementsByView,
+        resolvedActiveView,
+        (currentElement) => {
+          if (currentElement) {
+            URL.revokeObjectURL(currentElement.asset.src)
+          }
 
-      if (currentElement) {
-        URL.revokeObjectURL(currentElement.asset.src)
-      }
-
-      return {
-        ...currentElementsByView,
-        [resolvedActiveView]: null,
-      }
-    })
+          return null
+        },
+      ),
+    )
     setSelectedElementIdByView((currentSelectionByView) => ({
       ...currentSelectionByView,
       [resolvedActiveView]: null,
@@ -256,23 +243,23 @@ export function useEditorStudio() {
       currentAspectRatio,
     )
 
-    setElementsByView((currentElementsByView) => {
-      const currentElement = currentElementsByView[resolvedActiveView]
-
-      return {
-        ...currentElementsByView,
-        [resolvedActiveView]: currentElement
-          ? {
-              ...currentElement,
-              position: {
-                x: normalizedControls.x,
-                y: normalizedControls.y,
-              },
-              size: nextSize,
-            }
-          : currentElement,
-      }
-    })
+    setElementsByView((currentElementsByView) =>
+      updateElementForView(
+        currentElementsByView,
+        resolvedActiveView,
+        (currentElement) =>
+          currentElement
+            ? {
+                ...currentElement,
+                position: {
+                  x: normalizedControls.x,
+                  y: normalizedControls.y,
+                },
+                size: nextSize,
+              }
+            : currentElement,
+      ),
+    )
   }
 
   function handleLogoPositionChange(position: DesignElement['position']) {
@@ -280,19 +267,19 @@ export function useEditorStudio() {
       return
     }
 
-    setElementsByView((currentElementsByView) => {
-      const currentElement = currentElementsByView[resolvedActiveView]
-
-      return {
-        ...currentElementsByView,
-        [resolvedActiveView]: currentElement
-          ? {
-              ...currentElement,
-              position,
-            }
-          : currentElement,
-      }
-    })
+    setElementsByView((currentElementsByView) =>
+      updateElementForView(
+        currentElementsByView,
+        resolvedActiveView,
+        (currentElement) =>
+          currentElement
+            ? {
+                ...currentElement,
+                position,
+              }
+            : currentElement,
+      ),
+    )
   }
 
   function handleLogoSizeChange(size: DesignElement['size']) {
@@ -300,19 +287,19 @@ export function useEditorStudio() {
       return
     }
 
-    setElementsByView((currentElementsByView) => {
-      const currentElement = currentElementsByView[resolvedActiveView]
-
-      return {
-        ...currentElementsByView,
-        [resolvedActiveView]: currentElement
-          ? {
-              ...currentElement,
-              size,
-            }
-          : currentElement,
-      }
-    })
+    setElementsByView((currentElementsByView) =>
+      updateElementForView(
+        currentElementsByView,
+        resolvedActiveView,
+        (currentElement) =>
+          currentElement
+            ? {
+                ...currentElement,
+                size,
+              }
+            : currentElement,
+      ),
+    )
   }
 
   function handleElementSelect(nextElementId: EditorElementId | null) {
@@ -425,4 +412,59 @@ function isAcceptedLogoMimeType(
   return acceptedLogoMimeTypes.some(
     (acceptedMimeType) => acceptedMimeType === mimeType,
   )
+}
+
+function getSelectedProduct(productId: ProductId) {
+  return mockProducts.find((product) => product.id === productId) ?? initialProduct
+}
+
+function getSelectedColor(
+  product: Product | undefined,
+  colorId: ProductColorId,
+) {
+  return product?.colors.find((color) => color.id === colorId) ?? product?.colors[0]
+}
+
+function getResolvedActiveView(
+  activeView: ProductViewId,
+  availableViews: ProductViewId[],
+): ProductViewId {
+  return availableViews.includes(activeView) ? activeView : (availableViews[0] ?? 'front')
+}
+
+function getTotalQuantityForProduct(
+  product: Product | undefined,
+  quantitiesBySize: Record<string, number>,
+) {
+  if (!product) {
+    return 0
+  }
+
+  return product.sizes.reduce(
+    (total, size) => total + (quantitiesBySize[size] ?? 0),
+    0,
+  )
+}
+
+function validateLogoFile(file: File) {
+  if (!isAcceptedLogoMimeType(file.type)) {
+    return 'Fichier invalide. Utilise un logo PNG, JPG, JPEG, SVG ou PDF.'
+  }
+
+  if (file.size > maxLogoFileSizeInBytes) {
+    return 'Fichier trop lourd. Utilise un logo de 5 Mo maximum.'
+  }
+
+  return null
+}
+
+function updateElementForView(
+  elementsByView: Record<ProductViewId, DesignElement | null>,
+  viewId: ProductViewId,
+  updater: (element: DesignElement | null) => DesignElement | null,
+) {
+  return {
+    ...elementsByView,
+    [viewId]: updater(elementsByView[viewId]),
+  }
 }

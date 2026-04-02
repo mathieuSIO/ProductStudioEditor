@@ -1,4 +1,4 @@
-import type { Product, ProductColorId } from '../types'
+import type { Product, ProductColorId } from '../../types'
 
 type ProductColorSelectorProps = {
   onSelect: (colorId: ProductColorId) => void

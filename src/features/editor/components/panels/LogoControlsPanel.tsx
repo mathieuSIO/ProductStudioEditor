@@ -1,5 +1,5 @@
-import { defaultLogoSizePercent } from '../constants/logoPlacement'
-import type { LogoManualControls } from '../types'
+import { defaultLogoSizePercent } from '../../constants/logoPlacement'
+import type { LogoManualControls } from '../../types'
 
 type LogoControlsPanelProps = {
   controls: LogoManualControls | null
