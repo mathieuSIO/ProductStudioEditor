@@ -19,14 +19,12 @@ export function EditorLayout() {
     elementsByView,
     handleColorSelect,
     handleElementSelect,
-    handleLogoControlsChange,
     handleLogoFileSelect,
     handleLogoPositionChange,
     handleLogoRemove,
     handleLogoSizeChange,
     handleProductSelect,
     handleQuantityChange,
-    logoControls,
     logoErrorMessage,
     products,
     quantitiesByProduct,
@@ -106,15 +104,9 @@ export function EditorLayout() {
         <EditorSidebarRight
           activeView={activeView}
           grandTotal={pricing.grandTotal}
-          logoElement={activeLogoElement}
-          logoControls={logoControls}
-          logosCount={pricing.logosCount}
-          onLogoControlsChange={handleLogoControlsChange}
           printTotal={pricing.printTotal}
           product={selectedProduct}
           productColor={selectedColor}
-          productView={activeProductView}
-          selectedElementId={selectedElementId}
           textileTotal={pricing.textileTotal}
           totalQuantity={pricing.totalQuantity}
         />

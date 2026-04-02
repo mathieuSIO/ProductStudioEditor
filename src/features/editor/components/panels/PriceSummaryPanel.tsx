@@ -1,6 +1,5 @@
 type PriceSummaryPanelProps = {
   grandTotal: number
-  logosCount: number
   printTotal: number
   textileTotal: number
   totalQuantity: number
@@ -8,9 +7,8 @@ type PriceSummaryPanelProps = {
 
 export function PriceSummaryPanel({
   grandTotal,
-  logosCount,
-  printTotal,
-  textileTotal,
+  //printTotal, utile pour l'administrateur ou le developpeur
+  //textileTotal, utile pour l'administrateur ou le developpeur
   totalQuantity,
 }: PriceSummaryPanelProps) {
   const hasQuantity = totalQuantity > 0
@@ -35,9 +33,10 @@ export function PriceSummaryPanel({
 
       <div className="mt-2.5 grid gap-1.5">
         <PriceRow label="Quantite totale" value={String(totalQuantity)} />
-        <PriceRow label="Logos pris en compte" value={String(logosCount)} />
+
+        {/* utile pour l'administrateur ou le developpeur
         <PriceRow label="Total textile" value={formatEuro(textileTotal)} />
-        <PriceRow label="Total impression" value={formatEuro(printTotal)} />
+        <PriceRow label="Total impression" value={formatEuro(printTotal)} /> */}
       </div>
 
       <div className="mt-2.5 rounded-[0.95rem] border border-stone-900 bg-stone-900 px-3 py-2.5 text-white">

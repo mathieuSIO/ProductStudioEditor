@@ -1,29 +1,17 @@
 import { PanelCard } from '../../../../components/ui/PanelCard'
 import type {
-  DesignElement,
-  EditorElementId,
-  LogoManualControls,
   Product,
   ProductColor,
-  ProductView,
   ProductViewId,
 } from '../../types'
-import { LogoControlsPanel } from '../panels/LogoControlsPanel'
-import { LogoInspectorPanel } from '../panels/LogoInspectorPanel'
 import { PriceSummaryPanel } from '../panels/PriceSummaryPanel'
 
 type EditorSidebarRightProps = {
   activeView: ProductViewId
   grandTotal: number
-  logoElement: DesignElement | null
-  logoControls: LogoManualControls | null
-  logosCount: number
-  onLogoControlsChange: (controls: LogoManualControls) => void
   printTotal: number
   product: Product
   productColor: ProductColor
-  productView: ProductView | null
-  selectedElementId: EditorElementId | null
   textileTotal: number
   totalQuantity: number
 }
@@ -31,15 +19,9 @@ type EditorSidebarRightProps = {
 export function EditorSidebarRight({
   activeView,
   grandTotal,
-  logoElement,
-  logoControls,
-  logosCount,
-  onLogoControlsChange,
   printTotal,
   product,
   productColor,
-  productView,
-  selectedElementId,
   textileTotal,
   totalQuantity,
 }: EditorSidebarRightProps) {
@@ -55,7 +37,7 @@ export function EditorSidebarRight({
           </span>
         }
       >
-        {activeView === 'custom' ? (
+        {activeView === 'custom' && (
           <div className="rounded-[1rem] border border-stone-200 bg-stone-50/80 p-2.5">
             <div className="flex items-center justify-between gap-2">
               <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-400">
@@ -77,24 +59,6 @@ export function EditorSidebarRight({
               </p>
             </div>
           </div>
-        ) : (
-          <>
-            <LogoControlsPanel
-              controls={logoControls}
-              printFormat={logoElement?.printFormat ?? null}
-              onChange={onLogoControlsChange}
-            />
-
-            {productView ? (
-              <LogoInspectorPanel
-                activeView={activeView}
-                logoElement={logoElement}
-                product={product}
-                productView={productView}
-                selectedElementId={selectedElementId}
-              />
-            ) : null}
-          </>
         )}
 
         <div className="rounded-[1rem] border border-stone-200 bg-stone-50/70 p-2.5">
@@ -110,20 +74,11 @@ export function EditorSidebarRight({
           <div className="mt-2 grid gap-1.5">
             <ContextRow label="Produit" value={product.name} />
             <ContextRow label="Couleur" value={productColor.label} />
-            <ContextRow
-              label="Zone"
-              value={
-                productView
-                  ? `${productView.printableArea.width}% x ${productView.printableArea.height}%`
-                  : 'Placement libre a decrire'
-              }
-            />
           </div>
         </div>
 
         <PriceSummaryPanel
           grandTotal={grandTotal}
-          logosCount={logosCount}
           printTotal={printTotal}
           textileTotal={textileTotal}
           totalQuantity={totalQuantity}
