@@ -1,1 +1,1 @@
-export type EditorElementId = 'logo'
+export type EditorElementId = string

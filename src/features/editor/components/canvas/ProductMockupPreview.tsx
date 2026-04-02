@@ -13,7 +13,7 @@ import { LogoPreviewLayer } from './LogoPreviewLayer'
 import { PrintableAreaOverlay } from './PrintableAreaOverlay'
 
 type ProductMockupPreviewProps = {
-  logoElement: DesignElement | null
+  logoElements: DesignElement[]
   onLogoPositionChange: (position: DesignElement['position']) => void
   onLogoSizeChange: (size: DesignElement['size']) => void
   selectedElementId: EditorElementId | null
@@ -26,7 +26,7 @@ type ProductMockupPreviewProps = {
 }
 
 export function ProductMockupPreview({
-  logoElement,
+  logoElements,
   onLogoPositionChange,
   onLogoSizeChange,
   selectedElementId,
@@ -42,10 +42,10 @@ export function ProductMockupPreview({
     productView.asset.kind === 'image' ? productView.asset : null
   const fallbackMockupAsset =
     productView.asset.kind === 'fallback' ? productView.asset : null
-  const isLogoSelected = selectedElementId === 'logo'
+  const hasSelectedLogo = Boolean(selectedElementId)
 
   useEffect(() => {
-    if (!isLogoSelected) {
+    if (!hasSelectedLogo) {
       return
     }
 
@@ -79,7 +79,7 @@ export function ProductMockupPreview({
         true,
       )
     }
-  }, [isLogoSelected, onElementSelect, selectionSafeAreaRef])
+  }, [hasSelectedLogo, onElementSelect, selectionSafeAreaRef])
 
   return (
     <div className="mx-auto flex min-h-[18rem] w-full max-w-[28rem] items-center justify-center sm:min-h-[20rem] sm:max-w-[34rem] lg:max-w-[40rem] xl:max-w-[46rem] 2xl:max-w-[50rem]">
@@ -100,17 +100,20 @@ export function ProductMockupPreview({
 
             <div className="absolute inset-0 z-20">
               <div ref={logoLayerRef} className="absolute inset-0 z-30">
-                <LogoPreviewLayer
-                  area={productView.printableArea}
-                  isSelected={isLogoSelected}
-                  element={logoElement}
-                  onPositionChange={onLogoPositionChange}
-                  onSizeChange={onLogoSizeChange}
-                  onSelect={() => onElementSelect('logo')}
-                />
+                {logoElements.map((logoElement) => (
+                  <LogoPreviewLayer
+                    key={logoElement.id}
+                    area={productView.printableArea}
+                    isSelected={selectedElementId === logoElement.id}
+                    element={logoElement}
+                    onPositionChange={onLogoPositionChange}
+                    onSizeChange={onLogoSizeChange}
+                    onSelect={() => onElementSelect(logoElement.id)}
+                  />
+                ))}
               </div>
 
-              {isLogoSelected ? (
+              {hasSelectedLogo ? (
                 <div className="pointer-events-none absolute inset-0 z-20">
                   <PrintableAreaOverlay area={productView.printableArea} />
                 </div>
@@ -121,9 +124,10 @@ export function ProductMockupPreview({
           <FallbackMockupPreview
             activeView={activeView}
             fallbackNote={fallbackMockupAsset?.note}
-            isLogoSelected={isLogoSelected}
-            logoElement={logoElement}
+            hasSelectedLogo={hasSelectedLogo}
+            logoElements={logoElements}
             logoLayerRef={logoLayerRef}
+            selectedElementId={selectedElementId}
             onElementSelect={onElementSelect}
             onLogoPositionChange={onLogoPositionChange}
             onLogoSizeChange={onLogoSizeChange}
@@ -131,7 +135,7 @@ export function ProductMockupPreview({
           />
         )}
 
-        {isLogoSelected ? (
+        {hasSelectedLogo ? (
           <div className="pointer-events-none absolute right-3 top-3 rounded-full border border-sky-200 bg-white/92 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-sky-700 shadow-sm">
             Edition active
           </div>
@@ -153,9 +157,10 @@ export function ProductMockupPreview({
 type FallbackMockupPreviewProps = {
   activeView: ProductViewId
   fallbackNote: string | undefined
-  isLogoSelected: boolean
-  logoElement: DesignElement | null
+  hasSelectedLogo: boolean
+  logoElements: DesignElement[]
   logoLayerRef: RefObject<HTMLDivElement | null>
+  selectedElementId: EditorElementId | null
   onElementSelect: (elementId: EditorElementId | null) => void
   onLogoPositionChange: (position: DesignElement['position']) => void
   onLogoSizeChange: (size: DesignElement['size']) => void
@@ -165,9 +170,10 @@ type FallbackMockupPreviewProps = {
 function FallbackMockupPreview({
   activeView,
   fallbackNote,
-  isLogoSelected,
-  logoElement,
+  hasSelectedLogo,
+  logoElements,
   logoLayerRef,
+  selectedElementId,
   onElementSelect,
   onLogoPositionChange,
   onLogoSizeChange,
@@ -176,17 +182,20 @@ function FallbackMockupPreview({
   return (
     <div className={getFallbackMockupClasses(productView.mockup, activeView)}>
       <div ref={logoLayerRef} className="absolute inset-0 z-30">
-        <LogoPreviewLayer
-          area={productView.printableArea}
-          isSelected={isLogoSelected}
-          element={logoElement}
-          onPositionChange={onLogoPositionChange}
-          onSizeChange={onLogoSizeChange}
-          onSelect={() => onElementSelect('logo')}
-        />
+        {logoElements.map((logoElement) => (
+          <LogoPreviewLayer
+            key={logoElement.id}
+            area={productView.printableArea}
+            isSelected={selectedElementId === logoElement.id}
+            element={logoElement}
+            onPositionChange={onLogoPositionChange}
+            onSizeChange={onLogoSizeChange}
+            onSelect={() => onElementSelect(logoElement.id)}
+          />
+        ))}
       </div>
 
-      {isLogoSelected ? (
+      {hasSelectedLogo ? (
         <div className="pointer-events-none absolute inset-0 z-20">
           <PrintableAreaOverlay area={productView.printableArea} />
         </div>

@@ -13,7 +13,7 @@ import { ProductMockupPreview } from '../canvas/ProductMockupPreview'
 import { CustomPlacementCard } from '../panels/CustomPlacementCard'
 
 type EditorCanvasAreaProps = {
-  logoElement: DesignElement | null
+  logoElements: DesignElement[]
   onLogoPositionChange: (position: DesignElement['position']) => void
   onLogoSizeChange: (size: DesignElement['size']) => void
   selectedElementId: EditorElementId | null
@@ -30,7 +30,7 @@ type EditorCanvasAreaProps = {
 }
 
 export function EditorCanvasArea({
-  logoElement,
+  logoElements,
   onLogoPositionChange,
   onLogoSizeChange,
   selectedElementId,
@@ -76,7 +76,7 @@ export function EditorCanvasArea({
                     />
                   ) : (
                     <ProductMockupPreview
-                      logoElement={logoElement}
+                      logoElements={logoElements}
                       onLogoPositionChange={onLogoPositionChange}
                       onLogoSizeChange={onLogoSizeChange}
                       selectedElementId={selectedElementId}

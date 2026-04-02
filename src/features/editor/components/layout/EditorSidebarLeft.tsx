@@ -1,31 +1,43 @@
 import { PanelCard } from '../../../../components/ui/PanelCard'
-import type { Product, ProductColorId, UploadedLogo } from '../../types'
+import type {
+  DesignElement,
+  EditorElementId,
+  Product,
+  ProductColorId,
+  UploadedLogo,
+} from '../../types'
 import { LogoUploadPanel } from '../panels/LogoUploadPanel'
 import { ProductColorSelector } from '../selectors/ProductColorSelector'
 import { ProductSelector } from '../selectors/ProductSelector'
 
 type EditorSidebarLeftProps = {
+  logos: DesignElement[]
   logo: UploadedLogo | null
   logoErrorMessage: string | null
   onColorSelect: (colorId: ProductColorId) => void
   onLogoFileSelect: (file: File | null) => void
   onLogoRemove: () => void
+  onLogoSelect: (elementId: EditorElementId | null) => void
   onProductSelect: (productId: Product['id']) => void
   products: Product[]
   selectedColorId: ProductColorId
+  selectedElementId: EditorElementId | null
   selectedProduct: Product
   selectedProductId: Product['id']
 }
 
 export function EditorSidebarLeft({
+  logos,
   logo,
   logoErrorMessage,
   onColorSelect,
   onLogoFileSelect,
   onLogoRemove,
+  onLogoSelect,
   onProductSelect,
   products,
   selectedColorId,
+  selectedElementId,
   selectedProduct,
   selectedProductId,
 }: EditorSidebarLeftProps) {
@@ -56,10 +68,13 @@ export function EditorSidebarLeft({
         />
 
         <LogoUploadPanel
+          logos={logos}
           logo={logo}
           errorMessage={logoErrorMessage}
           onFileSelect={onLogoFileSelect}
           onRemove={onLogoRemove}
+          onSelect={onLogoSelect}
+          selectedElementId={selectedElementId}
         />
       </PanelCard>
     </aside>

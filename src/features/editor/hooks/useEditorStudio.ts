@@ -29,10 +29,10 @@ const initialProduct = mockProducts[0]
 const initialColor = initialProduct?.colors[0]
 
 const initialElementsByView = {
-  front: null,
-  back: null,
-  custom: null,
-} satisfies Record<ProductViewId, DesignElement | null>
+  front: [],
+  back: [],
+  custom: [],
+} satisfies Record<ProductViewId, DesignElement[]>
 
 const initialSelectionByView = {
   front: null,
@@ -71,7 +71,7 @@ export function useEditorStudio() {
     initialColor?.id ?? 'white',
   )
   const [elementsByView, setElementsByView] = useState<
-    Record<ProductViewId, DesignElement | null>
+    Record<ProductViewId, DesignElement[]>
   >(initialElementsByView)
   const [logoErrorMessage, setLogoErrorMessage] = useState<string | null>(null)
   const [activeView, setActiveView] = useState<ProductViewId>('front')
@@ -92,22 +92,24 @@ export function useEditorStudio() {
     selectedColor && resolvedActiveView !== 'custom'
       ? selectedColor.views[resolvedActiveView] ?? null
       : null
-  const activeLogoElement = elementsByView[resolvedActiveView]
+  const activeLogoElements = elementsByView[resolvedActiveView]
   const selectedElementId = selectedElementIdByView[resolvedActiveView]
+  const activeLogoElement = getSelectedElement(
+    activeLogoElements,
+    selectedElementId,
+  )
   const selectedProductQuantities =
     quantitiesByProduct[selectedProduct?.id ?? initialProduct.id] ?? {}
   const totalQuantity = getTotalQuantityForProduct(
     selectedProduct,
     selectedProductQuantities,
   )
-  const isLogoSelected = selectedElementId === activeLogoElement?.id
-  const logoControls =
-    isLogoSelected && activeLogoElement
-      ? getLogoManualControls(
-          activeLogoElement.position,
-          activeLogoElement.size,
-        )
-      : null
+  const logoControls = activeLogoElement
+    ? getLogoManualControls(
+        activeLogoElement.position,
+        activeLogoElement.size,
+      )
+    : null
   const elementsByViewRef = useRef(elementsByView)
 
   useEffect(() => {
@@ -139,10 +141,10 @@ export function useEditorStudio() {
 
   useEffect(() => {
     return () => {
-      Object.values(elementsByViewRef.current).forEach((element) => {
-        if (element) {
+      Object.values(elementsByViewRef.current).forEach((elements) => {
+        elements.forEach((element) => {
           URL.revokeObjectURL(element.asset.src)
-        }
+        })
       })
     }
   }, [])
@@ -161,6 +163,7 @@ export function useEditorStudio() {
 
     try {
       const uploadedLogo = await createUploadedLogoFromFile(file)
+      const nextElementId = createEditorElementId()
       const nextSize = getDefaultLogoSize(
         (uploadedLogo.width ?? 1) / (uploadedLogo.height ?? 1),
         activeProductView.printableArea.width /
@@ -168,28 +171,18 @@ export function useEditorStudio() {
       )
 
       setElementsByView((currentElementsByView) =>
-        updateElementForView(
-          currentElementsByView,
-          resolvedActiveView,
-          (currentElement) => {
-            if (currentElement) {
-              URL.revokeObjectURL(currentElement.asset.src)
-            }
-
-            return {
-              asset: uploadedLogo,
-              id: 'logo',
-              position: getCenteredLogoPosition(nextSize),
-              size: nextSize,
-              type: 'image',
-            }
-          },
-        ),
+        appendElementToView(currentElementsByView, resolvedActiveView, {
+          asset: uploadedLogo,
+          id: nextElementId,
+          position: getCenteredLogoPosition(nextSize),
+          size: nextSize,
+          type: 'image',
+        }),
       )
       setLogoErrorMessage(null)
       setSelectedElementIdByView((currentSelectionByView) => ({
         ...currentSelectionByView,
-        [resolvedActiveView]: 'logo',
+        [resolvedActiveView]: nextElementId,
       }))
     } catch {
       setLogoErrorMessage(
@@ -201,21 +194,15 @@ export function useEditorStudio() {
   }
 
   function handleLogoRemove() {
-    if (!resolvedActiveView) {
+    if (!resolvedActiveView || !selectedElementId) {
       return
     }
 
     setElementsByView((currentElementsByView) =>
-      updateElementForView(
+      removeElementFromView(
         currentElementsByView,
         resolvedActiveView,
-        (currentElement) => {
-          if (currentElement) {
-            URL.revokeObjectURL(currentElement.asset.src)
-          }
-
-          return null
-        },
+        selectedElementId,
       ),
     )
     setSelectedElementIdByView((currentSelectionByView) => ({
@@ -226,7 +213,7 @@ export function useEditorStudio() {
   }
 
   function handleLogoControlsChange(controls: LogoManualControls) {
-    if (!activeLogoElement || !resolvedActiveView) {
+    if (!activeLogoElement || !resolvedActiveView || !selectedElementId) {
       return
     }
 
@@ -244,60 +231,54 @@ export function useEditorStudio() {
     )
 
     setElementsByView((currentElementsByView) =>
-      updateElementForView(
+      updateElementInView(
         currentElementsByView,
         resolvedActiveView,
-        (currentElement) =>
-          currentElement
-            ? {
-                ...currentElement,
-                position: {
-                  x: normalizedControls.x,
-                  y: normalizedControls.y,
-                },
-                size: nextSize,
-              }
-            : currentElement,
+        selectedElementId,
+        (currentElement) => ({
+          ...currentElement,
+          position: {
+            x: normalizedControls.x,
+            y: normalizedControls.y,
+          },
+          size: nextSize,
+        }),
       ),
     )
   }
 
   function handleLogoPositionChange(position: DesignElement['position']) {
-    if (!resolvedActiveView) {
+    if (!resolvedActiveView || !selectedElementId) {
       return
     }
 
     setElementsByView((currentElementsByView) =>
-      updateElementForView(
+      updateElementInView(
         currentElementsByView,
         resolvedActiveView,
-        (currentElement) =>
-          currentElement
-            ? {
-                ...currentElement,
-                position,
-              }
-            : currentElement,
+        selectedElementId,
+        (currentElement) => ({
+          ...currentElement,
+          position,
+        }),
       ),
     )
   }
 
   function handleLogoSizeChange(size: DesignElement['size']) {
-    if (!resolvedActiveView) {
+    if (!resolvedActiveView || !selectedElementId) {
       return
     }
 
     setElementsByView((currentElementsByView) =>
-      updateElementForView(
+      updateElementInView(
         currentElementsByView,
         resolvedActiveView,
-        (currentElement) =>
-          currentElement
-            ? {
-                ...currentElement,
-                size,
-              }
-            : currentElement,
+        selectedElementId,
+        (currentElement) => ({
+          ...currentElement,
+          size,
+        }),
       ),
     )
   }
@@ -367,6 +348,7 @@ export function useEditorStudio() {
 
   return {
     activeLogoElement,
+    activeLogoElements,
     activeProductView,
     activeView: resolvedActiveView ?? activeView,
     availableViews,
@@ -458,13 +440,63 @@ function validateLogoFile(file: File) {
   return null
 }
 
-function updateElementForView(
-  elementsByView: Record<ProductViewId, DesignElement | null>,
+function getSelectedElement(
+  elements: DesignElement[],
+  selectedElementId: EditorElementId | null,
+) {
+  if (!selectedElementId) {
+    return null
+  }
+
+  return elements.find((element) => element.id === selectedElementId) ?? null
+}
+
+function appendElementToView(
+  elementsByView: Record<ProductViewId, DesignElement[]>,
   viewId: ProductViewId,
-  updater: (element: DesignElement | null) => DesignElement | null,
+  element: DesignElement,
 ) {
   return {
     ...elementsByView,
-    [viewId]: updater(elementsByView[viewId]),
+    [viewId]: [...elementsByView[viewId], element],
   }
+}
+
+function updateElementInView(
+  elementsByView: Record<ProductViewId, DesignElement[]>,
+  viewId: ProductViewId,
+  elementId: EditorElementId,
+  updater: (element: DesignElement) => DesignElement,
+) {
+  return {
+    ...elementsByView,
+    [viewId]: elementsByView[viewId].map((element) =>
+      element.id === elementId ? updater(element) : element,
+    ),
+  }
+}
+
+function removeElementFromView(
+  elementsByView: Record<ProductViewId, DesignElement[]>,
+  viewId: ProductViewId,
+  elementId: EditorElementId,
+) {
+  return {
+    ...elementsByView,
+    [viewId]: elementsByView[viewId].filter((element) => {
+      if (element.id === elementId) {
+        URL.revokeObjectURL(element.asset.src)
+        return false
+      }
+
+      return true
+    }),
+  }
+}
+
+let nextEditorElementId = 0
+
+function createEditorElementId(): EditorElementId {
+  nextEditorElementId += 1
+  return `logo-${nextEditorElementId}`
 }

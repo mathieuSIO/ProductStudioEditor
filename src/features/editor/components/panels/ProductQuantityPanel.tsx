@@ -34,28 +34,58 @@ export function ProductQuantityPanel({
       </div>
 
       <div className="mt-2.5 grid gap-1.5">
-        {sizes.map((size) => (
-          <label
-            key={size}
-            className="flex items-center justify-between gap-3 rounded-[0.95rem] border border-stone-200 bg-white px-3 py-2"
-          >
-            <span className="text-sm font-medium text-stone-800">
-              {size === 'TU' ? 'Taille unique' : size}
-            </span>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(7.5rem,1fr))] gap-1.5">
+          {sizes.map((size) => {
+            const quantity = quantities[size] ?? 0
 
-            <input
-              type="number"
-              min={0}
-              inputMode="numeric"
-              value={quantities[size] ?? 0}
-              onChange={(event) => {
-                const nextValue = Number(event.target.value)
-                onQuantityChange(size, Number.isNaN(nextValue) ? 0 : nextValue)
-              }}
-              className="w-20 rounded-[0.8rem] border border-stone-200 bg-stone-50 px-2.5 py-1.5 text-right text-sm font-medium text-stone-800 outline-none transition-colors focus:border-stone-400 focus:bg-white"
-            />
-          </label>
-        ))}
+            return (
+              <div
+                key={size}
+                className="rounded-[0.95rem] border border-stone-200 bg-white px-3 py-2.5"
+              >
+                <p className="text-center text-sm font-semibold text-stone-800">
+                  {size === 'TU' ? 'Taille unique' : size}
+                </p>
+
+                <div className="mt-2 flex items-center justify-center gap-2">
+                  <button
+                    type="button"
+                    aria-label={`Retirer une unite pour ${size === 'TU' ? 'taille unique' : size}`}
+                    onClick={() => onQuantityChange(size, quantity - 1)}
+                    className="flex h-9 w-9 items-center justify-center rounded-[0.8rem] border border-stone-200 bg-stone-50 text-base font-semibold text-stone-700 transition-colors hover:border-stone-300 hover:bg-white"
+                  >
+                    -
+                  </button>
+
+                  <label className="sr-only" htmlFor={`quantity-${size}`}>
+                    {size === 'TU' ? 'Quantite taille unique' : `Quantite ${size}`}
+                  </label>
+                  <input
+                    id={`quantity-${size}`}
+                    type="number"
+                    min={0}
+                    inputMode="numeric"
+                    value={quantity}
+                    onChange={(event) => {
+                      const nextValue = Number(event.target.value)
+                      onQuantityChange(size, Number.isNaN(nextValue) ? 0 : nextValue)
+                    }}
+                    className="w-14 rounded-[0.8rem] border border-stone-200 bg-stone-50 px-2 py-1.5 text-center text-sm font-medium text-stone-800 outline-none transition-colors focus:border-stone-400 focus:bg-white"
+                  />
+
+                  <button
+                    type="button"
+                    aria-label={`Ajouter une unite pour ${size === 'TU' ? 'taille unique' : size}`}
+                    onClick={() => onQuantityChange(size, quantity + 1)}
+                    className="flex h-9 w-9 items-center justify-center rounded-[0.8rem] border border-stone-200 bg-stone-50 text-base font-semibold text-stone-700 transition-colors hover:border-stone-300 hover:bg-white"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
       </div>
 
       <div className="mt-2.5 rounded-[0.95rem] border border-stone-200 bg-white px-3 py-2.5">

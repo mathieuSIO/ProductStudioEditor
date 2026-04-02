@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 
 import { useEditorStudio } from '../../hooks/useEditorStudio'
+import { ProductQuantityPanel } from '../panels/ProductQuantityPanel'
 import { EditorCanvasArea } from './EditorCanvasArea'
 import { EditorSidebarLeft } from './EditorSidebarLeft'
 import { EditorSidebarRight } from './EditorSidebarRight'
@@ -9,6 +10,7 @@ export function EditorLayout() {
   const logoInspectorRef = useRef<HTMLDivElement | null>(null)
   const {
     activeLogoElement,
+    activeLogoElements,
     activeProductView,
     activeView,
     availableViews,
@@ -43,22 +45,25 @@ export function EditorLayout() {
     <section className="grid gap-2.5 md:gap-3 lg:grid-cols-[minmax(13.5rem,14.25rem)_minmax(0,1fr)] xl:grid-cols-[13.5rem_minmax(0,2.2fr)_14.25rem] xl:items-start 2xl:grid-cols-[13.75rem_minmax(0,2.4fr)_14.5rem]">
       <div className="order-2 lg:order-1 xl:order-1 xl:max-w-[13.5rem]">
         <EditorSidebarLeft
+          logos={activeLogoElements}
           logo={activeLogoElement?.asset ?? null}
           logoErrorMessage={logoErrorMessage}
+          onLogoSelect={handleElementSelect}
           onLogoFileSelect={handleLogoFileSelect}
           onLogoRemove={handleLogoRemove}
           onColorSelect={handleColorSelect}
           products={products}
           selectedColorId={selectedColorId}
+          selectedElementId={selectedElementId}
           selectedProductId={selectedProduct.id}
           selectedProduct={selectedProduct}
           onProductSelect={handleProductSelect}
         />
       </div>
 
-      <div className="order-1 lg:row-span-2 xl:order-2">
+      <div className="order-1 flex flex-col gap-2.5 lg:row-span-2 xl:order-2">
         <EditorCanvasArea
-          logoElement={activeLogoElement}
+          logoElements={activeLogoElements}
           onLogoPositionChange={handleLogoPositionChange}
           onLogoSizeChange={handleLogoSizeChange}
           selectedElementId={selectedElementId}
@@ -72,6 +77,13 @@ export function EditorLayout() {
           onViewSelect={setActiveView}
           productView={activeProductView}
           selectionSafeAreaRef={logoInspectorRef}
+        />
+
+        <ProductQuantityPanel
+          quantities={quantitiesByProduct}
+          sizes={selectedProduct.sizes}
+          totalQuantity={totalQuantity}
+          onQuantityChange={handleQuantityChange}
         />
       </div>
 
@@ -87,10 +99,7 @@ export function EditorLayout() {
           product={selectedProduct}
           productColor={selectedColor}
           productView={activeProductView}
-          quantities={quantitiesByProduct}
           selectedElementId={selectedElementId}
-          totalQuantity={totalQuantity}
-          onQuantityChange={handleQuantityChange}
         />
       </div>
     </section>
