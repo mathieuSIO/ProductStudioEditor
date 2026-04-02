@@ -49,7 +49,6 @@ export function EditorCanvasArea({
     <section className="flex min-h-[420px] flex-col xl:min-h-[760px]">
       <PanelCard
         title="Studio produit"
-        description="Zone principale de personnalisation, centree sur la vue active et le visuel."
         aside={
           <span className="rounded-full border border-stone-200 bg-stone-50 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500">
             Studio
