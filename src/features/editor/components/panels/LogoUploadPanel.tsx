@@ -135,14 +135,14 @@ export function LogoUploadPanel({
                   type="button"
                   onClick={() => onSelect(logoElement.id)}
                   aria-pressed={isSelected}
-                  className={`rounded-[0.95rem] border px-3 py-2 text-left transition-colors ${
+                  className={`w-full overflow-hidden rounded-[0.95rem] border px-3 py-2 text-left transition-colors ${
                     isSelected
                       ? 'border-stone-900 bg-stone-900 text-white'
                       : 'border-stone-200 bg-white text-stone-700 hover:border-stone-300 hover:bg-stone-50'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1 overflow-hidden">
                       <p className="truncate text-sm font-medium">
                         {logoElement.asset.name}
                       </p>
@@ -156,7 +156,7 @@ export function LogoUploadPanel({
                     </div>
 
                     <span
-                      className={`shrink-0 rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${
+                      className={`shrink-0 self-start rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${
                         isSelected
                           ? 'border-white/15 bg-white/10 text-white'
                           : 'border-stone-200 bg-stone-50 text-stone-500'

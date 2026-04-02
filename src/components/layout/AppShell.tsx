@@ -7,9 +7,9 @@ type AppShellProps = PropsWithChildren<{
 
 export function AppShell({ children, title, subtitle }: AppShellProps) {
   return (
-    <div className="min-h-screen bg-stone-100 text-stone-900">
-      <div className="mx-auto flex min-h-screen w-full max-w-[1720px] flex-col px-3 py-3 sm:px-4 sm:py-4 lg:px-5 lg:py-5">
-        <header className="border-b border-stone-300/85 pb-3 sm:pb-4">
+    <div className="min-h-screen bg-white text-stone-900 sm:bg-stone-100">
+      <div className="mx-auto flex min-h-screen w-full max-w-[1720px] flex-col px-0 py-0 sm:px-4 sm:py-4 lg:px-5 lg:py-5">
+        <header className="border-b border-stone-300/85 px-3 pb-3 pt-3 sm:px-0 sm:pb-4 sm:pt-0">
           {/* <p className="text-sm font-medium uppercase tracking-[0.24em] text-stone-500">
             Base front-end
           </p> */}
@@ -23,7 +23,7 @@ export function AppShell({ children, title, subtitle }: AppShellProps) {
           </div>
         </header>
 
-        <main className="flex flex-1 flex-col py-3 sm:py-4">{children}</main>
+        <main className="flex flex-1 flex-col px-0 py-3 sm:py-4">{children}</main>
       </div>
     </div>
   )
