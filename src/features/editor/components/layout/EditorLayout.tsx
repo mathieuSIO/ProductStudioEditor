@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 
 import { useEditorStudio } from '../../hooks/useEditorStudio'
+import { calculateEditorPrice, defaultTextileUnitPrice } from '../../pricing'
 import { ProductQuantityPanel } from '../panels/ProductQuantityPanel'
 import { EditorCanvasArea } from './EditorCanvasArea'
 import { EditorSidebarLeft } from './EditorSidebarLeft'
@@ -15,6 +16,7 @@ export function EditorLayout() {
     activeView,
     availableViews,
     customPlacement,
+    elementsByView,
     handleColorSelect,
     handleElementSelect,
     handleLogoControlsChange,
@@ -40,6 +42,16 @@ export function EditorLayout() {
   if (!selectedProduct || !selectedColor) {
     return null
   }
+
+  const allLogoElements = Object.values(elementsByView).flat()
+  const pricing = calculateEditorPrice({
+    logos: allLogoElements.map((logoElement) => ({
+      id: logoElement.id,
+      printFormat: logoElement.printFormat,
+    })),
+    textileUnitPrice: defaultTextileUnitPrice,
+    totalQuantity,
+  })
 
   return (
     <section className="grid gap-2.5 md:gap-3 lg:grid-cols-[minmax(13.5rem,14.25rem)_minmax(0,1fr)] xl:grid-cols-[13.5rem_minmax(0,2.2fr)_14.25rem] xl:items-start 2xl:grid-cols-[13.75rem_minmax(0,2.4fr)_14.5rem]">
@@ -93,13 +105,18 @@ export function EditorLayout() {
       >
         <EditorSidebarRight
           activeView={activeView}
+          grandTotal={pricing.grandTotal}
           logoElement={activeLogoElement}
           logoControls={logoControls}
+          logosCount={pricing.logosCount}
           onLogoControlsChange={handleLogoControlsChange}
+          printTotal={pricing.printTotal}
           product={selectedProduct}
           productColor={selectedColor}
           productView={activeProductView}
           selectedElementId={selectedElementId}
+          textileTotal={pricing.textileTotal}
+          totalQuantity={pricing.totalQuantity}
         />
       </div>
     </section>

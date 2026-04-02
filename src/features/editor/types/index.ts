@@ -3,6 +3,7 @@ export type { EditorElementId } from './EditorElementId'
 export type { LogoManualControls } from './LogoManualControls'
 export type { LogoPosition } from './LogoPosition'
 export type { LogoSize } from './LogoSize'
+export type { PrintFormat } from './PrintFormat'
 export type { PrintableArea } from './PrintableArea'
 export type {
   ProductColor,

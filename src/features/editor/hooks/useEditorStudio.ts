@@ -24,6 +24,7 @@ import type {
   ProductViewId,
 } from '../types'
 import { createUploadedLogoFromFile } from '../utils/createUploadedLogoFromFile'
+import { getPrintFormatFromLogoWidth } from '../utils/getPrintFormatFromLogoWidth'
 
 const initialProduct = mockProducts[0]
 const initialColor = initialProduct?.colors[0]
@@ -175,6 +176,7 @@ export function useEditorStudio() {
           asset: uploadedLogo,
           id: nextElementId,
           position: getCenteredLogoPosition(nextSize),
+          printFormat: getPrintFormatFromLogoWidth(nextSize.width),
           size: nextSize,
           type: 'image',
         }),
@@ -241,6 +243,7 @@ export function useEditorStudio() {
             x: normalizedControls.x,
             y: normalizedControls.y,
           },
+          printFormat: getPrintFormatFromLogoWidth(nextSize.width),
           size: nextSize,
         }),
       ),
@@ -277,6 +280,7 @@ export function useEditorStudio() {
         selectedElementId,
         (currentElement) => ({
           ...currentElement,
+          printFormat: getPrintFormatFromLogoWidth(size.width),
           size,
         }),
       ),
@@ -353,6 +357,7 @@ export function useEditorStudio() {
     activeView: resolvedActiveView ?? activeView,
     availableViews,
     customPlacement,
+    elementsByView,
     handleElementSelect,
     handleColorSelect,
     handleLogoControlsChange,

@@ -10,27 +10,38 @@ import type {
 } from '../../types'
 import { LogoControlsPanel } from '../panels/LogoControlsPanel'
 import { LogoInspectorPanel } from '../panels/LogoInspectorPanel'
+import { PriceSummaryPanel } from '../panels/PriceSummaryPanel'
 
 type EditorSidebarRightProps = {
   activeView: ProductViewId
+  grandTotal: number
   logoElement: DesignElement | null
   logoControls: LogoManualControls | null
+  logosCount: number
   onLogoControlsChange: (controls: LogoManualControls) => void
+  printTotal: number
   product: Product
   productColor: ProductColor
   productView: ProductView | null
   selectedElementId: EditorElementId | null
+  textileTotal: number
+  totalQuantity: number
 }
 
 export function EditorSidebarRight({
   activeView,
+  grandTotal,
   logoElement,
   logoControls,
+  logosCount,
   onLogoControlsChange,
+  printTotal,
   product,
   productColor,
   productView,
   selectedElementId,
+  textileTotal,
+  totalQuantity,
 }: EditorSidebarRightProps) {
   return (
     <aside className="flex flex-col gap-2.5">
@@ -70,11 +81,7 @@ export function EditorSidebarRight({
           <>
             <LogoControlsPanel
               controls={logoControls}
-              logoAspectRatio={
-                logoElement && logoElement.size.height > 0
-                  ? logoElement.size.width / logoElement.size.height
-                  : 1
-              }
+              printFormat={logoElement?.printFormat ?? null}
               onChange={onLogoControlsChange}
             />
 
@@ -113,6 +120,14 @@ export function EditorSidebarRight({
             />
           </div>
         </div>
+
+        <PriceSummaryPanel
+          grandTotal={grandTotal}
+          logosCount={logosCount}
+          printTotal={printTotal}
+          textileTotal={textileTotal}
+          totalQuantity={totalQuantity}
+        />
       </PanelCard>
     </aside>
   )
