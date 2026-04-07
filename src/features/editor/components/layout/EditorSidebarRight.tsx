@@ -28,9 +28,7 @@ export function EditorSidebarRight({
   return (
     <aside className="flex flex-col gap-2.5">
       <PanelCard
-        eyebrow="Panneau droit"
-        title="Inspector"
-        description="Reglages du logo selectionne et contexte de la vue active."
+        title="Resumé"
         aside={
           <span className="rounded-full border border-stone-200 bg-stone-50 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-500">
             Edition
