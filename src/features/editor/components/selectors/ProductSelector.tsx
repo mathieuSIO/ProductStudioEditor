@@ -1,6 +1,6 @@
 import { useId } from 'react'
 
-import type { Product, ProductMockup } from '../../types'
+import type { Product } from '../../types'
 
 type ProductSelectorProps = {
   onSelect: (productId: Product['id']) => void
@@ -13,13 +13,7 @@ export function ProductSelector({
   products,
   selectedProductId,
 }: ProductSelectorProps) {
-  const selectId = useId()
-  const selectedProduct = products.find(
-    (product) => product.id === selectedProductId,
-  )
-  const primaryColor = selectedProduct?.colors[0]
-  const primaryView =
-    primaryColor?.views.front ?? Object.values(primaryColor?.views ?? {})[0]
+  const selectId = useId();
 
   return (
     <div className="rounded-[1.1rem] border border-stone-200 bg-white px-3 py-2.5">
@@ -30,7 +24,7 @@ export function ProductSelector({
         Produit
       </label>
       <p className="mt-1.5 text-sm leading-5 text-stone-500">
-        Choisis le support a personnaliser dans la preview centrale.
+        Choisissez votre produit à personnaliser.
       </p>
 
       <div className="mt-2.5">
@@ -47,51 +41,7 @@ export function ProductSelector({
           ))}
         </select>
       </div>
-
-      {selectedProduct ? (
-        <div className="mt-2.5 rounded-[0.95rem] border border-stone-200 bg-stone-50/80 px-3 py-2.5">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-400">
-            Produit actif
-          </p>
-          <p className="mt-1.5 text-sm font-medium text-stone-800">
-            {selectedProduct.name}
-          </p>
-          <p className="mt-1 text-sm leading-5 text-stone-500">
-            {getCategoryLabel(selectedProduct.category)} • Mockup{' '}
-            {getMockupLabel(primaryView?.mockup ?? 'generic').toLowerCase()}
-          </p>
-        </div>
-      ) : null}
     </div>
   )
 }
 
-function getCategoryLabel(category: Product['category']) {
-  switch (category) {
-    case 'headwear':
-      return 'Accessoire textile'
-    case 'top':
-      return 'Haut textile'
-    case 'other':
-      return 'Support generique'
-    default:
-      return category
-  }
-}
-
-function getMockupLabel(mockup: ProductMockup) {
-  switch (mockup) {
-    case 'cap':
-      return 'casquette'
-    case 'generic':
-      return 'generique'
-    case 'polo':
-      return 'polo'
-    case 'sweatshirt':
-      return 'pull'
-    case 'tshirt':
-      return 't-shirt'
-    default:
-      return 'produit'
-  }
-}

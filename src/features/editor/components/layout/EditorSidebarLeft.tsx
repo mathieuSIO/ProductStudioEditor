@@ -53,13 +53,11 @@ export function EditorSidebarLeft({
           </span>
         }
       >
-        <div className="rounded-[1rem] border border-stone-200 bg-stone-50/75 p-2">
-          <ProductSelector
-            products={products}
-            selectedProductId={selectedProductId}
-            onSelect={onProductSelect}
-          />
-        </div>
+        <ProductSelector
+          products={products}
+          selectedProductId={selectedProductId}
+          onSelect={onProductSelect}
+        />
 
         <ProductColorSelector
           product={selectedProduct}
