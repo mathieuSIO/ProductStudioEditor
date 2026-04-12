@@ -1,14 +1,10 @@
 type PriceSummaryPanelProps = {
   grandTotal: number
-  printTotal: number
-  textileTotal: number
   totalQuantity: number
 }
 
 export function PriceSummaryPanel({
   grandTotal,
-  //printTotal, utile pour l'administrateur ou le developpeur
-  //textileTotal, utile pour l'administrateur ou le developpeur
   totalQuantity,
 }: PriceSummaryPanelProps) {
   const hasQuantity = totalQuantity > 0
@@ -33,10 +29,6 @@ export function PriceSummaryPanel({
 
       <div className="mt-2.5 grid gap-1.5">
         <PriceRow label="Quantite totale" value={String(totalQuantity)} />
-
-        {/* utile pour l'administrateur ou le developpeur
-        <PriceRow label="Total textile" value={formatEuro(textileTotal)} />
-        <PriceRow label="Total impression" value={formatEuro(printTotal)} /> */}
       </div>
 
       <div className="mt-2.5 rounded-[0.95rem] border border-stone-900 bg-stone-900 px-3 py-2.5 text-white">
@@ -47,10 +39,11 @@ export function PriceSummaryPanel({
           <p className="text-sm text-stone-300">
             {hasQuantity ? 'Estimation actuelle' : 'En attente de quantite'}
           </p>
-          <p className="text-xl font-semibold tracking-tight">
+          <p className="text-lg font-semibold tracking-tight">
             {formatEuro(grandTotal)}
           </p>
         </div>
+        <p className="text-sm text-stone-300 mt-3">Prix unitaire : {grandTotal / totalQuantity} €</p>
       </div>
     </div>
   )

@@ -19,10 +19,8 @@ type EditorSidebarRightProps = {
 export function EditorSidebarRight({
   activeView,
   grandTotal,
-  printTotal,
   product,
   productColor,
-  textileTotal,
   totalQuantity,
 }: EditorSidebarRightProps) {
   return (
@@ -77,8 +75,6 @@ export function EditorSidebarRight({
 
         <PriceSummaryPanel
           grandTotal={grandTotal}
-          printTotal={printTotal}
-          textileTotal={textileTotal}
           totalQuantity={totalQuantity}
         />
       </PanelCard>
