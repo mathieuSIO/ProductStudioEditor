@@ -26,20 +26,13 @@ export function ProductColorSelector({
             Couleur produit
           </p>
           <p className="mt-1.5 text-sm leading-5 text-stone-500">
-            Noir et blanc utilisent les mockups reels disponibles. Les autres
-            teintes restent accessibles via un apercu simplifie.
+            Choisissez la couleur de votre {product.name}
           </p>
         </div>
-        <span className="rounded-full border border-stone-200 bg-stone-50 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-500">
-          Couleurs
-        </span>
       </div>
 
       {supportedColors.length > 0 ? (
         <div className="mt-3">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-400">
-            Mockups reels
-          </p>
           <div className="mt-2 grid gap-2">
             {supportedColors.map((color) => (
               <ColorOption
@@ -56,38 +49,6 @@ export function ProductColorSelector({
           </div>
         </div>
       ) : null}
-
-      {/* {fallbackColors.length > 0 ? (
-        <div className="mt-3">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-400">
-            Apercus simplifies
-          </p>
-          <div className="mt-2 grid gap-2">
-            {fallbackColors.map((color) => (
-              <ColorOption
-                key={color.id}
-                availabilityLabel="Apercu simplifie"
-                isSelected={color.id === selectedColorId}
-                onSelect={onSelect}
-                colorId={color.id}
-                label={color.label}
-                swatchHex={color.swatchHex}
-                tone="fallback"
-              />
-            ))}
-          </div>
-        </div>
-      ) : null} */}
-
-      {/* <div className="mt-3 rounded-[0.95rem] border border-dashed border-stone-300 bg-stone-50/80 px-3 py-2.5">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-400">
-          Transparence preview
-        </p>
-        <p className="mt-1.5 text-sm leading-5 text-stone-500">
-          Les couleurs sans mockup photo ne pretendent pas reproduire un rendu
-          e-commerce final. Elles servent uniquement de repere visuel.
-        </p>
-      </div> */}
     </div>
   )
 }
