@@ -8,6 +8,7 @@ export function PriceSummaryPanel({
   totalQuantity,
 }: PriceSummaryPanelProps) {
   const hasQuantity = totalQuantity > 0
+  const unitPrice = hasQuantity ? grandTotal / totalQuantity : 0;
 
   return (
     <div className="rounded-[1rem] border border-stone-200 bg-stone-50/80 p-2.5">
@@ -43,7 +44,9 @@ export function PriceSummaryPanel({
             {formatEuro(grandTotal)}
           </p>
         </div>
-        <p className="text-sm text-stone-300 mt-3">Prix unitaire : {grandTotal / totalQuantity} €</p>
+        <p className="text-sm text-stone-300 mt-3">
+          Prix unitaire : { unitPrice || 0} €
+        </p>
       </div>
     </div>
   )
