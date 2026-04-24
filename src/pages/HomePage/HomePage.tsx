@@ -45,23 +45,32 @@ export function HomePage() {
     })
   }
 
-  const headerActionLabel = currentView === 'cart' ? 'Studio' : 'Panier'
+  const headerActionLabel =
+    currentView === 'cart' ? 'Studio' : `Panier (${itemCount})`
+  const headerActionAriaLabel =
+    currentView === 'cart'
+      ? 'Retourner au studio'
+      : `Ouvrir le panier, ${itemCount} configuration${
+          itemCount > 1 ? 's' : ''
+        }`
 
   return (
     <AppShell
       title="Mon Petit Matos"
-      subtitle="Structure principale de l'application de personnalisation textile, pensee pour rester lisible, modulaire et evolutive."
+      subtitle="Impression textile personnalisée • Made in France"
       action={
         <button
           type="button"
-          aria-label={`Ouvrir le panier, ${itemCount} configuration${itemCount > 1 ? 's' : ''}`}
-          className="inline-flex items-center justify-center gap-2 rounded-[0.95rem] border border-stone-300 bg-white px-3 py-2 text-sm font-semibold text-stone-800 shadow-[0_12px_30px_-24px_rgba(28,25,23,0.35)] transition hover:border-stone-400 hover:bg-stone-50"
+          aria-label={headerActionAriaLabel}
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-[1rem] bg-blue-950 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_16px_32px_-24px_rgba(15,23,42,0.75)] transition hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300"
           onClick={handleHeaderActionClick}
         >
           <span>{headerActionLabel}</span>
-          <span className="rounded-full bg-stone-900 px-2 py-0.5 text-xs font-semibold text-white">
-            {itemCount} config.
-          </span>
+          {currentView !== 'cart' ? (
+            <span className="rounded-full bg-red-600 px-2 py-0.5 text-xs font-semibold text-white ring-1 ring-white/20">
+              {itemCount}
+            </span>
+          ) : null}
         </button>
       }
     >
