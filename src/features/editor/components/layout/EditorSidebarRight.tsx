@@ -84,6 +84,8 @@ export function EditorSidebarRight({
           canAddToCart={canAddToCart}
           grandTotal={grandTotal}
           onAddToCart={onAddToCart}
+          product={product}
+          productColor={productColor}
           totalQuantity={totalQuantity}
         />
       </PanelCard>
