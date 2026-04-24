@@ -20,12 +20,12 @@ export function ProductQuantityPanel({
       <div className="flex items-center justify-between gap-2">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-400">
-            Quantites
+            Quantités
           </p>
           <p className="mt-1 text-sm leading-5 text-stone-500">
             {isSingleSize
-              ? 'Renseigne la quantite souhaitee pour ce produit.'
-              : 'Indique la quantite par taille, puis verifie le total.'}
+              ? 'Renseigne la quantité souhaitée pour ce produit.'
+              : 'Indique la quantité par taille, puis vérifie le total.'}
           </p>
         </div>
         <span className="rounded-full border border-stone-200 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-500">
@@ -50,7 +50,7 @@ export function ProductQuantityPanel({
                 <div className="mt-2 flex items-center justify-center gap-2">
                   <button
                     type="button"
-                    aria-label={`Retirer une unite pour ${size === 'TU' ? 'taille unique' : size}`}
+                    aria-label={`Retirer une unité pour ${size === 'TU' ? 'taille unique' : size}`}
                     onClick={() => onQuantityChange(size, quantity - 1)}
                     className="flex h-9 w-9 items-center justify-center rounded-[0.8rem] border border-stone-200 bg-stone-50 text-base font-semibold text-stone-700 transition-colors hover:border-stone-300 hover:bg-white"
                   >
@@ -58,7 +58,7 @@ export function ProductQuantityPanel({
                   </button>
 
                   <label className="sr-only" htmlFor={`quantity-${size}`}>
-                    {size === 'TU' ? 'Quantite taille unique' : `Quantite ${size}`}
+                    {size === 'TU' ? 'Quantité taille unique' : `Quantité ${size}`}
                   </label>
                   <input
                     id={`quantity-${size}`}
@@ -75,7 +75,7 @@ export function ProductQuantityPanel({
 
                   <button
                     type="button"
-                    aria-label={`Ajouter une unite pour ${size === 'TU' ? 'taille unique' : size}`}
+                    aria-label={`Ajouter une unité pour ${size === 'TU' ? 'taille unique' : size}`}
                     onClick={() => onQuantityChange(size, quantity + 1)}
                     className="flex h-9 w-9 items-center justify-center rounded-[0.8rem] border border-stone-200 bg-stone-50 text-base font-semibold text-stone-700 transition-colors hover:border-stone-300 hover:bg-white"
                   >
@@ -93,7 +93,7 @@ export function ProductQuantityPanel({
           Total
         </p>
         <div className="mt-1 flex items-end justify-between gap-2">
-          <p className="text-sm text-stone-500">Quantite totale</p>
+          <p className="text-sm text-stone-500">Quantité totale</p>
           <p className="text-lg font-semibold tracking-tight text-stone-950">
             {totalQuantity}
           </p>

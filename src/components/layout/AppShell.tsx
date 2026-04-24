@@ -1,11 +1,12 @@
-import type { PropsWithChildren } from 'react'
+import type { PropsWithChildren, ReactNode } from 'react'
 
 type AppShellProps = PropsWithChildren<{
+  action?: ReactNode
   title: string
   subtitle: string
 }>
 
-export function AppShell({ children, title, subtitle }: AppShellProps) {
+export function AppShell({ action, children, title, subtitle }: AppShellProps) {
   return (
     <div className="min-h-screen bg-white text-stone-900 sm:bg-stone-100">
       <div className="mx-auto flex min-h-screen w-full max-w-[1720px] flex-col px-0 py-0 sm:px-4 sm:py-4 lg:px-5 lg:py-5">
@@ -13,13 +14,16 @@ export function AppShell({ children, title, subtitle }: AppShellProps) {
           {/* <p className="text-sm font-medium uppercase tracking-[0.24em] text-stone-500">
             Base front-end
           </p> */}
-          <div className="max-w-2xl">
-            <h1 className="text-[1.9rem] font-semibold tracking-tight text-stone-950 sm:text-[2.3rem]">
-              {title}
-            </h1>
-            <p className="mt-1.5 max-w-[42rem] text-[13px] leading-5 text-stone-600 sm:text-sm">
-              {subtitle}
-            </p>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="max-w-2xl">
+              <h1 className="text-[1.9rem] font-semibold tracking-tight text-stone-950 sm:text-[2.3rem]">
+                {title}
+              </h1>
+              <p className="mt-1.5 max-w-[42rem] text-[13px] leading-5 text-stone-600 sm:text-sm">
+                {subtitle}
+              </p>
+            </div>
+            {action ? <div className="shrink-0">{action}</div> : null}
           </div>
         </header>
 

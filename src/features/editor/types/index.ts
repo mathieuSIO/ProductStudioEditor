@@ -1,5 +1,6 @@
 export type { DesignElement } from './DesignElement'
 export type { EditorElementId } from './EditorElementId'
+export type { EditorStudioConfiguration } from './EditorStudioConfiguration'
 export type { LogoManualControls } from './LogoManualControls'
 export type { LogoPosition } from './LogoPosition'
 export type { LogoSize } from './LogoSize'

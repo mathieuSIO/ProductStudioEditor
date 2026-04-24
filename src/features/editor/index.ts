@@ -6,6 +6,7 @@ export { LogoUploadPanel } from './components/panels/LogoUploadPanel'
 export { ProductSelector } from './components/selectors/ProductSelector'
 export { mockProducts } from './data/mockProducts'
 export type {
+  EditorStudioConfiguration,
   LogoManualControls,
   LogoPosition,
   LogoSize,

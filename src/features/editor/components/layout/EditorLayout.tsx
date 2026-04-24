@@ -1,14 +1,22 @@
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { useEditorStudio } from '../../hooks/useEditorStudio'
 import { calculateEditorPrice, defaultTextileUnitPrice } from '../../pricing'
+import type { EditorStudioConfiguration } from '../../types'
 import { ProductQuantityPanel } from '../panels/ProductQuantityPanel'
 import { EditorCanvasArea } from './EditorCanvasArea'
 import { EditorSidebarLeft } from './EditorSidebarLeft'
 import { EditorSidebarRight } from './EditorSidebarRight'
 
-export function EditorLayout() {
+type EditorLayoutProps = {
+  onAddToCart?: (configuration: EditorStudioConfiguration) => void
+}
+
+export function EditorLayout({ onAddToCart }: EditorLayoutProps) {
   const logoInspectorRef = useRef<HTMLDivElement | null>(null)
+  const [addToCartFeedbackMessage, setAddToCartFeedbackMessage] = useState<
+    string | null
+  >(null)
   const {
     activeLogoElement,
     activeLogoElements,
@@ -37,6 +45,20 @@ export function EditorLayout() {
     totalQuantity,
   } = useEditorStudio()
 
+  useEffect(() => {
+    if (!addToCartFeedbackMessage) {
+      return
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setAddToCartFeedbackMessage(null)
+    }, 2500)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [addToCartFeedbackMessage])
+
   if (!selectedProduct || !selectedColor) {
     return null
   }
@@ -50,6 +72,23 @@ export function EditorLayout() {
     textileUnitPrice: defaultTextileUnitPrice,
     totalQuantity,
   })
+  const canAddToCart = pricing.totalQuantity > 0
+
+  function handleAddToCart() {
+    if (!onAddToCart || !canAddToCart || !selectedColor || !selectedProduct) {
+      return
+    }
+
+    onAddToCart({
+      color: selectedColor,
+      customPlacement,
+      elementsByView,
+      pricing,
+      product: selectedProduct,
+      quantities: quantitiesByProduct,
+    })
+    setAddToCartFeedbackMessage('Produit ajouté au panier')
+  }
 
   return (
     <section className="grid gap-2.5 md:gap-3 lg:grid-cols-[minmax(13.5rem,14.25rem)_minmax(0,1fr)] xl:grid-cols-[13.5rem_minmax(0,2.2fr)_14.25rem] xl:items-start 2xl:grid-cols-[13.75rem_minmax(0,2.4fr)_14.5rem]">
@@ -103,7 +142,10 @@ export function EditorLayout() {
       >
         <EditorSidebarRight
           activeView={activeView}
+          addToCartFeedbackMessage={addToCartFeedbackMessage}
+          canAddToCart={canAddToCart}
           grandTotal={pricing.grandTotal}
+          onAddToCart={handleAddToCart}
           printTotal={pricing.printTotal}
           product={selectedProduct}
           productColor={selectedColor}
