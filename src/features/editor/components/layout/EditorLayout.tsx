@@ -91,8 +91,8 @@ export function EditorLayout({ onAddToCart }: EditorLayoutProps) {
   }
 
   return (
-    <section className="grid gap-2.5 md:gap-3 lg:grid-cols-[minmax(13.5rem,14.25rem)_minmax(0,1fr)] xl:grid-cols-[13.5rem_minmax(0,2.2fr)_14.25rem] xl:items-start 2xl:grid-cols-[13.75rem_minmax(0,2.4fr)_14.5rem]">
-      <div className="order-2 lg:order-1 xl:order-1 xl:max-w-[13.5rem]">
+    <section className="grid gap-3.5 md:gap-4 lg:grid-cols-[minmax(13.5rem,14.25rem)_minmax(0,1fr)] xl:grid-cols-[13.75rem_minmax(0,2.2fr)_15rem] xl:items-start 2xl:grid-cols-[14rem_minmax(0,2.4fr)_15.5rem]">
+      <div className="order-2 lg:order-1 xl:order-1 xl:max-w-[14rem]">
         <EditorSidebarLeft
           logos={activeLogoElements}
           logo={activeLogoElement?.asset ?? null}
@@ -110,7 +110,7 @@ export function EditorLayout({ onAddToCart }: EditorLayoutProps) {
         />
       </div>
 
-      <div className="order-1 flex flex-col gap-2.5 lg:row-span-2 xl:order-2">
+      <div className="order-1 flex flex-col gap-3.5 lg:row-span-2 xl:order-2">
         <EditorCanvasArea
           logoElements={activeLogoElements}
           onLogoPositionChange={handleLogoPositionChange}
@@ -138,7 +138,7 @@ export function EditorLayout({ onAddToCart }: EditorLayoutProps) {
 
       <div
         ref={logoInspectorRef}
-        className="order-3 lg:order-2 xl:order-3 xl:max-w-[14.5rem] xl:justify-self-end"
+        className="order-3 lg:order-2 xl:order-3 xl:max-w-[15.5rem] xl:justify-self-end"
       >
         <EditorSidebarRight
           activeView={activeView}

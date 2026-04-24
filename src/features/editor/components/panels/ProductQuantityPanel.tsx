@@ -84,7 +84,7 @@ export function ProductQuantityPanel({
                   ) : null}
                 </div>
 
-                <div className="mt-3 grid grid-cols-[2.5rem_minmax(0,1fr)_2.5rem] items-center gap-2">
+                <div className="mt-3 flex items-center justify-center gap-2">
                   <button
                     type="button"
                     aria-label={`Retirer une unité pour ${
@@ -114,10 +114,10 @@ export function ProductQuantityPanel({
                         Number.isNaN(nextValue) ? 0 : nextValue,
                       )
                     }}
-                    className={`h-10 w-full rounded-[0.9rem] border px-2 text-center text-base font-semibold outline-none transition-colors ${
+                    className={`h-10 w-14 min-w-[3rem] rounded-[0.9rem] border border-blue-100 bg-white px-2 text-center text-base font-semibold tabular-nums text-blue-950 outline-none transition-colors focus:border-blue-400 ${
                       hasQuantity
-                        ? 'border-red-200 bg-white text-red-700 focus:border-red-500'
-                        : 'border-blue-100 bg-white text-blue-950 focus:border-blue-400'
+                        ? 'border-red-200 text-red-700 focus:border-red-500'
+                        : ''
                     }`}
                   />
 

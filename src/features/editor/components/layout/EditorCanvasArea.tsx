@@ -77,7 +77,7 @@ export function EditorCanvasArea({
             <div className="absolute right-8 top-10 h-28 w-28 rounded-full bg-red-200/25 blur-3xl" />
             <div className="absolute inset-x-10 bottom-1 h-20 bg-[radial-gradient(circle_at_center,_rgba(15,23,42,0.16),_transparent_72%)]" />
 
-            <div className="absolute left-4 top-4 z-20 rounded-full border border-blue-100 bg-white/92 px-3 py-1.5 text-[11px] font-semibold text-blue-950 shadow-sm">
+            <div className="absolute left-3 right-3 top-3 z-20 rounded-[0.9rem] border border-blue-100 bg-white/90 px-3 py-1.5 text-center text-[11px] font-semibold text-blue-950 shadow-sm sm:left-4 sm:right-auto sm:top-4 sm:rounded-full sm:text-left">
               Zone imprimable visible lors de la sélection du logo
             </div>
 
@@ -144,7 +144,7 @@ function EditorViewSelector({
           {getViewLabel(activeView)} actif
         </p>
       </div>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
         {availableViews.map((view) => {
           const isActive = view === activeView
           const viewConfig = view === 'custom' ? null : productColor.views[view]
@@ -161,15 +161,15 @@ function EditorViewSelector({
               type="button"
               onClick={() => onViewSelect(view)}
               aria-pressed={isActive}
-              className={`rounded-[1rem] border px-2 py-2 text-left transition-all ${
+              className={`rounded-[1rem] border px-2.5 py-2 text-left transition-all ${
                 isActive
                   ? 'border-blue-950 bg-blue-950 text-white shadow-[0_16px_28px_-22px_rgba(15,23,42,0.65)]'
                   : 'border-blue-100 bg-blue-50/80 text-blue-950 hover:border-red-200 hover:bg-white'
               }`}
             >
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2.5 sm:flex-col sm:items-start xl:flex-row xl:items-center">
                 <div
-                  className={`relative flex h-12 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[0.85rem] border ${
+                  className={`relative flex h-11 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[0.85rem] border sm:h-10 sm:w-full xl:h-12 xl:w-14 ${
                     isActive
                       ? 'border-white/15 bg-white/10'
                       : 'border-stone-200 bg-[linear-gradient(180deg,rgba(250,250,249,0.95),rgba(241,240,239,0.92))]'

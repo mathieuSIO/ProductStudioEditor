@@ -136,14 +136,14 @@ export function ProductMockupPreview({
         )}
 
         {hasSelectedLogo ? (
-          <div className="pointer-events-none absolute right-3 top-3 rounded-full border border-sky-200 bg-white/92 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-sky-700 shadow-sm">
-            Edition active
+          <div className="pointer-events-none absolute right-3 top-3 rounded-full border border-blue-100 bg-white/92 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-blue-700 shadow-sm">
+            Édition active
           </div>
         ) : null}
 
         <div className="pointer-events-none absolute inset-x-4 bottom-4 text-center">
           <p className="text-sm font-medium text-stone-800">
-            {productName} • {productColorLabel}
+            {productName} · {productColorLabel}
           </p>
           <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-stone-500">
             Vue {getViewLabel(activeView)}
@@ -361,7 +361,7 @@ function getViewLabel(view: ProductViewId) {
     case 'front':
       return 'avant'
     case 'back':
-      return 'arriere'
+      return 'arrière'
     case 'custom':
       return 'autre'
     default:
