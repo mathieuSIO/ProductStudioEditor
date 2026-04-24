@@ -13,18 +13,18 @@ export function ProductSelector({
   products,
   selectedProductId,
 }: ProductSelectorProps) {
-  const selectId = useId();
+  const selectId = useId()
 
   return (
-    <div className="rounded-[1.1rem] border border-stone-200 bg-white px-3 py-2.5">
+    <div className="rounded-[0.95rem] border border-blue-100 bg-white px-3 py-2.5">
       <label
         htmlFor={selectId}
-        className="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-400"
+        className="text-[10px] font-semibold uppercase tracking-[0.16em] text-blue-700"
       >
-        Produit
+        Type de produit
       </label>
-      <p className="mt-1.5 text-sm leading-5 text-stone-500">
-        Choisissez votre produit à personnaliser.
+      <p className="mt-1 text-sm leading-5 text-stone-500">
+        Choisissez le support qui recevra votre marquage.
       </p>
 
       <div className="mt-2.5">
@@ -32,7 +32,7 @@ export function ProductSelector({
           id={selectId}
           value={selectedProductId}
           onChange={(event) => onSelect(event.target.value as Product['id'])}
-          className="w-full appearance-none rounded-[0.95rem] border border-stone-200 bg-stone-50 px-3 py-2.5 text-sm font-medium text-stone-800 outline-none transition-colors hover:border-stone-300 focus:border-stone-900"
+          className="w-full appearance-none rounded-[0.9rem] border border-blue-100 bg-blue-50 px-3 py-2.5 text-sm font-semibold text-blue-950 outline-none transition-colors hover:border-blue-200 focus:border-red-500 focus:bg-white"
         >
           {products.map((product) => (
             <option key={product.id} value={product.id}>
@@ -44,4 +44,3 @@ export function ProductSelector({
     </div>
   )
 }
-
