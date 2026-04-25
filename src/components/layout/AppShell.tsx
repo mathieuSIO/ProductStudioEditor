@@ -4,9 +4,10 @@ type AppShellProps = PropsWithChildren<{
   action?: ReactNode
   title: string
   subtitle: string
+  onReturnToStudio: () => void
 }>
 
-export function AppShell({ action, children, title, subtitle }: AppShellProps) {
+export function AppShell({ action, children, title, subtitle, onReturnToStudio }: AppShellProps) {
   return (
     <div className="min-h-screen bg-white text-blue-950 sm:bg-blue-50/55">
       <div className="mx-auto flex min-h-screen w-full max-w-[1720px] flex-col px-0 py-0 sm:px-4 sm:py-4 lg:px-5 lg:py-5">
@@ -17,7 +18,8 @@ export function AppShell({ action, children, title, subtitle }: AppShellProps) {
                 <img
                   src="/logo-mpm.png"
                   alt="Mon Petit Matos"
-                  className="h-full w-full object-contain"
+                  className="h-full w-full object-contain cursor-pointer"
+                  onClick={onReturnToStudio}
                 />
               </div>
 

@@ -73,6 +73,7 @@ export function HomePage() {
           ) : null}
         </button>
       }
+      onReturnToStudio={() => setCurrentView('studio')}
     >
       {currentView === 'cart' ? (
         <CartPage
