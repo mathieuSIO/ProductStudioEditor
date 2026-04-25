@@ -58,7 +58,7 @@ export function EditorSidebarLeft({
 
       <div className="grid gap-3 p-3">
         <GuidedStep
-          description="Sélectionnez la base à personnaliser."
+          description=""
           isComplete={Boolean(selectedProductId)}
           number="1"
           title="Produit"
