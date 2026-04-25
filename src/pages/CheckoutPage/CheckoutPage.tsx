@@ -22,6 +22,10 @@ const initialFormData: CheckoutFormData = {
   email: '',
   firstName: '',
   lastName: '',
+  pays: 'France',
+  ville:'',
+  codePostal: '',
+  adresse: '',
   phone: '',
 }
 
@@ -132,7 +136,7 @@ export function CheckoutPage({
                 onChange={(value) => handleFieldChange('email', value)}
               />
               <FormField
-                helpText="Utile pour confirmer les détails de production."
+                helpText="Utile pour la livraison"
                 label="Téléphone"
                 name="phone"
                 required
@@ -140,8 +144,37 @@ export function CheckoutPage({
                 value={formData.phone}
                 onChange={(value) => handleFieldChange('phone', value)}
               />
+              <FormField
+                label="Pays"
+                name="pays"
+                required
+                type="text"
+                value={formData.pays}
+                onChange={(value) => handleFieldChange('pays', value)}
+              />
+              <FormField
+                label="Ville"
+                name="ville"
+                required
+                value={formData.ville}
+                onChange={(value) => handleFieldChange('ville', value)}
+              />
+              <FormField
+                label="Code Postal"
+                name="codePostal"
+                required
+                value={formData.codePostal}
+                onChange={(value) => handleFieldChange('codePostal', value)}
+              />
             </div>
+            <FormField
+              label="Numero et nom de rue"
+              name="adresse"
+              value={formData.adresse}
+              onChange={(value) => handleFieldChange('adresse', value)}
+            />
           </fieldset>
+
 
           <fieldset className="grid gap-3">
             <legend className="text-sm font-semibold text-blue-950">

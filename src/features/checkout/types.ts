@@ -6,6 +6,10 @@ export type CheckoutFormData = {
   email: string
   firstName: string
   lastName: string
+  pays:string
+  ville:string,
+  codePostal:string
+  adresse:string
   phone: string
 }
 
