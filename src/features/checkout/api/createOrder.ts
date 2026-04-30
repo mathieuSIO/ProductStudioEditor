@@ -1,16 +1,13 @@
-import type { CheckoutDraft } from '../types'
-
-export type CreateOrderPayload = CheckoutDraft
+import type { CreateOrderPayload } from '../types'
 
 export type CreateOrderResponse = {
   orderId: string
   status: 'received'
 }
 
-export async function createOrder(
-  payload: CreateOrderPayload,
-): Promise<CreateOrderResponse> {
-  const response = await fetch('/api/orders', {
+export async function createOrder(payload: CreateOrderPayload): Promise<CreateOrderResponse> {
+
+  const response = await fetch('http://localhost:4000/api/orders', {
     body: JSON.stringify(payload),
     headers: {
       'Content-Type': 'application/json',

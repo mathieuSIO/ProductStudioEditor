@@ -4,6 +4,7 @@ import { type Cart, type CartTotals } from '../../features/cart'
 import {
   createCheckoutDraft,
   createOrder,
+  createOrderPayloadFromCheckoutDraft,
   type CheckoutFormData,
 } from '../../features/checkout'
 import { formatEuro } from '../../shared/formatters/formatEuro'
@@ -65,8 +66,9 @@ export function CheckoutPage({
 
     try {
       const checkoutDraft = createCheckoutDraft(cart, formData)
+      const orderPayload = createOrderPayloadFromCheckoutDraft(checkoutDraft)
 
-      await createOrder(checkoutDraft)
+      await createOrder(orderPayload)
       setSubmitStatus('success')
     } catch (error) {
       setSubmitStatus('error')
