@@ -1,3 +1,4 @@
+import { env } from '../../../shared/config/env'
 import type { CreateOrderPayload } from '../types'
 
 export type CreateOrderResponse = {
@@ -7,7 +8,7 @@ export type CreateOrderResponse = {
 
 export async function createOrder(payload: CreateOrderPayload): Promise<CreateOrderResponse> {
 
-  const response = await fetch('http://localhost:4000/api/orders', {
+  const response = await fetch(`${env.apiBaseUrl}/api/orders`, {
     body: JSON.stringify(payload),
     headers: {
       'Content-Type': 'application/json',
