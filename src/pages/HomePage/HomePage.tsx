@@ -1,7 +1,7 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { AppShell } from '../../components/layout/AppShell'
-import { AccountDashboardPage, OrderDetailsPage } from '../../features/account'
 import {
   createCartItemFromEditor,
   useCart,
@@ -11,9 +11,10 @@ import { EditorLayout } from '../../features/editor'
 import { CartPage } from '../CartPage'
 import { CheckoutPage } from '../CheckoutPage'
 
-type HomePageView = 'account' | 'cart' | 'checkout' | 'orderDetails' | 'studio'
+type HomePageView = 'cart' | 'checkout' | 'studio'
 
 export function HomePage() {
+  const navigate = useNavigate()
   const {
     addItem,
     cart,
@@ -23,7 +24,6 @@ export function HomePage() {
     totals,
   } = useCart()
   const [currentView, setCurrentView] = useState<HomePageView>('studio')
-  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null)
 
   function handleAddToCart(configuration: CreateCartItemFromEditorInput) {
     addItem(createCartItemFromEditor(configuration))
@@ -48,21 +48,11 @@ export function HomePage() {
   }
 
   function handleOpenAccount() {
-    setSelectedOrderId(null)
-    setCurrentView('account')
-  }
-
-  function handleSelectOrder(orderId: string) {
-    setSelectedOrderId(orderId)
-    setCurrentView('orderDetails')
+    navigate('/account')
   }
 
   function handleReturnToStudio() {
     setCurrentView('studio')
-  }
-
-  function handleReturnToOrders() {
-    setCurrentView('account')
   }
 
   const headerActionLabel =
@@ -118,17 +108,6 @@ export function HomePage() {
           cart={cart}
           onReturnToCart={() => setCurrentView('cart')}
           totals={totals}
-        />
-      ) : currentView === 'account' ? (
-        <AccountDashboardPage
-          onReturnToStudio={handleReturnToStudio}
-          onSelectOrder={handleSelectOrder}
-        />
-      ) : currentView === 'orderDetails' ? (
-        <OrderDetailsPage
-          orderId={selectedOrderId}
-          onReturnToOrders={handleReturnToOrders}
-          onReturnToStudio={handleReturnToStudio}
         />
       ) : (
         <EditorLayout onAddToCart={handleAddToCart} />

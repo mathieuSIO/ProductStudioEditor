@@ -1,23 +1,26 @@
+import { useNavigate } from 'react-router-dom'
+
 import { PanelCard } from '../../../components/ui/PanelCard'
 import { AccountSidebar } from '../components/AccountSidebar'
 import { OrderSummaryCard } from '../components/OrderSummaryCard'
 import { OrderSummaryTable } from '../components/OrderSummaryTable'
 import { useUserOrders } from '../hooks/useUserOrders'
 
-type AccountDashboardPageProps = {
-  onReturnToStudio: () => void
-  onSelectOrder: (orderId: string) => void
-}
-
-export function AccountDashboardPage({
-  onReturnToStudio,
-  onSelectOrder,
-}: AccountDashboardPageProps) {
+export function AccountDashboardPage() {
+  const navigate = useNavigate()
   const { error, isLoading, orders } = useUserOrders()
+
+  function handleReturnToStudio() {
+    navigate('/')
+  }
+
+  function handleSelectOrder(orderId: string) {
+    navigate(`/account/orders/${orderId}`)
+  }
 
   return (
     <section className="grid gap-4 lg:grid-cols-[17rem_minmax(0,1fr)] xl:grid-cols-[18rem_minmax(0,1fr)]">
-      <AccountSidebar onReturnToStudio={onReturnToStudio} />
+      <AccountSidebar onReturnToStudio={handleReturnToStudio} />
 
       <div className="min-w-0">
         <div className="mb-4 rounded-[1.25rem] border border-stone-200 bg-white px-4 py-5 shadow-[0_18px_42px_-36px_rgba(15,23,42,0.28)] sm:px-5">
@@ -65,14 +68,14 @@ export function AccountDashboardPage({
             <>
               <OrderSummaryTable
                 orders={orders}
-                onSelectOrder={onSelectOrder}
+                onSelectOrder={handleSelectOrder}
               />
               <div className="grid gap-3 lg:hidden">
                 {orders.map((order) => (
                   <OrderSummaryCard
                     key={order.id}
                     order={order}
-                    onSelectOrder={onSelectOrder}
+                    onSelectOrder={handleSelectOrder}
                   />
                 ))}
               </div>

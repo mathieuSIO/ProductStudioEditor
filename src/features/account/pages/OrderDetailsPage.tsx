@@ -1,24 +1,26 @@
+import { useNavigate, useParams } from 'react-router-dom'
+
 import { AccountSidebar } from '../components/AccountSidebar'
 import { OrderDetailsPanel } from '../components/OrderDetailsPanel'
 import { OrderItemsList } from '../components/OrderItemsList'
 import { useUserOrderDetails } from '../hooks/useUserOrderDetails'
 
-type OrderDetailsPageProps = {
-  onReturnToOrders: () => void
-  onReturnToStudio: () => void
-  orderId: string | null
-}
+export function OrderDetailsPage() {
+  const navigate = useNavigate()
+  const { orderId } = useParams<{ orderId: string }>()
+  const { error, isLoading, order } = useUserOrderDetails(orderId ?? null)
 
-export function OrderDetailsPage({
-  onReturnToOrders,
-  onReturnToStudio,
-  orderId,
-}: OrderDetailsPageProps) {
-  const { error, isLoading, order } = useUserOrderDetails(orderId)
+  function handleReturnToOrders() {
+    navigate('/account')
+  }
+
+  function handleReturnToStudio() {
+    navigate('/')
+  }
 
   return (
     <section className="grid gap-4 lg:grid-cols-[17rem_minmax(0,1fr)] xl:grid-cols-[18rem_minmax(0,1fr)]">
-      <AccountSidebar onReturnToStudio={onReturnToStudio} />
+      <AccountSidebar onReturnToStudio={handleReturnToStudio} />
 
       <div className="min-w-0">
         <div className="mb-4 flex flex-col gap-3 rounded-[1.25rem] border border-stone-200 bg-white px-4 py-5 shadow-[0_18px_42px_-36px_rgba(15,23,42,0.28)] sm:flex-row sm:items-start sm:justify-between sm:px-5">
@@ -36,7 +38,7 @@ export function OrderDetailsPage({
           <button
             type="button"
             className="rounded-[0.95rem] border border-blue-100 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-950 transition hover:border-emerald-200 hover:bg-white hover:text-emerald-800"
-            onClick={onReturnToOrders}
+            onClick={handleReturnToOrders}
           >
             Retour aux commandes
           </button>
