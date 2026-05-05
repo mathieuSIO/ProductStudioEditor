@@ -8,7 +8,7 @@ import { useUserOrderDetails } from '../hooks/useUserOrderDetails'
 export function OrderDetailsPage() {
   const navigate = useNavigate()
   const { orderId } = useParams<{ orderId: string }>()
-  const { error, isLoading, order } = useUserOrderDetails(orderId ?? null)
+  const { data: order, error, isLoading } = useUserOrderDetails(orderId ?? null)
 
   function handleReturnToOrders() {
     navigate('/account')

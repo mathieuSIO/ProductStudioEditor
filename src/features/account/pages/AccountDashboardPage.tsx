@@ -8,7 +8,7 @@ import { useUserOrders } from '../hooks/useUserOrders'
 
 export function AccountDashboardPage() {
   const navigate = useNavigate()
-  const { error, isLoading, orders } = useUserOrders()
+  const { data: orders, error, isLoading } = useUserOrders()
 
   function handleReturnToStudio() {
     navigate('/')

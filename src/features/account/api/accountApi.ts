@@ -67,11 +67,12 @@ function normalizeOrderDetails(value: unknown): OrderDetails | null {
     readRecord(value, 'shipping_address') ??
     value
   const shippingAddress = normalizeShippingAddress(rawShippingAddress)
+  const customerPhone =
+    readString(value, 'customerPhone') ?? readString(value, 'customer_phone')
 
   return {
     ...summary,
-    customerPhone:
-      readString(value, 'customerPhone') ?? readString(value, 'customer_phone'),
+    customerPhone,
     items: rawItems
       .map((rawItem, index) => normalizeOrderItem(rawItem, index))
       .filter(isOrderItemDetails),
@@ -102,6 +103,10 @@ function normalizeOrderSummary(value: unknown): OrderSummary | null {
   const totalPriceCents =
     readNumber(value, 'totalPriceCents') ??
     readNumber(value, 'total_price_cents')
+  const totalCents =
+    readNumber(value, 'totalCents') ??
+    totalPriceCents ??
+    readNumber(value, 'total_cents')
 
   if (!id) {
     return null
@@ -127,10 +132,7 @@ function normalizeOrderSummary(value: unknown): OrderSummary | null {
     status: status as OrderStatus,
     totalAmount:
       readNumber(value, 'totalAmount') ?? readNumber(value, 'total_amount'),
-    totalCents:
-      readNumber(value, 'totalCents') ??
-      totalPriceCents ??
-      readNumber(value, 'total_cents'),
+    totalCents,
     totalPriceCents,
   }
 }
@@ -238,8 +240,7 @@ function normalizeShippingAddress(
       readString(value, 'postalCode') ??
       readString(value, 'shippingPostalCode') ??
       readString(value, 'shipping_postal_code') ??
-      readString(value, 'postal_code') ??
-      readString(value, 'shipping_postal_code'),
+      readString(value, 'postal_code'),
   }
 }
 

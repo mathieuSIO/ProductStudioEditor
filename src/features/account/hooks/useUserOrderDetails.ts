@@ -4,9 +4,9 @@ import { fetchUserOrderDetails } from '../api/accountApi'
 import type { OrderDetails } from '../types/account.types'
 
 type UseUserOrderDetailsResult = {
+  data: OrderDetails | null
   error: string | null
   isLoading: boolean
-  order: OrderDetails | null
 }
 
 export function useUserOrderDetails(
@@ -59,5 +59,5 @@ export function useUserOrderDetails(
     }
   }, [orderId])
 
-  return { error, isLoading, order }
+  return { data: order, error, isLoading }
 }
