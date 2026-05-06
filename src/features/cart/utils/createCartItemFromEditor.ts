@@ -29,6 +29,8 @@ export function createCartItemFromEditor(
       customPlacement: input.customPlacement.trim(),
       views: createDesignViewSnapshots(input.elementsByView),
     },
+    // TODO: upload preview finale vers un stockage persistant et renseigner l'URL durable ici.
+    finalPreviewUrl: null,
     id: createCartItemId(),
     pricing: {
       grandTotal: input.pricing.grandTotal,

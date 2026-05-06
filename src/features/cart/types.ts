@@ -57,6 +57,7 @@ export type CartItem = {
   color: CartColorSnapshot
   createdAt: string
   design: CartDesignSnapshot
+  finalPreviewUrl?: string | null
   id: CartItemId
   pricing: CartItemPricingSnapshot
   product: CartProductSnapshot

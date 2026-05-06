@@ -57,10 +57,18 @@ export function createOrderPayloadFromCheckoutDraft(
           design: cartItem.design,
           pricing: cartItem.pricing,
         },
-        finalPreviewUrl: null,
+        finalPreviewUrl: getPersistentFinalPreviewUrl(cartItem.finalPreviewUrl),
       }
     }),
   }
+}
+
+function getPersistentFinalPreviewUrl(value: string | null | undefined) {
+  if (!value || value.startsWith('blob:')) {
+    return null
+  }
+
+  return value
 }
 
 function formatNullableValue(value: string): string | null {
