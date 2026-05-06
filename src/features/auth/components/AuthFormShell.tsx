@@ -26,17 +26,25 @@ export function AuthFormShell({
       <div className="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-5xl items-center justify-center">
         <section className="grid w-full overflow-hidden rounded-[1.35rem] border border-stone-200 bg-white shadow-[0_22px_58px_-42px_rgba(15,23,42,0.45)] lg:grid-cols-[0.85fr_1fr]">
           <div className="bg-blue-950 px-6 py-8 text-white sm:px-8 lg:py-10">
-            <Link
-              to="/"
-              className="inline-flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-white"
-              aria-label="Retour au studio"
-            >
-              <img
-                src="/logo-mpm.png"
-                alt="Mon Petit Matos"
-                className="h-full w-full object-contain"
-              />
-            </Link>
+            <div className="flex flex-wrap items-center gap-3">
+              <Link
+                to="/"
+                className="inline-flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-white"
+                aria-label="Retour au studio"
+              >
+                <img
+                  src="/logo-mpm.png"
+                  alt="Mon Petit Matos"
+                  className="h-full w-full object-contain"
+                />
+              </Link>
+              <Link
+                to="/"
+                className="inline-flex min-h-10 items-center justify-center rounded-[0.9rem] border border-white/20 bg-white/10 px-3 py-2 text-sm font-semibold text-white transition hover:border-white/40 hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-white/30"
+              >
+                Retour au studio
+              </Link>
+            </div>
             <p className="mt-8 text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-100">
               Mon Petit Matos
             </p>

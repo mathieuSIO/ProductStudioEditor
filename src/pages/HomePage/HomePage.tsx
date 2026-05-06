@@ -18,6 +18,7 @@ export function HomePage() {
   const {
     addItem,
     cart,
+    clearCart,
     itemCount,
     removeItem,
     setProfessionalLogoReview,
@@ -103,10 +104,12 @@ export function HomePage() {
           onReturnToStudio={handleReturnToStudio}
           totals={totals}
         />
-      ) : currentView === 'checkout' && cart.items.length > 0 ? (
+      ) : currentView === 'checkout' ? (
         <CheckoutPage
           cart={cart}
+          onOrderSuccess={clearCart}
           onReturnToCart={() => setCurrentView('cart')}
+          onReturnToStudio={handleReturnToStudio}
           totals={totals}
         />
       ) : (

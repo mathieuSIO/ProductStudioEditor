@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 
+import { useAuth } from '../../features/auth'
 import { type Cart, type CartTotals } from '../../features/cart'
 import {
   createCheckoutDraft,
@@ -11,7 +13,9 @@ import { formatEuro } from '../../shared/formatters/formatEuro'
 
 type CheckoutPageProps = {
   cart: Cart
+  onOrderSuccess: () => void
   onReturnToCart: () => void
+  onReturnToStudio: () => void
   totals: CartTotals
 }
 
@@ -24,7 +28,7 @@ const initialFormData: CheckoutFormData = {
   firstName: '',
   lastName: '',
   pays: 'France',
-  ville:'',
+  ville: '',
   codePostal: '',
   adresse: '',
   phone: '',
@@ -36,16 +40,23 @@ const reassuranceItems = [
   'Accompagnement humain',
 ]
 
+const authRequiredMessage = 'Connectez-vous pour finaliser votre commande.'
+
 export function CheckoutPage({
   cart,
+  onOrderSuccess,
   onReturnToCart,
+  onReturnToStudio,
   totals,
 }: CheckoutPageProps) {
+  const { isAuthenticated } = useAuth()
   const [formData, setFormData] = useState<CheckoutFormData>(initialFormData)
   const [submitStatus, setSubmitStatus] = useState<SubmitStatus>('idle')
+  const [isOrderCreated, setIsOrderCreated] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const isCartEmpty = cart.items.length === 0
   const isSubmitting = submitStatus === 'loading'
+  const shouldShowLoginAction = errorMessage === authRequiredMessage
 
   function handleFieldChange(field: keyof CheckoutFormData, value: string) {
     setFormData((currentFormData) => ({
@@ -54,14 +65,21 @@ export function CheckoutPage({
     }))
   }
 
-  async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
     if (isCartEmpty || isSubmitting) {
       return
     }
 
+    if (!isAuthenticated) {
+      setSubmitStatus('error')
+      setErrorMessage(authRequiredMessage)
+      return
+    }
+
     setSubmitStatus('loading')
+    setIsOrderCreated(false)
     setErrorMessage(null)
 
     try {
@@ -69,7 +87,9 @@ export function CheckoutPage({
       const orderPayload = createOrderPayloadFromCheckoutDraft(checkoutDraft)
 
       await createOrder(orderPayload)
+      setIsOrderCreated(true)
       setSubmitStatus('success')
+      onOrderSuccess()
     } catch (error) {
       setSubmitStatus('error')
       setErrorMessage(
@@ -78,6 +98,41 @@ export function CheckoutPage({
           : 'La commande n’a pas pu être envoyée.',
       )
     }
+  }
+
+  if (isOrderCreated) {
+    return (
+      <section className="rounded-[1.25rem] border border-emerald-200 bg-white p-5 shadow-[0_18px_42px_-34px_rgba(15,23,42,0.35)]">
+        <div className="rounded-[1.1rem] border border-emerald-200 bg-emerald-50 px-4 py-4 text-emerald-900">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-700">
+            Demande enregistrée
+          </p>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+            Votre demande a bien été envoyée
+          </h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6">
+            Votre commande a bien été enregistrée. Nous vous recontactons
+            rapidement pour valider les détails avant production.
+          </p>
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Link
+            to="/account"
+            className="inline-flex min-h-11 items-center justify-center rounded-[1rem] bg-blue-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+          >
+            Voir mes commandes
+          </Link>
+          <button
+            type="button"
+            className="inline-flex min-h-11 items-center justify-center rounded-[1rem] border border-blue-100 bg-white px-4 py-2.5 text-sm font-semibold text-blue-950 transition hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+            onClick={onReturnToStudio}
+          >
+            Retour au studio
+          </button>
+        </div>
+      </section>
+    )
   }
 
   return (
@@ -231,22 +286,22 @@ export function CheckoutPage({
             className="rounded-[1rem] bg-red-600 px-4 py-3.5 text-base font-semibold text-white shadow-[0_18px_38px_-28px_rgba(220,38,38,0.75)] transition hover:bg-red-700 disabled:cursor-not-allowed disabled:border disabled:border-blue-100 disabled:bg-blue-50 disabled:text-blue-300 disabled:shadow-none"
             disabled={isCartEmpty || isSubmitting}
           >
-            {isSubmitting ? 'Envoi en cours...' : 'Envoyer ma demande →'}
+            {isSubmitting ? 'Envoi en cours...' : 'Envoyer ma demande de devis'}
           </button>
-
-          {submitStatus === 'success' ? (
-            <div className="rounded-[1rem] border border-emerald-200 bg-emerald-50 px-3 py-3 text-sm text-emerald-800">
-              <p className="font-semibold">Commande reçue</p>
-              <p className="mt-1 leading-5">
-                Nous vous recontactons rapidement pour valider les détails.
-              </p>
-            </div>
-          ) : null}
 
           {submitStatus === 'error' && errorMessage ? (
             <div className="rounded-[1rem] border border-red-200 bg-red-50 px-3 py-3 text-sm text-red-700">
               <p className="font-semibold">Envoi impossible</p>
               <p className="mt-1 leading-5">{errorMessage}</p>
+              {shouldShowLoginAction ? (
+                <Link
+                  to="/login"
+                  state={{ from: '/' }}
+                  className="mt-3 inline-flex min-h-10 items-center justify-center rounded-[0.9rem] bg-blue-950 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+                >
+                  Se connecter
+                </Link>
+              ) : null}
             </div>
           ) : null}
         </div>

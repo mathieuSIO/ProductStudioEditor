@@ -37,7 +37,10 @@ export function useCart() {
   }
 
   function clearCart() {
-    setCart(createEmptyCart())
+    const emptyCart = createEmptyCart()
+
+    saveCart(emptyCart)
+    setCart(emptyCart)
   }
 
   return {
