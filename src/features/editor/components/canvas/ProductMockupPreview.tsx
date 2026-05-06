@@ -233,6 +233,13 @@ function isWithinSelectionSafeArea(
     return true
   }
 
+  if (
+    eventTarget instanceof Element &&
+    eventTarget.closest('[data-editor-selection-safe="true"]')
+  ) {
+    return true
+  }
+
   return Boolean(
     selectionSafeAreaElement &&
       selectionSafeAreaElement.contains(eventTarget),

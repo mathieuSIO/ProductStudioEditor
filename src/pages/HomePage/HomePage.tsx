@@ -110,7 +110,10 @@ export function HomePage() {
           totals={totals}
         />
       ) : (
-        <EditorLayout onAddToCart={handleAddToCart} />
+        <EditorLayout
+          onAddToCart={handleAddToCart}
+          onOpenCart={() => setCurrentView('cart')}
+        />
       )}
     </AppShell>
   )

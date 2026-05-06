@@ -43,7 +43,10 @@ export function EditorSidebarLeft({
   selectedProductId,
 }: EditorSidebarLeftProps) {
   return (
-    <aside className="overflow-hidden rounded-[1.35rem] border border-blue-100 bg-white shadow-[0_16px_38px_-30px_rgba(15,23,42,0.22)]">
+    <aside
+      data-editor-selection-safe="true"
+      className="w-full max-w-full rounded-[1.35rem] border border-blue-100 bg-white shadow-[0_16px_38px_-30px_rgba(15,23,42,0.22)]"
+    >
       <div className="border-b border-blue-100 bg-blue-950 px-3.5 py-3 text-white">
         <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-100">
           Personnalisation
@@ -51,12 +54,14 @@ export function EditorSidebarLeft({
         <h2 className="mt-1 text-base font-semibold tracking-tight">
           Créez votre produit
         </h2>
+        
+        {/* Comment on subtitle for personnalisation pane
         <p className="mt-1 text-sm leading-5 text-blue-100">
           Suivez les étapes pour préparer une configuration prête à commander.
-        </p>
+        </p> */}
       </div>
 
-      <div className="grid gap-3 p-3">
+      <div className="grid min-w-0 gap-2.5 p-2.5">
         <GuidedStep
           description=""
           isComplete={Boolean(selectedProductId)}
@@ -120,14 +125,16 @@ function GuidedStep({
   title,
 }: GuidedStepProps) {
   return (
-    <section className="rounded-[1.05rem] border border-blue-100 bg-blue-50/55 p-2.5">
-      <div className="mb-2.5 flex items-start justify-between gap-3">
+    <section className="w-full max-w-full min-w-0 rounded-[1.05rem] border border-blue-100 bg-blue-50/55 p-2.5">
+      <div className="mb-2 flex items-start justify-between gap-3">
         <div className="flex min-w-0 gap-2.5">
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-600 text-sm font-semibold text-white">
             {number}
           </span>
-          <div className="min-w-0">
-            <h3 className="text-sm font-semibold text-blue-950">{title}</h3>
+          <div className="min-w-0 flex-1">
+            <h3 className="truncate text-sm font-semibold text-blue-950">
+              {title}
+            </h3>
             <p className="mt-0.5 text-xs leading-4 text-blue-700">
               {description}
             </p>

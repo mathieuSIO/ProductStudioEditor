@@ -3,6 +3,7 @@ import type { Product, ProductColor } from '../../types'
 
 type PriceSummaryPanelProps = {
   addToCartFeedbackMessage: string | null
+  addToCartDisabledMessage: string | null
   canAddToCart: boolean
   grandTotal: number
   onAddToCart?: () => void
@@ -19,6 +20,7 @@ const reassuranceItems = [
 
 export function PriceSummaryPanel({
   addToCartFeedbackMessage,
+  addToCartDisabledMessage,
   canAddToCart,
   grandTotal,
   onAddToCart,
@@ -27,7 +29,8 @@ export function PriceSummaryPanel({
   totalQuantity,
 }: PriceSummaryPanelProps) {
   const hasQuantity = totalQuantity > 0
-  const unitPrice = hasQuantity ? grandTotal / totalQuantity : 0
+  const hasReliablePrice = canAddToCart && hasQuantity
+  const unitPrice = hasReliablePrice ? grandTotal / totalQuantity : 0
   const isAddToCartDisabled = !canAddToCart || !onAddToCart
 
   return (
@@ -71,15 +74,15 @@ export function PriceSummaryPanel({
               Total estimé
             </p>
             <p className="mt-1 text-3xl font-semibold tracking-tight text-blue-950">
-              {formatEuro(grandTotal)}
+              {hasReliablePrice ? formatEuro(grandTotal) : '--'}
             </p>
-            {hasQuantity ? (
+            {hasReliablePrice ? (
               <p className="mt-1 text-sm font-medium text-blue-700">
                 {formatEuro(unitPrice)} / pièce
               </p>
             ) : (
               <p className="mt-1 text-sm text-stone-500">
-                Ajoutez une quantité pour afficher le prix unitaire.
+                Ajoutez un logo et une quantité pour afficher le prix.
               </p>
             )}
           </div>
@@ -100,12 +103,12 @@ export function PriceSummaryPanel({
           disabled={isAddToCartDisabled}
           onClick={onAddToCart}
         >
-          Ajouter au panier →
+          Ajouter au panier
         </button>
 
-        {!hasQuantity ? (
+        {addToCartDisabledMessage ? (
           <p className="rounded-[0.9rem] border border-red-100 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
-            Ajoutez une quantité pour continuer
+            {addToCartDisabledMessage}
           </p>
         ) : null}
 

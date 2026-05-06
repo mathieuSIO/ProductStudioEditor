@@ -16,7 +16,7 @@ export function ProductColorSelector({
   )
 
   return (
-    <div className="rounded-[0.95rem] border border-blue-100 bg-white px-3 py-2.5">
+    <div className="w-full max-w-full min-w-0 rounded-[0.95rem] border border-blue-100 bg-white px-3 py-2.5">
       <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-blue-700">
         Couleur du produit
       </p>
@@ -25,7 +25,7 @@ export function ProductColorSelector({
       </p>
 
       {supportedColors.length > 0 ? (
-        <div className="mt-3 grid gap-2">
+        <div className="mt-3 grid min-w-0 gap-2">
           {supportedColors.map((color) => (
             <ColorOption
               key={color.id}
@@ -62,22 +62,22 @@ function ColorOption({
       type="button"
       onClick={() => onSelect(colorId)}
       aria-pressed={isSelected}
-      className={`flex items-center justify-between rounded-[0.9rem] border px-3 py-2.5 text-left transition-colors ${
+      className={`flex w-full max-w-full min-w-0 items-center justify-between gap-2 rounded-[0.9rem] border px-3 py-2.5 text-left transition-colors ${
         isSelected
           ? 'border-blue-950 bg-blue-950 text-white shadow-[0_18px_35px_-26px_rgba(15,23,42,0.6)]'
           : 'border-blue-100 bg-blue-50 text-blue-950 hover:border-blue-200 hover:bg-white'
       }`}
     >
-      <span className="flex items-center gap-3">
+      <span className="flex min-w-0 items-center gap-3">
         <span
-          className="h-5 w-5 rounded-full border border-black/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.3)]"
+          className="h-5 w-5 shrink-0 rounded-full border border-black/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.3)]"
           style={{ backgroundColor: swatchHex }}
         />
-        <span className="text-sm font-semibold">{label}</span>
+        <span className="truncate text-sm font-semibold">{label}</span>
       </span>
 
       <span
-        className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${
+        className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${
           isSelected
             ? 'bg-white/12 text-white'
             : 'border border-red-100 bg-white text-red-600'

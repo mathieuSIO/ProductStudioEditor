@@ -277,14 +277,6 @@ export function LogoPreviewLayer({
               isInteractive ? 'opacity-100' : 'opacity-0'
             } bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1),transparent_68%)]`}
           />
-          <div
-            className={`pointer-events-none absolute -top-2 left-2 rounded-full border border-sky-500/12 bg-white/90 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-sky-700/90 shadow-sm transition-all duration-150 ${
-              isSelected ? 'opacity-100' : 'opacity-0'
-            }`}
-            
-          >
-            Element actif
-          </div>
           <img
             src={logoAsset.src}
             alt={logoAsset.name}

@@ -16,7 +16,7 @@ export function ProductSelector({
   const selectId = useId()
 
   return (
-    <div className="rounded-[0.95rem] border border-blue-100 bg-white px-3 py-2.5">
+    <div className="w-full max-w-full min-w-0 rounded-[0.95rem] border border-blue-100 bg-white px-3 py-2.5">
       <label
         htmlFor={selectId}
         className="text-[10px] font-semibold uppercase tracking-[0.16em] text-blue-700"
@@ -27,12 +27,12 @@ export function ProductSelector({
         Choisissez le support qui recevra votre marquage.
       </p>
 
-      <div className="mt-2.5">
+      <div className="mt-2.5 min-w-0">
         <select
           id={selectId}
           value={selectedProductId}
           onChange={(event) => onSelect(event.target.value as Product['id'])}
-          className="w-full appearance-none rounded-[0.9rem] border border-blue-100 bg-blue-50 px-3 py-2.5 text-sm font-semibold text-blue-950 outline-none transition-colors hover:border-blue-200 focus:border-red-500 focus:bg-white"
+          className="w-full min-w-0 appearance-none truncate rounded-[0.9rem] border border-blue-100 bg-blue-50 px-3 py-2.5 text-sm font-semibold text-blue-950 outline-none transition-colors hover:border-blue-200 focus:border-red-500 focus:bg-white"
         >
           {products.map((product) => (
             <option key={product.id} value={product.id}>
