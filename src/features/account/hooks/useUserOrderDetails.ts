@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 
-import { fetchUserOrderDetails } from '../api/accountApi'
+import { AccountApiError, fetchUserOrderDetails } from '../api/accountApi'
 import type { OrderDetails } from '../types/account.types'
 
 type UseUserOrderDetailsResult = {
   data: OrderDetails | null
   error: string | null
+  errorStatus: number | null
   isLoading: boolean
 }
 
@@ -15,12 +16,14 @@ export function useUserOrderDetails(
   const [order, setOrder] = useState<OrderDetails | null>(null)
   const [isLoading, setIsLoading] = useState(Boolean(orderId))
   const [error, setError] = useState<string | null>(null)
+  const [errorStatus, setErrorStatus] = useState<number | null>(null)
 
   useEffect(() => {
     if (!orderId) {
       setOrder(null)
       setIsLoading(false)
       setError(null)
+      setErrorStatus(null)
       return
     }
 
@@ -30,6 +33,7 @@ export function useUserOrderDetails(
     async function loadOrderDetails() {
       setIsLoading(true)
       setError(null)
+      setErrorStatus(null)
 
       try {
         const userOrder = await fetchUserOrderDetails(requestedOrderId)
@@ -43,6 +47,9 @@ export function useUserOrderDetails(
             loadError instanceof Error
               ? loadError.message
               : 'Le détail de la commande est indisponible.',
+          )
+          setErrorStatus(
+            loadError instanceof AccountApiError ? loadError.status : null,
           )
         }
       } finally {
@@ -59,5 +66,5 @@ export function useUserOrderDetails(
     }
   }, [orderId])
 
-  return { data: order, error, isLoading }
+  return { data: order, error, errorStatus, isLoading }
 }

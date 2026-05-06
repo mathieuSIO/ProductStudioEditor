@@ -10,7 +10,9 @@ export function OrderDetailsPage() {
   const navigate = useNavigate()
   const { orderId } = useParams<{ orderId: string }>()
   const { logout, user } = useAuth()
-  const { data: order, error, isLoading } = useUserOrderDetails(orderId ?? null)
+  const { data: order, error, errorStatus, isLoading } = useUserOrderDetails(
+    orderId ?? null,
+  )
 
   function handleReturnToOrders() {
     navigate('/account')
@@ -18,6 +20,10 @@ export function OrderDetailsPage() {
 
   function handleReturnToStudio() {
     navigate('/')
+  }
+
+  function handleLogin() {
+    navigate('/login')
   }
 
   function handleLogout() {
@@ -48,10 +54,10 @@ export function OrderDetailsPage() {
           </div>
           <button
             type="button"
-            className="rounded-[0.95rem] border border-blue-100 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-950 transition hover:border-emerald-200 hover:bg-white hover:text-emerald-800"
+            className="w-fit rounded-[0.95rem] border border-blue-100 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-950 transition hover:border-emerald-200 hover:bg-white hover:text-emerald-800"
             onClick={handleReturnToOrders}
           >
-            Retour aux commandes
+            Mes commandes
           </button>
         </div>
 
@@ -65,9 +71,13 @@ export function OrderDetailsPage() {
             title="Commande indisponible"
             description={error}
             tone="error"
+            actionLabel={
+              errorStatus === 401 ? 'Se reconnecter' : 'Mes commandes'
+            }
+            onAction={errorStatus === 401 ? handleLogin : handleReturnToOrders}
           />
         ) : order ? (
-          <div className="grid gap-4">
+          <div className="grid min-w-0 gap-4">
             <OrderDetailsPanel order={order} />
             <OrderItemsList items={order.items} />
           </div>
@@ -75,6 +85,8 @@ export function OrderDetailsPage() {
           <StateMessage
             title="Aucune commande sélectionnée"
             description="Retournez à la liste pour choisir une commande."
+            actionLabel="Mes commandes"
+            onAction={handleReturnToOrders}
           />
         )}
       </div>
@@ -92,13 +104,17 @@ function formatUserName(
 }
 
 type StateMessageProps = {
+  actionLabel?: string
   description: string
+  onAction?: () => void
   title: string
   tone?: 'default' | 'error'
 }
 
 function StateMessage({
+  actionLabel,
   description,
+  onAction,
   title,
   tone = 'default',
 }: StateMessageProps) {
@@ -113,6 +129,15 @@ function StateMessage({
     >
       <p className="text-base font-semibold">{title}</p>
       <p className="mx-auto mt-2 max-w-md text-sm leading-6">{description}</p>
+      {actionLabel && onAction ? (
+        <button
+          type="button"
+          className="mt-4 rounded-[0.95rem] bg-blue-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700"
+          onClick={onAction}
+        >
+          {actionLabel}
+        </button>
+      ) : null}
     </div>
   )
 }

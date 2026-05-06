@@ -10,7 +10,7 @@ import { useUserOrders } from '../hooks/useUserOrders'
 export function AccountDashboardPage() {
   const navigate = useNavigate()
   const { logout, user } = useAuth()
-  const { data: orders, error, isLoading } = useUserOrders()
+  const { data: orders, error, errorStatus, isLoading } = useUserOrders()
 
   function handleReturnToStudio() {
     navigate('/')
@@ -18,6 +18,10 @@ export function AccountDashboardPage() {
 
   function handleSelectOrder(orderId: string) {
     navigate(`/account/orders/${orderId}`)
+  }
+
+  function handleLogin() {
+    navigate('/login')
   }
 
   function handleLogout() {
@@ -48,7 +52,7 @@ export function AccountDashboardPage() {
                 et les aperçus finaux transmis à la production.
               </p>
             </div>
-            <div className="rounded-[0.95rem] border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800">
+            <div className="w-fit rounded-[0.95rem] border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800">
               {orders.length} commande{orders.length > 1 ? 's' : ''}
             </div>
           </div>
@@ -69,11 +73,17 @@ export function AccountDashboardPage() {
               title="Commandes indisponibles"
               description={error}
               tone="error"
+              actionLabel={
+                errorStatus === 401 ? 'Se reconnecter' : 'Retour au studio'
+              }
+              onAction={errorStatus === 401 ? handleLogin : handleReturnToStudio}
             />
           ) : orders.length === 0 ? (
             <StateMessage
               title="Aucune commande pour le moment"
               description="Vos prochaines personnalisations MPM apparaîtront ici."
+              actionLabel="Retour au studio"
+              onAction={handleReturnToStudio}
             />
           ) : (
             <>
@@ -81,7 +91,7 @@ export function AccountDashboardPage() {
                 orders={orders}
                 onSelectOrder={handleSelectOrder}
               />
-              <div className="grid gap-3 lg:hidden">
+              <div className="grid min-w-0 gap-3 lg:hidden">
                 {orders.map((order) => (
                   <OrderSummaryCard
                     key={order.id}
@@ -108,13 +118,17 @@ function formatUserName(
 }
 
 type StateMessageProps = {
+  actionLabel?: string
   description: string
+  onAction?: () => void
   title: string
   tone?: 'default' | 'error'
 }
 
 function StateMessage({
+  actionLabel,
   description,
+  onAction,
   title,
   tone = 'default',
 }: StateMessageProps) {
@@ -129,6 +143,15 @@ function StateMessage({
     >
       <p className="text-base font-semibold">{title}</p>
       <p className="mx-auto mt-2 max-w-md text-sm leading-6">{description}</p>
+      {actionLabel && onAction ? (
+        <button
+          type="button"
+          className="mt-4 rounded-[0.95rem] bg-blue-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700"
+          onClick={onAction}
+        >
+          {actionLabel}
+        </button>
+      ) : null}
     </div>
   )
 }

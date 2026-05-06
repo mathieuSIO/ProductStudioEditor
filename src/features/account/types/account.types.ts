@@ -12,6 +12,7 @@ export type OrderStatus =
   | 'cancelled'
   | 'delivered'
   | 'draft'
+  | 'in_production'
   | 'paid'
   | 'pending'
   | 'processing'
@@ -33,6 +34,10 @@ export type ShippingAddress = {
   city?: string | null
   country?: string | null
   postalCode?: string | null
+}
+
+export type OrderOptions = {
+  professionalLogoReview?: boolean | null
 }
 
 export type OrderSummary = {
@@ -66,6 +71,7 @@ export type OrderItemDetails = {
 export type OrderDetails = OrderSummary & {
   customerPhone?: string | null
   items: OrderItemDetails[]
+  options?: OrderOptions | null
   shippingAddressLine1?: string | null
   shippingAddressLine2?: string | null
   shippingCity?: string | null

@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 
-import { fetchUserOrders } from '../api/accountApi'
+import { AccountApiError, fetchUserOrders } from '../api/accountApi'
 import type { OrderSummary } from '../types/account.types'
+import { compareOrdersByCreatedAtDesc } from '../utils/orderFormatters'
 
 type UseUserOrdersResult = {
   data: OrderSummary[]
   error: string | null
+  errorStatus: number | null
   isLoading: boolean
 }
 
@@ -13,6 +15,7 @@ export function useUserOrders(): UseUserOrdersResult {
   const [orders, setOrders] = useState<OrderSummary[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [errorStatus, setErrorStatus] = useState<number | null>(null)
 
   useEffect(() => {
     let isMounted = true
@@ -20,12 +23,13 @@ export function useUserOrders(): UseUserOrdersResult {
     async function loadOrders() {
       setIsLoading(true)
       setError(null)
+      setErrorStatus(null)
 
       try {
         const userOrders = await fetchUserOrders()
 
         if (isMounted) {
-          setOrders(userOrders)
+          setOrders([...userOrders].sort(compareOrdersByCreatedAtDesc))
         }
       } catch (loadError) {
         if (isMounted) {
@@ -33,6 +37,9 @@ export function useUserOrders(): UseUserOrdersResult {
             loadError instanceof Error
               ? loadError.message
               : 'Les commandes sont indisponibles.',
+          )
+          setErrorStatus(
+            loadError instanceof AccountApiError ? loadError.status : null,
           )
         }
       } finally {
@@ -49,5 +56,5 @@ export function useUserOrders(): UseUserOrdersResult {
     }
   }, [])
 
-  return { data: orders, error, isLoading }
+  return { data: orders, error, errorStatus, isLoading }
 }

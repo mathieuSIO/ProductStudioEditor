@@ -5,10 +5,21 @@ import type {
   OrderCustomer,
   OrderDetails,
   OrderItemDetails,
+  OrderOptions,
   OrderSummary,
   OrderStatus,
   ShippingAddress,
 } from '../types/account.types'
+
+export class AccountApiError extends Error {
+  readonly status: number
+
+  constructor(message: string, status: number) {
+    super(message)
+    this.name = 'AccountApiError'
+    this.status = status
+  }
+}
 
 export async function fetchUserOrders(): Promise<OrderSummary[]> {
   const orders = await fetchAccountResource<unknown>('/api/me/orders')
@@ -42,14 +53,20 @@ async function fetchAccountResource<T>(path: string): Promise<T> {
   const responseBody: unknown = await response.json()
 
   if (!isApiResponse<T>(responseBody)) {
-    throw new Error('La réponse serveur est invalide.')
+    throw new AccountApiError(
+      'La réponse serveur est invalide.',
+      response.status,
+    )
   }
 
   if (!response.ok || !responseBody.success) {
-    throw new Error(
-      responseBody.success
-        ? 'La ressource demandée est indisponible.'
-        : responseBody.message,
+    throw new AccountApiError(
+      response.status === 401
+        ? 'Votre session a expiré. Veuillez vous reconnecter.'
+        : responseBody.success
+          ? 'La ressource demandée est indisponible.'
+          : responseBody.message,
+      response.status,
     )
   }
 
@@ -79,12 +96,39 @@ function normalizeOrderDetails(value: unknown): OrderDetails | null {
     items: rawItems
       .map((rawItem, index) => normalizeOrderItem(rawItem, index))
       .filter(isOrderItemDetails),
+    options: normalizeOrderOptions(value),
     shippingAddress,
     shippingAddressLine1: shippingAddress?.addressLine1,
     shippingAddressLine2: shippingAddress?.addressLine2,
     shippingCity: shippingAddress?.city,
     shippingCountry: shippingAddress?.country,
     shippingPostalCode: shippingAddress?.postalCode,
+  }
+}
+
+function normalizeOrderOptions(value: Record<string, unknown>): OrderOptions | null {
+  const rawOptions =
+    readRecord(value, 'options') ??
+    readRecord(value, 'orderOptions') ??
+    readRecord(value, 'order_options')
+  const professionalLogoReview =
+    readBoolean(value, 'professionalLogoReview') ??
+    readBoolean(value, 'professional_logo_review') ??
+    readBoolean(value, 'logoReview') ??
+    readBoolean(value, 'logo_review') ??
+    (rawOptions
+      ? readBoolean(rawOptions, 'professionalLogoReview') ??
+        readBoolean(rawOptions, 'professional_logo_review') ??
+        readBoolean(rawOptions, 'logoReview') ??
+        readBoolean(rawOptions, 'logo_review')
+      : null)
+
+  if (professionalLogoReview === null) {
+    return null
+  }
+
+  return {
+    professionalLogoReview,
   }
 }
 
@@ -264,6 +308,15 @@ function readArray(
   const value = record[key]
 
   return Array.isArray(value) ? value : null
+}
+
+function readBoolean(
+  record: Record<string, unknown>,
+  key: string,
+): boolean | null {
+  const value = record[key]
+
+  return typeof value === 'boolean' ? value : null
 }
 
 function readNumber(
