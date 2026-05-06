@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 
 import { PanelCard } from '../../../components/ui/PanelCard'
+import { useAuth } from '../../auth'
 import { AccountSidebar } from '../components/AccountSidebar'
 import { OrderSummaryCard } from '../components/OrderSummaryCard'
 import { OrderSummaryTable } from '../components/OrderSummaryTable'
@@ -8,6 +9,7 @@ import { useUserOrders } from '../hooks/useUserOrders'
 
 export function AccountDashboardPage() {
   const navigate = useNavigate()
+  const { logout, user } = useAuth()
   const { data: orders, error, isLoading } = useUserOrders()
 
   function handleReturnToStudio() {
@@ -18,9 +20,18 @@ export function AccountDashboardPage() {
     navigate(`/account/orders/${orderId}`)
   }
 
+  function handleLogout() {
+    logout()
+    navigate('/login', { replace: true })
+  }
+
   return (
     <section className="grid gap-4 lg:grid-cols-[17rem_minmax(0,1fr)] xl:grid-cols-[18rem_minmax(0,1fr)]">
-      <AccountSidebar onReturnToStudio={handleReturnToStudio} />
+      <AccountSidebar
+        onLogout={handleLogout}
+        onReturnToStudio={handleReturnToStudio}
+        userName={formatUserName(user?.firstName, user?.lastName)}
+      />
 
       <div className="min-w-0">
         <div className="mb-4 rounded-[1.25rem] border border-stone-200 bg-white px-4 py-5 shadow-[0_18px_42px_-36px_rgba(15,23,42,0.28)] sm:px-5">
@@ -85,6 +96,15 @@ export function AccountDashboardPage() {
       </div>
     </section>
   )
+}
+
+function formatUserName(
+  firstName: string | undefined,
+  lastName: string | undefined,
+): string | undefined {
+  const fullName = [firstName, lastName].filter(Boolean).join(' ')
+
+  return fullName.length > 0 ? fullName : undefined
 }
 
 type StateMessageProps = {

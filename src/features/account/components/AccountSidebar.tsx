@@ -1,10 +1,16 @@
 type AccountSidebarProps = {
+  onLogout: () => void
   onReturnToStudio: () => void
+  userName?: string
 }
 
 const accountLinks = ['Mes commandes', 'Mes informations', 'Aide projet']
 
-export function AccountSidebar({ onReturnToStudio }: AccountSidebarProps) {
+export function AccountSidebar({
+  onLogout,
+  onReturnToStudio,
+  userName,
+}: AccountSidebarProps) {
   return (
     <aside className="rounded-[1.25rem] border border-stone-200 bg-white p-3 shadow-[0_18px_42px_-34px_rgba(15,23,42,0.28)] lg:sticky lg:top-4 lg:h-fit">
       <div className="rounded-[1rem] bg-blue-950 px-4 py-4 text-white">
@@ -12,7 +18,7 @@ export function AccountSidebar({ onReturnToStudio }: AccountSidebarProps) {
           Mon compte
         </p>
         <h2 className="mt-2 text-lg font-semibold tracking-tight">
-          Espace client
+          {userName ?? 'Espace client'}
         </h2>
         <p className="mt-2 text-sm leading-5 text-blue-100">
           Suivez vos commandes textile et retrouvez les détails de production.
@@ -41,10 +47,18 @@ export function AccountSidebar({ onReturnToStudio }: AccountSidebarProps) {
 
       <button
         type="button"
-        className="mt-3 w-full rounded-[0.95rem] border border-blue-100 bg-blue-50 px-3 py-2.5 text-sm font-semibold text-blue-950 transition hover:border-red-200 hover:bg-white hover:text-red-600"
+        className="mt-3 w-full rounded-[0.95rem] border border-blue-100 bg-blue-50 px-3 py-2.5 text-sm font-semibold text-blue-950 transition hover:border-emerald-200 hover:bg-white hover:text-emerald-800"
         onClick={onReturnToStudio}
       >
         Retour au studio
+      </button>
+
+      <button
+        type="button"
+        className="mt-2 w-full rounded-[0.95rem] border border-red-100 bg-red-50 px-3 py-2.5 text-sm font-semibold text-red-700 transition hover:border-red-200 hover:bg-white hover:text-red-600"
+        onClick={onLogout}
+      >
+        Déconnexion
       </button>
     </aside>
   )

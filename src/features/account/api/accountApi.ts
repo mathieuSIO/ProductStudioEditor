@@ -1,4 +1,5 @@
 import { env } from '../../../shared/config/env'
+import { createAuthHeaders } from '../../auth'
 import type {
   ApiResponse,
   OrderCustomer,
@@ -35,7 +36,9 @@ export async function fetchUserOrderDetails(
 }
 
 async function fetchAccountResource<T>(path: string): Promise<T> {
-  const response = await fetch(`${env.apiBaseUrl}${path}`)
+  const response = await fetch(`${env.apiBaseUrl}${path}`, {
+    headers: createAuthHeaders(),
+  })
   const responseBody: unknown = await response.json()
 
   if (!isApiResponse<T>(responseBody)) {

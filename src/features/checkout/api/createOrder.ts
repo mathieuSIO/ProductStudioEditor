@@ -1,4 +1,5 @@
 import { env } from '../../../shared/config/env'
+import { createAuthHeaders } from '../../auth'
 import type { CreateOrderPayload } from '../types'
 
 export type CreateOrderResponse = {
@@ -12,6 +13,7 @@ export async function createOrder(payload: CreateOrderPayload): Promise<CreateOr
     body: JSON.stringify(payload),
     headers: {
       'Content-Type': 'application/json',
+      ...createAuthHeaders(),
     },
     method: 'POST',
   })

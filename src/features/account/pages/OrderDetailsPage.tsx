@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom'
 
+import { useAuth } from '../../auth'
 import { AccountSidebar } from '../components/AccountSidebar'
 import { OrderDetailsPanel } from '../components/OrderDetailsPanel'
 import { OrderItemsList } from '../components/OrderItemsList'
@@ -8,6 +9,7 @@ import { useUserOrderDetails } from '../hooks/useUserOrderDetails'
 export function OrderDetailsPage() {
   const navigate = useNavigate()
   const { orderId } = useParams<{ orderId: string }>()
+  const { logout, user } = useAuth()
   const { data: order, error, isLoading } = useUserOrderDetails(orderId ?? null)
 
   function handleReturnToOrders() {
@@ -18,9 +20,18 @@ export function OrderDetailsPage() {
     navigate('/')
   }
 
+  function handleLogout() {
+    logout()
+    navigate('/login', { replace: true })
+  }
+
   return (
     <section className="grid gap-4 lg:grid-cols-[17rem_minmax(0,1fr)] xl:grid-cols-[18rem_minmax(0,1fr)]">
-      <AccountSidebar onReturnToStudio={handleReturnToStudio} />
+      <AccountSidebar
+        onLogout={handleLogout}
+        onReturnToStudio={handleReturnToStudio}
+        userName={formatUserName(user?.firstName, user?.lastName)}
+      />
 
       <div className="min-w-0">
         <div className="mb-4 flex flex-col gap-3 rounded-[1.25rem] border border-stone-200 bg-white px-4 py-5 shadow-[0_18px_42px_-36px_rgba(15,23,42,0.28)] sm:flex-row sm:items-start sm:justify-between sm:px-5">
@@ -69,6 +80,15 @@ export function OrderDetailsPage() {
       </div>
     </section>
   )
+}
+
+function formatUserName(
+  firstName: string | undefined,
+  lastName: string | undefined,
+): string | undefined {
+  const fullName = [firstName, lastName].filter(Boolean).join(' ')
+
+  return fullName.length > 0 ? fullName : undefined
 }
 
 type StateMessageProps = {
