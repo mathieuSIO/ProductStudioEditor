@@ -95,7 +95,6 @@ export function useAdminOrderDetails(
           ? updateError.message
           : 'Le statut de la commande n a pas pu etre mis a jour.',
       )
-      throw updateError
     } finally {
       setIsUpdatingStatus(false)
     }
@@ -111,4 +110,3 @@ export function useAdminOrderDetails(
     updateStatus,
   }
 }
-
