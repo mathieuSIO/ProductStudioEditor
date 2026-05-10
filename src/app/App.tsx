@@ -6,6 +6,7 @@ import {
   useLocation,
 } from 'react-router-dom'
 
+import { AdminOrderDetailsPage, AdminOrdersPage } from '../features/admin'
 import { AccountDashboardPage, OrderDetailsPage } from '../features/account'
 import { LoginPage, RegisterPage, useAuth } from '../features/auth'
 import { HomePage } from '../pages/HomePage'
@@ -17,6 +18,22 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route
+          path="/admin/orders"
+          element={
+            <RequireAdmin>
+              <AdminOrdersPage />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/admin/orders/:orderId"
+          element={
+            <RequireAdmin>
+              <AdminOrderDetailsPage />
+            </RequireAdmin>
+          }
+        />
         <Route
           path="/account"
           element={
@@ -54,6 +71,27 @@ function RequireAuth({ children }: RequireAuthProps) {
         state={{ from: `${location.pathname}${location.search}` }}
       />
     )
+  }
+
+  return children
+}
+
+function RequireAdmin({ children }: RequireAuthProps) {
+  const location = useLocation()
+  const { isAuthenticated, user } = useAuth()
+
+  if (!isAuthenticated) {
+    return (
+      <Navigate
+        to="/login"
+        replace
+        state={{ from: `${location.pathname}${location.search}` }}
+      />
+    )
+  }
+
+  if (user?.role !== 'admin') {
+    return <Navigate to="/account" replace />
   }
 
   return children

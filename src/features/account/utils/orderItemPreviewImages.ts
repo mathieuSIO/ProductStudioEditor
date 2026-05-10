@@ -10,7 +10,8 @@ export function getOrderItemPreviewImages(
 ): PreviewImage[] {
   return getPreviewImages({
     finalPreviewUrl: item.finalPreviewUrl,
-    finalPreviewUrls: readFinalPreviewUrls(item.customization),
+    finalPreviewUrls:
+      item.finalPreviewUrls ?? readFinalPreviewUrls(item.customization),
   })
 }
 

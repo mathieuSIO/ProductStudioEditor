@@ -1,3 +1,5 @@
+import type { FinalPreviewUrls } from '../../../shared/utils/previewImages'
+
 export type ApiResponse<T> =
   | {
       data: T
@@ -58,6 +60,7 @@ export type OrderSummary = {
 export type OrderItemDetails = {
   customization?: Record<string, unknown> | null
   finalPreviewUrl?: string | null
+  finalPreviewUrls?: FinalPreviewUrls | null
   id: string
   productId?: number | null
   priceTotal?: number | null

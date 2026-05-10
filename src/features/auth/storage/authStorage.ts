@@ -128,6 +128,7 @@ function isAuthUser(value: unknown): value is AuthUser {
     typeof value.email === 'string' &&
     typeof value.firstName === 'string' &&
     typeof value.lastName === 'string' &&
+    isOptionalString(value.role) &&
     isNullableString(value.phone) &&
     isNullableString(value.addressLine1) &&
     isNullableString(value.addressLine2) &&
@@ -135,6 +136,10 @@ function isAuthUser(value: unknown): value is AuthUser {
     isNullableString(value.city) &&
     typeof value.country === 'string'
   )
+}
+
+function isOptionalString(value: unknown): value is string | undefined {
+  return typeof value === 'string' || value === undefined
 }
 
 function isNullableString(value: unknown): value is string | null {

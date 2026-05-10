@@ -7,71 +7,133 @@ import type {
   OrderDetails,
   OrderItemDetails,
   OrderOptions,
-  OrderSummary,
   OrderStatus,
+  OrderSummary,
   ShippingAddress,
-} from '../types/account.types'
+} from '../../account'
+import type { AdminOrderDetails, AdminOrderStatus, AdminOrderSummary } from '../types/admin.types'
 
-export class AccountApiError extends Error {
+export class AdminOrdersApiError extends Error {
   readonly status: number
 
   constructor(message: string, status: number) {
     super(message)
-    this.name = 'AccountApiError'
+    this.name = 'AdminOrdersApiError'
     this.status = status
   }
 }
 
-export async function fetchUserOrders(): Promise<OrderSummary[]> {
-  const orders = await fetchAccountResource<unknown>('/api/me/orders')
+export async function fetchAdminOrders(): Promise<AdminOrderSummary[]> {
+  const orders = await fetchAdminResource<unknown>('/api/admin/orders')
 
   if (!Array.isArray(orders)) {
-    throw new Error('La liste des commandes est invalide.')
+    throw new Error('La liste des commandes admin est invalide.')
   }
 
-  return orders.map(normalizeOrderSummary).filter(isOrderSummary)
+  return orders.map(normalizeAdminOrderSummary).filter(isAdminOrderSummary)
 }
 
-export async function fetchUserOrderDetails(
+export async function fetchAdminOrderDetails(
   orderId: string,
-): Promise<OrderDetails> {
-  const order = await fetchAccountResource<unknown>(
-    `/api/me/orders/${encodeURIComponent(orderId)}`,
+): Promise<AdminOrderDetails> {
+  const order = await fetchAdminResource<unknown>(
+    `/api/admin/orders/${encodeURIComponent(orderId)}`,
   )
   const normalizedOrder = normalizeOrderDetails(order)
 
   if (!normalizedOrder) {
-    throw new Error('La commande demandée est introuvable.')
+    throw new Error('La commande admin demandee est introuvable.')
   }
 
   return normalizedOrder
 }
 
-async function fetchAccountResource<T>(path: string): Promise<T> {
+export async function updateAdminOrderStatus(
+  orderId: string,
+  status: AdminOrderStatus,
+): Promise<AdminOrderDetails> {
+  const order = await fetchAdminResource<unknown>(
+    `/api/admin/orders/${encodeURIComponent(orderId)}/status`,
+    {
+      body: JSON.stringify({ status }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      method: 'PATCH',
+    },
+  )
+  const normalizedOrder = normalizeOrderDetails(order)
+
+  if (!normalizedOrder) {
+    throw new Error('La reponse de mise a jour est invalide.')
+  }
+
+  return normalizedOrder
+}
+
+async function fetchAdminResource<T>(
+  path: string,
+  init: RequestInit = {},
+): Promise<T> {
   const response = await fetch(`${env.apiBaseUrl}${path}`, {
-    headers: createAuthHeaders(),
+    ...init,
+    headers: {
+      ...createAuthHeaders(),
+      ...init.headers,
+    },
   })
-  const responseBody: unknown = await response.json()
+  const responseBody = await readResponseBody(response)
 
   if (!isApiResponse<T>(responseBody)) {
-    throw new AccountApiError(
-      'La réponse serveur est invalide.',
-      response.status,
-    )
+    throw new AdminOrdersApiError('La reponse serveur est invalide.', response.status)
   }
 
   if (!response.ok || !responseBody.success) {
-    throw new AccountApiError(
+    throw new AdminOrdersApiError(
       response.status === 401
-        ? 'Votre session a expiré. Veuillez vous reconnecter.'
-        : responseBody.success
-          ? 'La ressource demandée est indisponible.'
-          : responseBody.message,
+        ? 'Votre session a expire. Veuillez vous reconnecter.'
+        : response.status === 403
+          ? 'Acces admin refuse.'
+          : responseBody.success
+            ? 'La ressource admin demandee est indisponible.'
+            : responseBody.message,
       response.status,
     )
   }
 
   return responseBody.data
+}
+
+async function readResponseBody(response: Response): Promise<unknown> {
+  const responseText = await response.text()
+
+  if (!responseText) {
+    return null
+  }
+
+  try {
+    return JSON.parse(responseText) as unknown
+  } catch {
+    return null
+  }
+}
+
+function normalizeAdminOrderSummary(value: unknown): AdminOrderSummary | null {
+  const summary = normalizeOrderSummary(value)
+
+  if (!summary || !isRecord(value)) {
+    return summary
+  }
+
+  const rawItems =
+    readArray(value, 'items') ?? readArray(value, 'orderItems') ?? []
+
+  return {
+    ...summary,
+    items: rawItems
+      .map((rawItem, index) => normalizeOrderItem(rawItem, index))
+      .filter(isOrderItemDetails),
+  }
 }
 
 function normalizeOrderDetails(value: unknown): OrderDetails | null {
@@ -224,30 +286,11 @@ function normalizeOrderItem(
     productName,
     quantity,
     totalPriceCents:
-      readNumber(value, 'totalPriceCents') ??
-      readNumber(value, 'total_price_cents'),
+      readNumber(value, 'totalPriceCents') ?? readNumber(value, 'total_price_cents'),
     unitPrice:
       readNumber(value, 'unitPrice') ?? readNumber(value, 'unit_price'),
     unitPriceCents:
-      readNumber(value, 'unitPriceCents') ??
-      readNumber(value, 'unit_price_cents'),
-  }
-}
-
-function readFinalPreviewUrls(
-  record: Record<string, unknown>,
-  key: string,
-): FinalPreviewUrls | null {
-  const value = readRecord(record, key)
-
-  if (!value) {
-    return null
-  }
-
-  return {
-    back: readString(value, 'back') ?? undefined,
-    custom: readString(value, 'custom') ?? undefined,
-    front: readString(value, 'front') ?? undefined,
+      readNumber(value, 'unitPriceCents') ?? readNumber(value, 'unit_price_cents'),
   }
 }
 
@@ -312,7 +355,26 @@ function normalizeShippingAddress(
   }
 }
 
-function isOrderSummary(value: OrderSummary | null): value is OrderSummary {
+function readFinalPreviewUrls(
+  record: Record<string, unknown>,
+  key: string,
+): FinalPreviewUrls | null {
+  const value = readRecord(record, key)
+
+  if (!value) {
+    return null
+  }
+
+  return {
+    back: readString(value, 'back') ?? undefined,
+    custom: readString(value, 'custom') ?? undefined,
+    front: readString(value, 'front') ?? undefined,
+  }
+}
+
+function isAdminOrderSummary(
+  value: AdminOrderSummary | null,
+): value is AdminOrderSummary {
   return value !== null
 }
 
@@ -414,3 +476,4 @@ function isApiResponse<T>(value: unknown): value is ApiResponse<T> {
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
+

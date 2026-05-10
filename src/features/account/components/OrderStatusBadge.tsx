@@ -5,19 +5,21 @@ type OrderStatusBadgeProps = {
 }
 
 const statusLabels: Record<string, string> = {
-  cancelled: 'Annulée',
-  delivered: 'Livrée',
+  cancelled: 'Annulee',
+  completed: 'Terminee',
+  delivered: 'Livree',
   draft: 'Brouillon',
   in_production: 'En production',
-  paid: 'Payée',
+  paid: 'Payee',
   pending: 'En attente',
-  processing: 'En préparation',
-  received: 'Reçue',
-  shipped: 'Expédiée',
+  processing: 'En preparation',
+  received: 'Recue',
+  shipped: 'Expediee',
 }
 
 const statusClassNames: Record<string, string> = {
   cancelled: 'border-red-200 bg-red-50 text-red-700',
+  completed: 'border-emerald-200 bg-emerald-50 text-emerald-700',
   delivered: 'border-emerald-200 bg-emerald-50 text-emerald-700',
   draft: 'border-stone-200 bg-stone-50 text-stone-600',
   in_production: 'border-blue-200 bg-blue-50 text-blue-700',
@@ -44,3 +46,4 @@ export function OrderStatusBadge({ status }: OrderStatusBadgeProps) {
     </span>
   )
 }
+

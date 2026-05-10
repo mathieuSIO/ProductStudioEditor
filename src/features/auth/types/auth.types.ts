@@ -3,6 +3,7 @@ export type AuthUser = {
   email: string
   firstName: string
   lastName: string
+  role?: string
   phone: string | null
   addressLine1: string | null
   addressLine2: string | null
