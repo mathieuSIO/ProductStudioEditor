@@ -24,7 +24,7 @@ export async function createOrder(
       throw new Error('Connectez-vous pour finaliser votre commande.')
     }
 
-    throw new Error('La commande n’a pas pu être envoyée.')
+    throw new Error("La commande n'a pas pu etre envoyee.")
   }
 
   const responseBody = await readResponseBody(response)
@@ -52,6 +52,10 @@ function normalizeCreateOrderResponse(value: unknown): CreateOrderResponse {
       orderId: '',
       status: 'received',
     }
+  }
+
+  if (value.success === true && isRecord(value.data)) {
+    return normalizeCreateOrderResponse(value.data)
   }
 
   return {

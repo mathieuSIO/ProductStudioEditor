@@ -31,13 +31,13 @@ async function postAuthResource<TPayload>(
   const responseBody = await readJsonResponse(response)
 
   if (!isAuthApiResponse(responseBody)) {
-    throw new Error('La réponse serveur est invalide.')
+    throw new Error('La reponse serveur est invalide.')
   }
 
   if (!response.ok || !responseBody.success) {
     throw new Error(
       responseBody.success
-        ? 'La connexion est momentanément indisponible.'
+        ? 'La connexion est momentanement indisponible.'
         : responseBody.message,
     )
   }
@@ -49,7 +49,7 @@ async function readJsonResponse(response: Response): Promise<unknown> {
   try {
     return await response.json()
   } catch {
-    throw new Error('La réponse serveur est invalide.')
+    throw new Error('La reponse serveur est invalide.')
   }
 }
 

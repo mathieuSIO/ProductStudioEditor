@@ -11,7 +11,7 @@ type UseProductsResult = {
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof TypeError) {
-    return 'Impossible de joindre l API produits. Verifiez votre connexion ou la disponibilite du serveur.'
+    return "Impossible de joindre l'API produits. Verifiez votre connexion ou la disponibilite du serveur."
   }
 
   if (error instanceof Error) {

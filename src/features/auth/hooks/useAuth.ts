@@ -62,7 +62,7 @@ export function useAuth(): UseAuthResult {
       const message =
         authError instanceof Error
           ? authError.message
-          : 'La demande d’authentification a échoué.'
+          : "La demande d'authentification a echoue."
 
       setError(message)
       throw new Error(message)

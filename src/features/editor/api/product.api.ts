@@ -40,7 +40,7 @@ function isProductCatalogColor(value: unknown): value is ProductCatalogColor {
 }
 
 function isProductCatalogReference(
-  value: unknown
+  value: unknown,
 ): value is ProductCatalogReference {
   if (!isRecord(value)) {
     return false
@@ -79,7 +79,7 @@ function isProductCatalogItem(value: unknown): value is ProductCatalogItem {
 }
 
 function isProductCatalogResponse(
-  value: unknown
+  value: unknown,
 ): value is ProductCatalogResponse {
   if (!isRecord(value)) {
     return false
@@ -101,7 +101,7 @@ function getProductsEndpoint(): string {
 }
 
 export async function getProducts(
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<ProductCatalogItem[]> {
   const response = await fetch(getProductsEndpoint(), {
     method: 'GET',
@@ -110,7 +110,7 @@ export async function getProducts(
 
   if (!response.ok) {
     throw new Error(
-      `Le chargement des produits a echoue avec le statut ${response.status}.`
+      `Le chargement des produits a echoue avec le statut ${response.status}.`,
     )
   }
 
@@ -119,11 +119,11 @@ export async function getProducts(
   try {
     payload = await response.json()
   } catch {
-    throw new Error('La reponse de l API produits est invalide.')
+    throw new Error("La reponse de l'API produits est invalide.")
   }
 
   if (!isProductCatalogResponse(payload)) {
-    throw new Error('La reponse de l API produits est invalide.')
+    throw new Error("La reponse de l'API produits est invalide.")
   }
 
   return payload.data

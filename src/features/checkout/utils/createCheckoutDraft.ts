@@ -81,7 +81,7 @@ function validatePersistentLogoPreviews(cart: Cart): void {
 function getOrderProductId(cartItem: CartItem): number {
   if (cartItem.product.catalogProductId === undefined) {
     throw new Error(
-      'Impossible de créer la commande : un produit du panier n’est pas correctement relié au catalogue. Veuillez le retirer du panier puis l’ajouter à nouveau depuis le studio.',
+      "Impossible de creer la commande : un produit du panier n'est pas correctement relie au catalogue. Veuillez le retirer du panier puis l'ajouter a nouveau depuis le studio.",
     )
   }
 
