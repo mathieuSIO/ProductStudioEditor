@@ -4,6 +4,7 @@ import {
   getOrderItemCustomizationDetails,
   type CustomizationDetail,
 } from '../utils/orderCustomizationDetails'
+import { getOrderItemPreviewImages } from '../utils/orderItemPreviewImages'
 import {
   formatItemTotal,
   formatItemUnitPrice,
@@ -28,25 +29,17 @@ export function OrderItemsList({ items }: OrderItemsListProps) {
         <div className="grid min-w-0 gap-3">
           {items.map((item) => {
             const customizationDetails = getOrderItemCustomizationDetails(item)
+            const previewImages = getOrderItemPreviewImages(item)
 
             return (
               <article
                 key={item.id}
-                className="grid min-w-0 gap-4 rounded-[1rem] border border-stone-200 bg-white p-3 sm:grid-cols-[7rem_minmax(0,1fr)]"
+                className="grid min-w-0 gap-4 rounded-[1rem] border border-stone-200 bg-white p-3"
               >
-                <div className="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-[0.85rem] border border-stone-100 bg-stone-50">
-                  {item.finalPreviewUrl ? (
-                    <img
-                      src={item.finalPreviewUrl}
-                      alt={`Aperçu final ${item.productName}`}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <span className="px-3 text-center text-xs font-semibold text-stone-400">
-                      Aperçu à venir
-                    </span>
-                  )}
-                </div>
+                <OrderPreviewImages
+                  images={previewImages}
+                  productName={item.productName}
+                />
 
                 <div className="min-w-0">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -85,6 +78,46 @@ export function OrderItemsList({ items }: OrderItemsListProps) {
 type CustomizationDetailsProps = {
   details: CustomizationDetail[]
   hasCustomization: boolean
+}
+
+type OrderPreviewImagesProps = {
+  images: ReturnType<typeof getOrderItemPreviewImages>
+  productName: string
+}
+
+function OrderPreviewImages({
+  images,
+  productName,
+}: OrderPreviewImagesProps) {
+  if (images.length === 0) {
+    return (
+      <div className="flex min-h-28 items-center justify-center rounded-[0.85rem] border border-dashed border-stone-200 bg-stone-50 px-3 py-4 text-center text-xs font-semibold text-stone-400">
+        Apercu a venir
+      </div>
+    )
+  }
+
+  return (
+    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      {images.map((image) => (
+        <figure
+          key={`${image.viewId}-${image.url}`}
+          className="overflow-hidden rounded-[0.85rem] border border-stone-100 bg-stone-50"
+        >
+          <div className="aspect-[4/3]">
+            <img
+              src={image.url}
+              alt={`Apercu final ${productName} - ${image.label}`}
+              className="h-full w-full object-cover"
+            />
+          </div>
+          <figcaption className="border-t border-stone-100 bg-white px-3 py-2 text-xs font-semibold text-blue-950">
+            {image.label}
+          </figcaption>
+        </figure>
+      ))}
+    </div>
+  )
 }
 
 function CustomizationDetails({

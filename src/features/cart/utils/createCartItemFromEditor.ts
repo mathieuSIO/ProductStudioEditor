@@ -27,10 +27,10 @@ export function createCartItemFromEditor(
     createdAt: now,
     design: {
       customPlacement: input.customPlacement.trim(),
+      finalPreviewUrls: input.finalPreviewUrls,
       views: createDesignViewSnapshots(input.elementsByView),
     },
-    // TODO: upload preview finale vers un stockage persistant et renseigner l'URL durable ici.
-    finalPreviewUrl: null,
+    finalPreviewUrl: input.finalPreviewUrl,
     id: createCartItemId(),
     pricing: {
       grandTotal: input.pricing.grandTotal,
@@ -42,9 +42,12 @@ export function createCartItemFromEditor(
       totalQuantity: input.pricing.totalQuantity,
     },
     product: {
+      catalogProductId: input.product.catalogProductId,
+      catalogReferenceId: input.product.catalogReferenceId,
       category: input.product.category,
       id: input.product.id,
       name: input.product.name,
+      textileUnitPrice: input.product.textileUnitPrice,
     },
     quantities: createQuantitiesSnapshot(input.quantities),
     updatedAt: now,
@@ -61,11 +64,12 @@ function createDesignViewSnapshots(
       name: element.asset.name,
       originalFileSize: element.asset.size,
       position: element.position,
-      previewPersistence: getPreviewPersistence(element.asset.src),
-      previewUrl: element.asset.src,
+      previewPersistence: getPreviewPersistence(element.asset),
+      previewUrl: getPersistentPreviewUrl(element.asset),
       printFormat: element.printFormat,
       size: element.size,
       source: 'uploaded-file',
+      storageKey: element.asset.storageKey,
     })),
     viewId: viewId as ProductViewId,
   }))
@@ -91,8 +95,22 @@ function createQuantitiesSnapshot(
   )
 }
 
-function getPreviewPersistence(src: string): CartLogoPreviewPersistence {
-  return src.startsWith('blob:') ? 'temporary-object-url' : 'persistent-url'
+function getPreviewPersistence(
+  asset: DesignElement['asset'],
+): CartLogoPreviewPersistence {
+  return getPersistentPreviewUrl(asset) ? 'persistent-url' : 'temporary-object-url'
+}
+
+function getPersistentPreviewUrl(asset: DesignElement['asset']): string | null {
+  if (asset.persistentUrl && !asset.persistentUrl.startsWith('blob:')) {
+    return asset.persistentUrl
+  }
+
+  if (!asset.src.startsWith('blob:')) {
+    return asset.src
+  }
+
+  return null
 }
 
 function createCartItemId() {

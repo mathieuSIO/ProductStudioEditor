@@ -2,7 +2,15 @@ import { useEffect, useRef, useState } from 'react'
 
 import { useEditorStudio } from '../../hooks/useEditorStudio'
 import { calculateEditorPrice, defaultTextileUnitPrice } from '../../pricing'
-import type { EditorStudioConfiguration } from '../../types'
+import type {
+  DesignElement,
+  EditorStudioConfiguration,
+  ProductColor,
+  ProductView,
+  ProductViewId,
+} from '../../types'
+import { uploadFinalPreview } from '../../api/uploadFinalPreview.api'
+import { createFinalPreviewFile } from '../../utils/createFinalPreviewFile'
 import { ProductQuantityPanel } from '../panels/ProductQuantityPanel'
 import { EditorCanvasArea } from './EditorCanvasArea'
 import { EditorSidebarLeft } from './EditorSidebarLeft'
@@ -18,6 +26,10 @@ export function EditorLayout({ onAddToCart, onOpenCart }: EditorLayoutProps) {
   const [addToCartFeedbackMessage, setAddToCartFeedbackMessage] = useState<
     string | null
   >(null)
+  const [addToCartErrorMessage, setAddToCartErrorMessage] = useState<
+    string | null
+  >(null)
+  const [isPreparingCartItem, setIsPreparingCartItem] = useState(false)
   const {
     activeLogoElement,
     activeLogoElements,
@@ -74,18 +86,53 @@ export function EditorLayout({ onAddToCart, onOpenCart }: EditorLayoutProps) {
           printFormat: logoElement.printFormat,
         }))
       : [],
-    textileUnitPrice: defaultTextileUnitPrice,
+    textileUnitPrice: selectedProduct.textileUnitPrice ?? defaultTextileUnitPrice,
     totalQuantity: hasLogoElements ? totalQuantity : 0,
   })
-  const canAddToCart = Boolean(selectedProduct && hasValidQuantity && hasLogoElements)
+  const canAddToCart = Boolean(
+    selectedProduct &&
+      hasValidQuantity &&
+      hasLogoElements &&
+      !isPreparingCartItem,
+  )
   const addToCartDisabledMessage = !hasLogoElements
     ? 'Ajoutez au moins un logo pour commander une personnalisation.'
     : !hasValidQuantity
       ? 'Ajoutez une quantité pour continuer.'
       : null
 
-  function handleAddToCart() {
+  async function handleAddToCart() {
     if (!onAddToCart || !canAddToCart || !selectedColor || !selectedProduct) {
+      return
+    }
+
+    setIsPreparingCartItem(true)
+    setAddToCartErrorMessage(null)
+    setAddToCartFeedbackMessage(null)
+
+    let finalPreviewUrl: string
+    let finalPreviewUrls: Partial<Record<ProductViewId, string>>
+
+    try {
+      finalPreviewUrls = await createAndUploadFinalPreviews({
+        elementsByView,
+        product: selectedProduct,
+        productColor: selectedColor,
+      })
+      const primaryFinalPreviewUrl = getPrimaryFinalPreviewUrl(finalPreviewUrls)
+
+      if (!primaryFinalPreviewUrl) {
+        throw new Error("Impossible de generer l'apercu final.")
+      }
+
+      finalPreviewUrl = primaryFinalPreviewUrl
+    } catch (error) {
+      setAddToCartErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Impossible de preparer l'apercu final.",
+      )
+      setIsPreparingCartItem(false)
       return
     }
 
@@ -93,10 +140,13 @@ export function EditorLayout({ onAddToCart, onOpenCart }: EditorLayoutProps) {
       color: selectedColor,
       customPlacement,
       elementsByView,
+      finalPreviewUrl,
+      finalPreviewUrls,
       pricing,
       product: selectedProduct,
       quantities: quantitiesByProduct,
     })
+    setIsPreparingCartItem(false)
     setAddToCartFeedbackMessage('Produit ajouté au panier')
   }
 
@@ -152,10 +202,12 @@ export function EditorLayout({ onAddToCart, onOpenCart }: EditorLayoutProps) {
       >
         <EditorSidebarRight
           activeView={activeView}
+          addToCartErrorMessage={addToCartErrorMessage}
           addToCartFeedbackMessage={addToCartFeedbackMessage}
           addToCartDisabledMessage={addToCartDisabledMessage}
           canAddToCart={canAddToCart}
           grandTotal={pricing.grandTotal}
+          isPreparingCartItem={isPreparingCartItem}
           onAddToCart={handleAddToCart}
           printTotal={pricing.printTotal}
           product={selectedProduct}
@@ -205,5 +257,67 @@ export function EditorLayout({ onAddToCart, onOpenCart }: EditorLayoutProps) {
         </div>
       ) : null}
     </section>
+  )
+}
+
+type FinalPreviewGenerationInput = {
+  elementsByView: Record<ProductViewId, DesignElement[]>
+  product: EditorStudioConfiguration['product']
+  productColor: ProductColor
+}
+
+type FinalPreviewEntry = {
+  elements: DesignElement[]
+  productView: ProductView
+  viewId: ProductViewId
+}
+
+async function createAndUploadFinalPreviews({
+  elementsByView,
+  product,
+  productColor,
+}: FinalPreviewGenerationInput): Promise<Partial<Record<ProductViewId, string>>> {
+  const entries = getFinalPreviewEntries(elementsByView, productColor)
+  const finalPreviewUrls: Partial<Record<ProductViewId, string>> = {}
+
+  for (const entry of entries) {
+    const finalPreviewFile = await createFinalPreviewFile({
+      elements: entry.elements,
+      fileName: `final-preview-${entry.viewId}.png`,
+      product,
+      productColor,
+      productView: entry.productView,
+      viewId: entry.viewId,
+    })
+    const uploadedFinalPreview = await uploadFinalPreview(finalPreviewFile)
+
+    finalPreviewUrls[entry.viewId] = uploadedFinalPreview.url
+  }
+
+  return finalPreviewUrls
+}
+
+function getFinalPreviewEntries(
+  elementsByView: Record<ProductViewId, DesignElement[]>,
+  productColor: ProductColor,
+): FinalPreviewEntry[] {
+  return (Object.entries(elementsByView) as [ProductViewId, DesignElement[]][])
+    .filter(([, elements]) => elements.length > 0)
+    .flatMap(([viewId, elements]) => {
+      const productView = productColor.views[viewId]
+
+      return productView ? [{ elements, productView, viewId }] : []
+    })
+}
+
+function getPrimaryFinalPreviewUrl(
+  finalPreviewUrls: Partial<Record<ProductViewId, string>>,
+): string | null {
+  return (
+    finalPreviewUrls.front ??
+    finalPreviewUrls.back ??
+    finalPreviewUrls.custom ??
+    Object.values(finalPreviewUrls)[0] ??
+    null
   )
 }

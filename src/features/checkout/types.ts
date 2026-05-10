@@ -1,4 +1,12 @@
-import type { Cart, CartTotals } from '../cart'
+import type {
+  Cart,
+  CartColorSnapshot,
+  CartDesignSnapshot,
+  CartItemPricingSnapshot,
+  CartQuantitiesBySize,
+  CartTotals,
+} from '../cart'
+import type { ProductId } from '../editor/types'
 
 export type CheckoutFormData = {
   comment: string
@@ -41,6 +49,22 @@ export type CreateOrderPayloadItem = {
   productName: string
   quantity: number
   unitPriceCents: number
-  customization?: unknown | null
+  customization?: CreateOrderCustomization | null
   finalPreviewUrl?: string | null
+}
+
+export type CreateOrderCustomization = {
+  design: CartDesignSnapshot
+  pricing: CartItemPricingSnapshot
+  product: CreateOrderCustomizationProduct
+}
+
+export type CreateOrderCustomizationProduct = {
+  catalogProductId: number
+  catalogReferenceId?: number
+  color: CartColorSnapshot
+  id: ProductId
+  name: string
+  quantities: CartQuantitiesBySize
+  textileUnitPrice?: number
 }

@@ -278,7 +278,7 @@ export function LogoPreviewLayer({
             } bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1),transparent_68%)]`}
           />
           <img
-            src={logoAsset.src}
+            src={logoAsset.previewSrc ?? logoAsset.src}
             alt={logoAsset.name}
             draggable={false}
             onDragStart={(event) => event.preventDefault()}

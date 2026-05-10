@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import {
   getCenteredLogoPosition,
@@ -11,7 +11,9 @@ import {
   acceptedLogoMimeTypes,
   maxLogoFileSizeInBytes,
 } from '../constants/logoUpload'
+import { uploadLogo } from '../api/uploadLogo.api'
 import { mockProducts } from '../data/mockProducts'
+import { adaptProductCatalogToEditorProducts } from '../utils/adaptProductCatalogToEditorProducts'
 import type {
   DesignElement,
   EditorElementId,
@@ -25,6 +27,7 @@ import type {
 } from '../types'
 import { createUploadedLogoFromFile } from '../utils/createUploadedLogoFromFile'
 import { getPrintFormatFromLogoWidth } from '../utils/getPrintFormatFromLogoWidth'
+import { useProducts } from './useProducts'
 
 const initialProduct = mockProducts[0]
 const initialColor = initialProduct?.colors[0]
@@ -65,6 +68,11 @@ const initialQuantitiesByProduct = mockProducts.reduce<QuantitiesByProduct>(
 )
 
 export function useEditorStudio() {
+  const { products: catalogProducts } = useProducts()
+  const products = useMemo(
+    () => adaptProductCatalogToEditorProducts(catalogProducts, mockProducts),
+    [catalogProducts],
+  )
   const [selectedProductId, setSelectedProductId] = useState(
     initialProduct?.id ?? '',
   )
@@ -85,7 +93,7 @@ export function useEditorStudio() {
       initialSelectionByView,
     )
 
-  const selectedProduct = getSelectedProduct(selectedProductId)
+  const selectedProduct = getSelectedProduct(selectedProductId, products)
   const selectedColor = getSelectedColor(selectedProduct, selectedColorId)
   const availableViews = getAvailableViews(selectedColor)
   const resolvedActiveView = getResolvedActiveView(activeView, availableViews)
@@ -99,8 +107,10 @@ export function useEditorStudio() {
     activeLogoElements,
     selectedElementId,
   )
-  const selectedProductQuantities =
-    quantitiesByProduct[selectedProduct?.id ?? initialProduct.id] ?? {}
+  const selectedProductQuantities = getQuantitiesForProduct(
+    selectedProduct,
+    quantitiesByProduct[selectedProduct?.id ?? initialProduct.id] ?? {},
+  )
   const totalQuantity = getTotalQuantityForProduct(
     selectedProduct,
     selectedProductQuantities,
@@ -144,7 +154,7 @@ export function useEditorStudio() {
     return () => {
       Object.values(elementsByViewRef.current).forEach((elements) => {
         elements.forEach((element) => {
-          URL.revokeObjectURL(element.asset.src)
+          revokeLogoObjectUrls(element.asset)
         })
       })
     }
@@ -162,8 +172,22 @@ export function useEditorStudio() {
       return
     }
 
+    let pendingLocalLogo: DesignElement['asset'] | null = null
+
     try {
-      const uploadedLogo = await createUploadedLogoFromFile(file)
+      const localLogo = await createUploadedLogoFromFile(file)
+      pendingLocalLogo = localLogo
+      const uploadedLogoFile = await uploadLogo(file)
+      const uploadedLogo = {
+        ...localLogo,
+        mimeType: uploadedLogoFile.mimeType,
+        name: uploadedLogoFile.originalFileName,
+        persistentUrl: uploadedLogoFile.url,
+        previewSrc: localLogo.src,
+        size: uploadedLogoFile.size,
+        src: uploadedLogoFile.url,
+        storageKey: uploadedLogoFile.storageKey,
+      }
       const nextElementId = createEditorElementId()
       const nextSize = getDefaultLogoSize(
         (uploadedLogo.width ?? 1) / (uploadedLogo.height ?? 1),
@@ -186,9 +210,16 @@ export function useEditorStudio() {
         ...currentSelectionByView,
         [resolvedActiveView]: nextElementId,
       }))
-    } catch {
+      pendingLocalLogo = null
+    } catch (error) {
+      if (pendingLocalLogo) {
+        revokeLogoObjectUrls(pendingLocalLogo)
+      }
+
       setLogoErrorMessage(
-        file.type === 'application/pdf'
+        error instanceof Error
+          ? error.message
+          : file.type === 'application/pdf'
           ? "Impossible de generer l'aperçu de ce PDF. Essaie avec un autre PDF ou exporte ton logo en PNG ou SVG."
           : "Impossible de lire ce fichier image. Essaie avec un autre logo.",
       )
@@ -299,7 +330,7 @@ export function useEditorStudio() {
   }
 
   function handleProductSelect(productId: Product['id']) {
-    const nextProduct = mockProducts.find((product) => product.id === productId)
+    const nextProduct = products.find((product) => product.id === productId)
 
     if (!nextProduct) {
       return
@@ -369,7 +400,7 @@ export function useEditorStudio() {
     handleQuantityChange,
     logoControls,
     logoErrorMessage,
-    products: mockProducts,
+    products,
     quantitiesByProduct: selectedProductQuantities,
     selectedColor,
     selectedColorId: selectedColor?.id ?? selectedColorId,
@@ -401,8 +432,12 @@ function isAcceptedLogoMimeType(
   )
 }
 
-function getSelectedProduct(productId: ProductId) {
-  return mockProducts.find((product) => product.id === productId) ?? initialProduct
+function getSelectedProduct(productId: ProductId, products: Product[]) {
+  return (
+    products.find((product) => product.id === productId) ??
+    products[0] ??
+    initialProduct
+  )
 }
 
 function getSelectedColor(
@@ -431,6 +466,20 @@ function getTotalQuantityForProduct(
     (total, size) => total + (quantitiesBySize[size] ?? 0),
     0,
   )
+}
+
+function getQuantitiesForProduct(
+  product: Product | undefined,
+  quantitiesBySize: Record<string, number>,
+): Record<string, number> {
+  if (!product) {
+    return {}
+  }
+
+  return product.sizes.reduce<Record<string, number>>((quantities, size) => {
+    quantities[size] = quantitiesBySize[size] ?? 0
+    return quantities
+  }, {})
 }
 
 function validateLogoFile(file: File) {
@@ -490,12 +539,22 @@ function removeElementFromView(
     ...elementsByView,
     [viewId]: elementsByView[viewId].filter((element) => {
       if (element.id === elementId) {
-        URL.revokeObjectURL(element.asset.src)
+        revokeLogoObjectUrls(element.asset)
         return false
       }
 
       return true
     }),
+  }
+}
+
+function revokeLogoObjectUrls(asset: DesignElement['asset']) {
+  if (asset.src.startsWith('blob:')) {
+    URL.revokeObjectURL(asset.src)
+  }
+
+  if (asset.previewSrc?.startsWith('blob:')) {
+    URL.revokeObjectURL(asset.previewSrc)
   }
 }
 

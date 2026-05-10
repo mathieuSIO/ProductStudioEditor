@@ -1,4 +1,8 @@
 import { formatEuro } from '../../../shared/formatters/formatEuro'
+import {
+  getPreviewImages,
+  type PreviewImage,
+} from '../../../shared/utils/previewImages'
 import type { CartItem, CartItemId } from '../types'
 
 type CartItemCardProps = {
@@ -19,6 +23,10 @@ export function CartItemCard({ item, onRemove }: CartItemCardProps) {
       (logo) => logo.previewPersistence === 'temporary-object-url',
     ),
   )
+  const previewImages = getPreviewImages({
+    finalPreviewUrl: item.finalPreviewUrl,
+    finalPreviewUrls: item.design.finalPreviewUrls,
+  })
 
   return (
     <article className="overflow-hidden rounded-[1.25rem] border border-blue-100 bg-white shadow-[0_16px_38px_-34px_rgba(15,23,42,0.3)]">
@@ -77,6 +85,8 @@ export function CartItemCard({ item, onRemove }: CartItemCardProps) {
           </p>
         ) : null}
 
+        <CartPreviewImages images={previewImages} />
+
         {hasTemporaryLogoPreview ? (
           <p className="rounded-[0.95rem] border border-blue-100 bg-white px-3 py-2 text-sm leading-5 text-blue-700">
             Aperçu disponible pendant cette session uniquement.
@@ -90,6 +100,42 @@ export function CartItemCard({ item, onRemove }: CartItemCardProps) {
 type CartMetaProps = {
   label: string
   value: string
+}
+
+type CartPreviewImagesProps = {
+  images: PreviewImage[]
+}
+
+function CartPreviewImages({ images }: CartPreviewImagesProps) {
+  if (images.length === 0) {
+    return (
+      <div className="flex min-h-28 items-center justify-center rounded-[0.95rem] border border-dashed border-blue-100 bg-blue-50 px-3 py-4 text-center text-sm font-semibold text-blue-400">
+        Apercu a venir
+      </div>
+    )
+  }
+
+  return (
+    <div className="grid gap-2 sm:grid-cols-2">
+      {images.map((image) => (
+        <figure
+          key={`${image.viewId}-${image.url}`}
+          className="overflow-hidden rounded-[0.95rem] border border-blue-100 bg-white"
+        >
+          <div className="aspect-[4/3] bg-blue-50">
+            <img
+              src={image.url}
+              alt={`Apercu final ${image.label}`}
+              className="h-full w-full object-cover"
+            />
+          </div>
+          <figcaption className="border-t border-blue-100 px-3 py-2 text-xs font-semibold text-blue-950">
+            {image.label}
+          </figcaption>
+        </figure>
+      ))}
+    </div>
+  )
 }
 
 function CartMeta({ label, value }: CartMetaProps) {

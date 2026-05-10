@@ -16,6 +16,7 @@ export type CartLogoSnapshot = {
   printFormat: PrintFormat
   size: LogoSize
   source: 'uploaded-file'
+  storageKey?: string
 }
 
 export type CartDesignViewSnapshot = {
@@ -25,13 +26,17 @@ export type CartDesignViewSnapshot = {
 
 export type CartDesignSnapshot = {
   customPlacement: string
+  finalPreviewUrls?: Partial<Record<ProductViewId, string>>
   views: CartDesignViewSnapshot[]
 }
 
 export type CartProductSnapshot = {
+  catalogProductId?: number
+  catalogReferenceId?: number
   category: ProductCategory
   id: ProductId
   name: string
+  textileUnitPrice?: number
 }
 
 export type CartColorSnapshot = {

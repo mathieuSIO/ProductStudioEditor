@@ -47,9 +47,12 @@ export type ProductColor = {
 }
 
 export type Product = {
+  catalogProductId?: number
+  catalogReferenceId?: number
   category: ProductCategory
   colors: ProductColor[]
   id: ProductId
   name: string
   sizes: ProductSize[]
+  textileUnitPrice?: number
 }

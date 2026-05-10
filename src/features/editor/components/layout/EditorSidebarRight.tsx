@@ -3,10 +3,12 @@ import { PriceSummaryPanel } from '../panels/PriceSummaryPanel'
 
 type EditorSidebarRightProps = {
   activeView: ProductViewId
+  addToCartErrorMessage: string | null
   addToCartFeedbackMessage: string | null
   addToCartDisabledMessage: string | null
   canAddToCart: boolean
   grandTotal: number
+  isPreparingCartItem: boolean
   onAddToCart?: () => void
   printTotal: number
   product: Product
@@ -17,10 +19,12 @@ type EditorSidebarRightProps = {
 
 export function EditorSidebarRight({
   activeView,
+  addToCartErrorMessage,
   addToCartFeedbackMessage,
   addToCartDisabledMessage,
   canAddToCart,
   grandTotal,
+  isPreparingCartItem,
   onAddToCart,
   product,
   productColor,
@@ -46,10 +50,12 @@ export function EditorSidebarRight({
       ) : null}
 
       <PriceSummaryPanel
+        addToCartErrorMessage={addToCartErrorMessage}
         addToCartFeedbackMessage={addToCartFeedbackMessage}
         addToCartDisabledMessage={addToCartDisabledMessage}
         canAddToCart={canAddToCart}
         grandTotal={grandTotal}
+        isPreparingCartItem={isPreparingCartItem}
         onAddToCart={onAddToCart}
         product={product}
         productColor={productColor}

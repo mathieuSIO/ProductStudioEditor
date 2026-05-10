@@ -2,10 +2,12 @@ import { formatEuro } from '../../../../shared/formatters/formatEuro'
 import type { Product, ProductColor } from '../../types'
 
 type PriceSummaryPanelProps = {
+  addToCartErrorMessage: string | null
   addToCartFeedbackMessage: string | null
   addToCartDisabledMessage: string | null
   canAddToCart: boolean
   grandTotal: number
+  isPreparingCartItem: boolean
   onAddToCart?: () => void
   product: Product
   productColor: ProductColor
@@ -19,10 +21,12 @@ const reassuranceItems = [
 ]
 
 export function PriceSummaryPanel({
+  addToCartErrorMessage,
   addToCartFeedbackMessage,
   addToCartDisabledMessage,
   canAddToCart,
   grandTotal,
+  isPreparingCartItem,
   onAddToCart,
   product,
   productColor,
@@ -103,7 +107,7 @@ export function PriceSummaryPanel({
           disabled={isAddToCartDisabled}
           onClick={onAddToCart}
         >
-          Ajouter au panier
+          {isPreparingCartItem ? "Preparation de l'apercu..." : 'Ajouter au panier'}
         </button>
 
         {addToCartDisabledMessage ? (
@@ -115,6 +119,12 @@ export function PriceSummaryPanel({
         {addToCartFeedbackMessage ? (
           <p className="rounded-[0.9rem] border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">
             {addToCartFeedbackMessage}
+          </p>
+        ) : null}
+
+        {addToCartErrorMessage ? (
+          <p className="rounded-[0.9rem] border border-red-100 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
+            {addToCartErrorMessage}
           </p>
         ) : null}
 
