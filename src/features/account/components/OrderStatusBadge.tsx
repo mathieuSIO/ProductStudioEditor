@@ -5,16 +5,16 @@ type OrderStatusBadgeProps = {
 }
 
 const statusLabels: Record<string, string> = {
-  cancelled: 'Annulee',
-  completed: 'Terminee',
-  delivered: 'Livree',
+  cancelled: 'Annulée',
+  completed: 'Terminée',
+  delivered: 'Livrée',
   draft: 'Brouillon',
   in_production: 'En production',
-  paid: 'Payee',
+  paid: 'Payée',
   pending: 'En attente',
-  processing: 'En preparation',
-  received: 'Recue',
-  shipped: 'Expediee',
+  processing: 'En préparation',
+  received: 'Reçue',
+  shipped: 'Expédiée',
 }
 
 const statusClassNames: Record<string, string> = {
@@ -46,4 +46,3 @@ export function OrderStatusBadge({ status }: OrderStatusBadgeProps) {
     </span>
   )
 }
-

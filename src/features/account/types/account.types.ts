@@ -40,6 +40,10 @@ export type ShippingAddress = {
 
 export type OrderOptions = {
   professionalLogoReview?: boolean | null
+  professionalLogoReviewPriceCents?: number | null
+  productionLabel?: string | null
+  productionPercentage?: number | null
+  productionPriceCents?: number | null
 }
 
 export type OrderSummary = {

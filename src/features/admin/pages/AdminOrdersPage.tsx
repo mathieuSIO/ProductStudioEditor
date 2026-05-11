@@ -48,7 +48,7 @@ export function AdminOrdersPage() {
               Commandes
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
-              Suivi admin des commandes MPM, de la reception a l expedition.
+              Suivi admin des commandes MPM, de la réception à l’expédition.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -72,8 +72,8 @@ export function AdminOrdersPage() {
 
       <PanelCard
         eyebrow="Back office"
-        title="Commandes recentes"
-        description="Tri recent vers ancien. Ouvrez une commande pour consulter les details et modifier son statut."
+        title="Commandes récentes"
+        description="Tri récent vers ancien. Ouvrez une commande pour consulter les détails et modifier son statut."
         aside={
           <div className="rounded-[0.95rem] border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800">
             {orders.length} commande{orders.length > 1 ? 's' : ''}
@@ -83,7 +83,7 @@ export function AdminOrdersPage() {
         {isLoading ? (
           <StateMessage
             title="Chargement des commandes"
-            description="Recuperation de la liste admin."
+            description="Récupération de la liste admin."
           />
         ) : error ? (
           <StateMessage
@@ -122,13 +122,13 @@ function AdminOrdersTable({ onSelectOrder, orders }: AdminOrdersTableProps) {
       <table className="w-full min-w-[860px] table-fixed border-collapse text-left text-sm">
         <thead className="bg-stone-50 text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">
           <tr>
-            <th className="w-[14%] px-4 py-3">Apercu</th>
+            <th className="w-[14%] px-4 py-3">Aperçu</th>
             <th className="w-[18%] px-4 py-3">Commande</th>
             <th className="w-[22%] px-4 py-3">Client</th>
             <th className="w-[13%] px-4 py-3">Date</th>
             <th className="w-[12%] px-4 py-3">Total</th>
             <th className="w-[13%] px-4 py-3">Statut</th>
-            <th className="w-[8%] px-4 py-3 text-right">Detail</th>
+            <th className="w-[8%] px-4 py-3 text-right">Détail</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-stone-100">
@@ -191,7 +191,7 @@ function OrderPrimaryPreview({ order }: OrderPrimaryPreviewProps) {
   if (!primaryImage) {
     return (
       <div className="flex aspect-[4/3] items-center justify-center rounded-[0.85rem] border border-dashed border-stone-200 bg-stone-50 px-2 text-center text-xs font-semibold text-stone-400">
-        Apercu a venir
+        Aperçu à venir
       </div>
     )
   }
@@ -245,4 +245,3 @@ function StateMessage({
     </div>
   )
 }
-

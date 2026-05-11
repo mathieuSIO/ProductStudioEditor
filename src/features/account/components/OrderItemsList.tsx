@@ -92,7 +92,7 @@ function OrderPreviewImages({
   if (images.length === 0) {
     return (
       <div className="flex min-h-28 items-center justify-center rounded-[0.85rem] border border-dashed border-stone-200 bg-stone-50 px-3 py-4 text-center text-xs font-semibold text-stone-400">
-        Apercu a venir
+        Aperçu à venir
       </div>
     )
   }
@@ -107,7 +107,7 @@ function OrderPreviewImages({
           <div className="aspect-[4/3]">
             <img
               src={image.url}
-              alt={`Apercu final ${productName} - ${image.label}`}
+              alt={`Aperçu final ${productName} - ${image.label}`}
               className="h-full w-full object-cover"
             />
           </div>

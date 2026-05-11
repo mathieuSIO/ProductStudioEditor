@@ -40,6 +40,7 @@ export type CreateOrderPayloadOrder = {
   customerFirstName?: string | null
   customerLastName?: string | null
   customerPhone?: string | null
+  professionalLogoReviewEnabled: boolean
   productionOption: ProductionOption
   shippingAddressLine1?: string | null
   shippingAddressLine2?: string | null

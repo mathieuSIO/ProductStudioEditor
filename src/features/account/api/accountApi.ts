@@ -113,23 +113,69 @@ function normalizeOrderOptions(value: Record<string, unknown>): OrderOptions | n
     readRecord(value, 'orderOptions') ??
     readRecord(value, 'order_options')
   const professionalLogoReview =
+    readBoolean(value, 'professionalLogoReviewEnabled') ??
+    readBoolean(value, 'professional_logo_review_enabled') ??
     readBoolean(value, 'professionalLogoReview') ??
     readBoolean(value, 'professional_logo_review') ??
     readBoolean(value, 'logoReview') ??
     readBoolean(value, 'logo_review') ??
     (rawOptions
-      ? readBoolean(rawOptions, 'professionalLogoReview') ??
+      ? readBoolean(rawOptions, 'professionalLogoReviewEnabled') ??
+        readBoolean(rawOptions, 'professional_logo_review_enabled') ??
+        readBoolean(rawOptions, 'professionalLogoReview') ??
         readBoolean(rawOptions, 'professional_logo_review') ??
         readBoolean(rawOptions, 'logoReview') ??
         readBoolean(rawOptions, 'logo_review')
       : null)
+  const professionalLogoReviewPriceCents =
+    readNumber(value, 'professionalLogoReviewPriceCents') ??
+    readNumber(value, 'professional_logo_review_price_cents') ??
+    readNumber(value, 'logoReviewPriceCents') ??
+    readNumber(value, 'logo_review_price_cents') ??
+    (rawOptions
+      ? readNumber(rawOptions, 'professionalLogoReviewPriceCents') ??
+        readNumber(rawOptions, 'professional_logo_review_price_cents') ??
+        readNumber(rawOptions, 'logoReviewPriceCents') ??
+        readNumber(rawOptions, 'logo_review_price_cents')
+      : null)
+  const productionLabel =
+    readString(value, 'productionLabel') ??
+    readString(value, 'production_label') ??
+    (rawOptions
+      ? readString(rawOptions, 'productionLabel') ??
+        readString(rawOptions, 'production_label')
+      : null)
+  const productionPercentage =
+    readNumber(value, 'productionPercentage') ??
+    readNumber(value, 'production_percentage') ??
+    (rawOptions
+      ? readNumber(rawOptions, 'productionPercentage') ??
+        readNumber(rawOptions, 'production_percentage')
+      : null)
+  const productionPriceCents =
+    readNumber(value, 'productionPriceCents') ??
+    readNumber(value, 'production_price_cents') ??
+    (rawOptions
+      ? readNumber(rawOptions, 'productionPriceCents') ??
+        readNumber(rawOptions, 'production_price_cents')
+      : null)
 
-  if (professionalLogoReview === null) {
+  if (
+    professionalLogoReview === null &&
+    professionalLogoReviewPriceCents === null &&
+    productionLabel === null &&
+    productionPercentage === null &&
+    productionPriceCents === null
+  ) {
     return null
   }
 
   return {
     professionalLogoReview,
+    professionalLogoReviewPriceCents,
+    productionLabel,
+    productionPercentage,
+    productionPriceCents,
   }
 }
 

@@ -42,7 +42,7 @@ export async function fetchAdminOrderDetails(
   const normalizedOrder = normalizeOrderDetails(order)
 
   if (!normalizedOrder) {
-    throw new Error('La commande admin demandee est introuvable.')
+    throw new Error('La commande admin demandée est introuvable.')
   }
 
   return normalizedOrder
@@ -65,7 +65,7 @@ export async function updateAdminOrderStatus(
   const normalizedOrder = normalizeOrderDetails(order)
 
   if (!normalizedOrder) {
-    throw new Error('La reponse de mise a jour est invalide.')
+    throw new Error('La réponse de mise à jour est invalide.')
   }
 
   return normalizedOrder
@@ -85,17 +85,17 @@ async function fetchAdminResource<T>(
   const responseBody = await readResponseBody(response)
 
   if (!isApiResponse<T>(responseBody)) {
-    throw new AdminOrdersApiError('La reponse serveur est invalide.', response.status)
+    throw new AdminOrdersApiError('La réponse serveur est invalide.', response.status)
   }
 
   if (!response.ok || !responseBody.success) {
     throw new AdminOrdersApiError(
       response.status === 401
-        ? 'Votre session a expire. Veuillez vous reconnecter.'
+        ? 'Votre session a expiré. Veuillez vous reconnecter.'
         : response.status === 403
-          ? 'Acces admin refuse.'
+          ? 'Accès admin refusé.'
           : responseBody.success
-            ? 'La ressource admin demandee est indisponible.'
+            ? 'La ressource admin demandée est indisponible.'
             : responseBody.message,
       response.status,
     )
@@ -175,23 +175,69 @@ function normalizeOrderOptions(value: Record<string, unknown>): OrderOptions | n
     readRecord(value, 'orderOptions') ??
     readRecord(value, 'order_options')
   const professionalLogoReview =
+    readBoolean(value, 'professionalLogoReviewEnabled') ??
+    readBoolean(value, 'professional_logo_review_enabled') ??
     readBoolean(value, 'professionalLogoReview') ??
     readBoolean(value, 'professional_logo_review') ??
     readBoolean(value, 'logoReview') ??
     readBoolean(value, 'logo_review') ??
     (rawOptions
-      ? readBoolean(rawOptions, 'professionalLogoReview') ??
+      ? readBoolean(rawOptions, 'professionalLogoReviewEnabled') ??
+        readBoolean(rawOptions, 'professional_logo_review_enabled') ??
+        readBoolean(rawOptions, 'professionalLogoReview') ??
         readBoolean(rawOptions, 'professional_logo_review') ??
         readBoolean(rawOptions, 'logoReview') ??
         readBoolean(rawOptions, 'logo_review')
       : null)
+  const professionalLogoReviewPriceCents =
+    readNumber(value, 'professionalLogoReviewPriceCents') ??
+    readNumber(value, 'professional_logo_review_price_cents') ??
+    readNumber(value, 'logoReviewPriceCents') ??
+    readNumber(value, 'logo_review_price_cents') ??
+    (rawOptions
+      ? readNumber(rawOptions, 'professionalLogoReviewPriceCents') ??
+        readNumber(rawOptions, 'professional_logo_review_price_cents') ??
+        readNumber(rawOptions, 'logoReviewPriceCents') ??
+        readNumber(rawOptions, 'logo_review_price_cents')
+      : null)
+  const productionLabel =
+    readString(value, 'productionLabel') ??
+    readString(value, 'production_label') ??
+    (rawOptions
+      ? readString(rawOptions, 'productionLabel') ??
+        readString(rawOptions, 'production_label')
+      : null)
+  const productionPercentage =
+    readNumber(value, 'productionPercentage') ??
+    readNumber(value, 'production_percentage') ??
+    (rawOptions
+      ? readNumber(rawOptions, 'productionPercentage') ??
+        readNumber(rawOptions, 'production_percentage')
+      : null)
+  const productionPriceCents =
+    readNumber(value, 'productionPriceCents') ??
+    readNumber(value, 'production_price_cents') ??
+    (rawOptions
+      ? readNumber(rawOptions, 'productionPriceCents') ??
+        readNumber(rawOptions, 'production_price_cents')
+      : null)
 
-  if (professionalLogoReview === null) {
+  if (
+    professionalLogoReview === null &&
+    professionalLogoReviewPriceCents === null &&
+    productionLabel === null &&
+    productionPercentage === null &&
+    productionPriceCents === null
+  ) {
     return null
   }
 
   return {
     professionalLogoReview,
+    professionalLogoReviewPriceCents,
+    productionLabel,
+    productionPercentage,
+    productionPriceCents,
   }
 }
 
@@ -476,4 +522,3 @@ function isApiResponse<T>(value: unknown): value is ApiResponse<T> {
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
-

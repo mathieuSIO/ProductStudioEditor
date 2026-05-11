@@ -45,22 +45,22 @@ const authRequiredMessage = 'Connectez-vous pour finaliser votre commande.'
 
 const productionOptions = [
   {
-    deliveryLabel: '7 a 10 jours ouvres',
+    deliveryLabel: '7 à 10 jours ouvrés',
     id: 'standard',
     label: 'Standard',
     percentage: 0,
   },
   {
-    deliveryLabel: '4 a 6 jours ouvres',
+    deliveryLabel: '4 à 6 jours ouvrés',
     id: 'rapide',
     label: 'Rapide',
     percentage: 0.15,
   },
   {
-    deliveryLabel: '2 a 3 jours ouvres',
+    deliveryLabel: '2 à 3 jours ouvrés',
     id: 'premium',
     label: 'Premium',
-    percentage: 0.2,
+    percentage: 0.3,
   },
 ] satisfies ProductionOptionDetails[]
 
@@ -261,7 +261,7 @@ export function CheckoutPage({
 
           <fieldset className="grid gap-3">
             <legend className="text-sm font-semibold text-blue-950">
-              Delai de production
+              Délai de production
             </legend>
             <div className="grid gap-2 sm:grid-cols-3">
               {productionOptions.map((option) => {
@@ -420,7 +420,7 @@ export function CheckoutPage({
 
         <div className="mt-4 rounded-[1.05rem] border border-blue-950 bg-blue-950 px-4 py-4 text-white">
           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-100">
-            Total estime
+            Total estimé
           </p>
           <p className="mt-1 text-3xl font-semibold tracking-tight">
             {formatEuro(estimatedTotal)}

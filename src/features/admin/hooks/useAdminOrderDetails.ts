@@ -57,7 +57,7 @@ export function useAdminOrderDetails(
           setError(
             loadError instanceof Error
               ? loadError.message
-              : 'Le detail admin de la commande est indisponible.',
+              : 'Le détail admin de la commande est indisponible.',
           )
           setErrorStatus(
             loadError instanceof AdminOrdersApiError ? loadError.status : null,
@@ -93,7 +93,7 @@ export function useAdminOrderDetails(
       setStatusError(
         updateError instanceof Error
           ? updateError.message
-          : 'Le statut de la commande n a pas pu etre mis a jour.',
+          : 'Le statut de la commande n’a pas pu être mis à jour.',
       )
     } finally {
       setIsUpdatingStatus(false)

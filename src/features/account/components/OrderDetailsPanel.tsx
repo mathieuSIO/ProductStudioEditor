@@ -1,4 +1,5 @@
 import { PanelCard } from '../../../components/ui/PanelCard'
+import { formatEuro } from '../../../shared/formatters/formatEuro'
 import type { OrderDetails } from '../types/account.types'
 import {
   formatCustomerEmail,
@@ -38,14 +39,40 @@ export function OrderDetailsPanel({ order }: OrderDetailsPanelProps) {
         </address>
       </div>
 
-      {order.options?.professionalLogoReview ? (
+      {hasOrderOptions(order) ? (
         <div className="mt-4 rounded-[1rem] border border-emerald-100 bg-emerald-50 px-4 py-4">
           <p className="text-sm font-semibold text-emerald-800">
-            Vérification professionnelle du logo
+            Options de commande
           </p>
-          <p className="mt-1 text-sm leading-6 text-emerald-900">
-            Option choisie pour cette commande.
-          </p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {order.options?.professionalLogoReview ? (
+              <OptionStat
+                label="Vérification logo"
+                value={
+                  typeof order.options.professionalLogoReviewPriceCents ===
+                  'number'
+                    ? formatEuro(
+                        order.options.professionalLogoReviewPriceCents / 100,
+                      )
+                    : 'Option choisie'
+                }
+              />
+            ) : null}
+
+            {order.options?.productionLabel ? (
+              <OptionStat
+                label="Délai de production"
+                value={formatProductionOption(order)}
+              />
+            ) : null}
+
+            {typeof order.options?.productionPriceCents === 'number' ? (
+              <OptionStat
+                label="Supplément production"
+                value={formatEuro(order.options.productionPriceCents / 100)}
+              />
+            ) : null}
+          </div>
         </div>
       ) : null}
     </PanelCard>
@@ -68,4 +95,41 @@ function DetailStat({ label, value }: DetailStatProps) {
       </p>
     </div>
   )
+}
+
+function OptionStat({ label, value }: DetailStatProps) {
+  return (
+    <div className="min-w-0 rounded-[0.85rem] border border-emerald-100 bg-white/80 px-3 py-2">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-emerald-700">
+        {label}
+      </p>
+      <p className="mt-1 break-words text-sm font-semibold text-blue-950">
+        {value}
+      </p>
+    </div>
+  )
+}
+
+function hasOrderOptions(order: OrderDetails): boolean {
+  return Boolean(
+    order.options?.professionalLogoReview ||
+      order.options?.productionLabel ||
+      typeof order.options?.productionPriceCents === 'number',
+  )
+}
+
+function formatProductionOption(order: OrderDetails): string {
+  const productionLabel = order.options?.productionLabel ?? 'Production'
+
+  if (typeof order.options?.productionPercentage !== 'number') {
+    return productionLabel
+  }
+
+  return `${productionLabel} (+${formatPercentage(order.options.productionPercentage)})`
+}
+
+function formatPercentage(value: number): string {
+  const normalizedValue = value > 1 ? value : value * 100
+
+  return `${Math.round(normalizedValue)} %`
 }

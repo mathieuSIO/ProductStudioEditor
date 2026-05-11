@@ -52,7 +52,7 @@ export function AdminOrderDetailsPage() {
             Administration
           </p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight text-blue-950 sm:text-3xl">
-            Detail commande
+            Détail commande
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
             Informations client, production et statut de commande.
@@ -79,7 +79,7 @@ export function AdminOrderDetailsPage() {
       {isLoading ? (
         <StateMessage
           title="Chargement de la commande"
-          description="Recuperation du detail admin."
+            description="Récupération du détail admin."
         />
       ) : error ? (
         <StateMessage
@@ -108,8 +108,8 @@ export function AdminOrderDetailsPage() {
         </div>
       ) : (
         <StateMessage
-          title="Aucune commande selectionnee"
-          description="Retournez a la liste pour choisir une commande."
+          title="Aucune commande sélectionnée"
+          description="Retournez à la liste pour choisir une commande."
           actionLabel="Commandes"
           onAction={handleReturnToOrders}
         />
@@ -164,4 +164,3 @@ function StateMessage({
     </div>
   )
 }
-

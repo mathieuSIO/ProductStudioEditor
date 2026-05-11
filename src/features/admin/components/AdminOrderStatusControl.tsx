@@ -63,12 +63,12 @@ export function AdminOrderStatusControl({
 
 function formatAdminStatusLabel(status: AdminOrderStatus): string {
   const labels = {
-    cancelled: 'Annulee',
-    completed: 'Terminee',
-    paid: 'Payee',
+    cancelled: 'Annulée',
+    completed: 'Terminée',
+    paid: 'Payée',
     pending: 'En attente',
-    processing: 'En preparation',
-    shipped: 'Expediee',
+    processing: 'En préparation',
+    shipped: 'Expédiée',
   } satisfies Record<AdminOrderStatus, string>
 
   return labels[status]
@@ -77,4 +77,3 @@ function formatAdminStatusLabel(status: AdminOrderStatus): string {
 function isAdminOrderStatus(status: string): status is AdminOrderStatus {
   return adminOrderStatuses.some((orderStatus) => orderStatus === status)
 }
-

@@ -34,6 +34,7 @@ export function createOrderPayloadFromCheckoutDraft(
       customerFirstName: formatNullableValue(customerInfo.firstName),
       customerLastName: formatNullableValue(customerInfo.lastName),
       customerPhone: formatNullableValue(customerInfo.phone),
+      professionalLogoReviewEnabled: cart.options.professionalLogoReview,
       productionOption,
       shippingAddressLine1: formatNullableValue(customerInfo.adresse),
       shippingAddressLine2: null,
@@ -44,9 +45,9 @@ export function createOrderPayloadFromCheckoutDraft(
     items: cart.items.map((cartItem) => {
       const productId = getOrderProductId(cartItem)
       const quantity = cartItem.pricing.totalQuantity
-      const totalPriceCents = Math.round(cartItem.pricing.grandTotal * 100)
+      const itemTotalCents = Math.round(cartItem.pricing.grandTotal * 100)
       const unitPriceCents =
-        quantity > 0 ? Math.round(totalPriceCents / quantity) : 0
+        quantity > 0 ? Math.round(itemTotalCents / quantity) : 0
 
       return {
         productId,
