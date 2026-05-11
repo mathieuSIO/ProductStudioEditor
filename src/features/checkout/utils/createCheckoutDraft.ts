@@ -4,17 +4,20 @@ import type {
   CheckoutFormData,
   CreateOrderCustomizationProduct,
   CreateOrderPayload,
+  ProductionOption,
 } from '../types'
 
 export function createCheckoutDraft(
   cart: Cart,
   customerInfo: CheckoutFormData,
+  productionOption: ProductionOption,
 ): CheckoutDraft {
   const totals = calculateCartTotals(cart)
 
   return {
     cart,
     customerInfo,
+    productionOption,
     totals,
   }
 }
@@ -22,7 +25,7 @@ export function createCheckoutDraft(
 export function createOrderPayloadFromCheckoutDraft(
   checkoutDraft: CheckoutDraft,
 ): CreateOrderPayload {
-  const { cart, customerInfo } = checkoutDraft
+  const { cart, customerInfo, productionOption } = checkoutDraft
   validatePersistentLogoPreviews(cart)
 
   return {
@@ -31,6 +34,7 @@ export function createOrderPayloadFromCheckoutDraft(
       customerFirstName: formatNullableValue(customerInfo.firstName),
       customerLastName: formatNullableValue(customerInfo.lastName),
       customerPhone: formatNullableValue(customerInfo.phone),
+      productionOption,
       shippingAddressLine1: formatNullableValue(customerInfo.adresse),
       shippingAddressLine2: null,
       shippingPostalCode: formatNullableValue(customerInfo.codePostal),

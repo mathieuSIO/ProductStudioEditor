@@ -8,6 +8,7 @@ import {
   createOrder,
   createOrderPayloadFromCheckoutDraft,
   type CheckoutFormData,
+  type ProductionOption,
 } from '../../features/checkout'
 import { formatEuro } from '../../shared/formatters/formatEuro'
 
@@ -42,6 +43,27 @@ const reassuranceItems = [
 
 const authRequiredMessage = 'Connectez-vous pour finaliser votre commande.'
 
+const productionOptions = [
+  {
+    deliveryLabel: '7 a 10 jours ouvres',
+    id: 'standard',
+    label: 'Standard',
+    percentage: 0,
+  },
+  {
+    deliveryLabel: '4 a 6 jours ouvres',
+    id: 'rapide',
+    label: 'Rapide',
+    percentage: 0.15,
+  },
+  {
+    deliveryLabel: '2 a 3 jours ouvres',
+    id: 'premium',
+    label: 'Premium',
+    percentage: 0.2,
+  },
+] satisfies ProductionOptionDetails[]
+
 export function CheckoutPage({
   cart,
   onOrderSuccess,
@@ -51,12 +73,17 @@ export function CheckoutPage({
 }: CheckoutPageProps) {
   const { isAuthenticated } = useAuth()
   const [formData, setFormData] = useState<CheckoutFormData>(initialFormData)
+  const [productionOption, setProductionOption] =
+    useState<ProductionOption>('standard')
   const [submitStatus, setSubmitStatus] = useState<SubmitStatus>('idle')
   const [isOrderCreated, setIsOrderCreated] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const isCartEmpty = cart.items.length === 0
   const isSubmitting = submitStatus === 'loading'
   const shouldShowLoginAction = errorMessage === authRequiredMessage
+  const selectedProductionOption = getProductionOptionDetails(productionOption)
+  const productionSupplement = totals.total * selectedProductionOption.percentage
+  const estimatedTotal = totals.total + productionSupplement
 
   function handleFieldChange(field: keyof CheckoutFormData, value: string) {
     setFormData((currentFormData) => ({
@@ -83,7 +110,7 @@ export function CheckoutPage({
     setErrorMessage(null)
 
     try {
-      const checkoutDraft = createCheckoutDraft(cart, formData)
+      const checkoutDraft = createCheckoutDraft(cart, formData, productionOption)
       const orderPayload = createOrderPayloadFromCheckoutDraft(checkoutDraft)
 
       await createOrder(orderPayload)
@@ -232,6 +259,47 @@ export function CheckoutPage({
             />
           </fieldset>
 
+          <fieldset className="grid gap-3">
+            <legend className="text-sm font-semibold text-blue-950">
+              Delai de production
+            </legend>
+            <div className="grid gap-2 sm:grid-cols-3">
+              {productionOptions.map((option) => {
+                const isSelected = option.id === productionOption
+
+                return (
+                  <label
+                    key={option.id}
+                    className={`grid cursor-pointer gap-2 rounded-[1rem] border px-3 py-3 transition ${
+                      isSelected
+                        ? 'border-red-300 bg-red-50 text-blue-950'
+                        : 'border-blue-100 bg-blue-50 text-blue-900 hover:border-red-200 hover:bg-white'
+                    }`}
+                  >
+                    <input
+                      checked={isSelected}
+                      className="sr-only"
+                      disabled={isSubmitting}
+                      name="productionOption"
+                      type="radio"
+                      value={option.id}
+                      onChange={() => setProductionOption(option.id)}
+                    />
+                    <span className="text-sm font-semibold">
+                      {option.label}
+                    </span>
+                    <span className="text-xs font-medium leading-5 text-blue-700">
+                      {option.deliveryLabel}
+                    </span>
+                    <span className="text-xs font-semibold text-red-600">
+                      {formatProductionPercentage(option.percentage)}
+                    </span>
+                  </label>
+                )
+              })}
+            </div>
+          </fieldset>
+
 
           <fieldset className="grid gap-3">
             <legend className="text-sm font-semibold text-blue-950">
@@ -339,16 +407,26 @@ export function CheckoutPage({
         </div>
 
         <div className="mt-4 grid gap-2">
-          <SummaryRow label="Sous-total" value={formatEuro(totals.subtotal)} />
+          <SummaryRow
+            label="Sous-total articles"
+            value={formatEuro(totals.subtotal)}
+          />
           <SummaryRow label="Options" value={formatEuro(totals.optionsTotal)} />
+          <SummaryRow
+            label={`Production ${selectedProductionOption.label}`}
+            value={formatEuro(productionSupplement)}
+          />
         </div>
 
         <div className="mt-4 rounded-[1.05rem] border border-blue-950 bg-blue-950 px-4 py-4 text-white">
           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-100">
-            Total final
+            Total estime
           </p>
           <p className="mt-1 text-3xl font-semibold tracking-tight">
-            {formatEuro(totals.total)}
+            {formatEuro(estimatedTotal)}
+          </p>
+          <p className="mt-2 text-xs leading-5 text-blue-100">
+            Indicatif : le backend recalcule le total final.
           </p>
         </div>
 
@@ -411,6 +489,13 @@ type SummaryRowProps = {
   value: string
 }
 
+type ProductionOptionDetails = {
+  deliveryLabel: string
+  id: ProductionOption
+  label: string
+  percentage: number
+}
+
 function SummaryRow({ label, value }: SummaryRowProps) {
   return (
     <div className="flex items-center justify-between gap-3 rounded-[0.95rem] border border-blue-100 bg-white px-3 py-2.5 text-sm">
@@ -418,4 +503,17 @@ function SummaryRow({ label, value }: SummaryRowProps) {
       <span className="font-semibold text-blue-950">{value}</span>
     </div>
   )
+}
+
+function getProductionOptionDetails(
+  productionOption: ProductionOption,
+): ProductionOptionDetails {
+  return (
+    productionOptions.find((option) => option.id === productionOption) ??
+    productionOptions[0]
+  )
+}
+
+function formatProductionPercentage(percentage: number): string {
+  return percentage === 0 ? '+0 %' : `+${Math.round(percentage * 100)} %`
 }

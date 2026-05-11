@@ -21,9 +21,12 @@ export type CheckoutFormData = {
   phone: string
 }
 
+export type ProductionOption = 'premium' | 'rapide' | 'standard'
+
 export type CheckoutDraft = {
   cart: Cart
   customerInfo: CheckoutFormData
+  productionOption: ProductionOption
   totals: CartTotals
 }
 
@@ -37,6 +40,7 @@ export type CreateOrderPayloadOrder = {
   customerFirstName?: string | null
   customerLastName?: string | null
   customerPhone?: string | null
+  productionOption: ProductionOption
   shippingAddressLine1?: string | null
   shippingAddressLine2?: string | null
   shippingPostalCode?: string | null

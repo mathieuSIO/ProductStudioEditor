@@ -4,4 +4,9 @@ export {
   createOrderPayloadFromCheckoutDraft,
 } from './utils/createCheckoutDraft'
 export type { CreateOrderResponse } from './api/createOrder'
-export type { CheckoutDraft, CheckoutFormData, CreateOrderPayload } from './types'
+export type {
+  CheckoutDraft,
+  CheckoutFormData,
+  CreateOrderPayload,
+  ProductionOption,
+} from './types'
