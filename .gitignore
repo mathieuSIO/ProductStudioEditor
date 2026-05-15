@@ -13,7 +13,8 @@ dist-ssr
 *.local
 
 .env
-.env.local
+.env.*
+!.env.production.example
 
 AGENTS.md
 
