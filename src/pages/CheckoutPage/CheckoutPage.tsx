@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../../features/auth'
 import { type Cart, type CartTotals } from '../../features/cart'
 import {
+  createCheckoutSession,
   createCheckoutDraft,
   createOrder,
   createOrderPayloadFromCheckoutDraft,
@@ -20,7 +21,11 @@ type CheckoutPageProps = {
   totals: CartTotals
 }
 
-type SubmitStatus = 'error' | 'idle' | 'loading' | 'success'
+type SubmitStatus =
+  | 'creating-order'
+  | 'error'
+  | 'idle'
+  | 'redirecting-payment'
 
 const initialFormData: CheckoutFormData = {
   comment: '',
@@ -36,12 +41,14 @@ const initialFormData: CheckoutFormData = {
 }
 
 const reassuranceItems = [
-  'Pas de paiement immédiat',
-  'Vérification possible avant production',
+  'Paiement securise Stripe',
+  'Commande verifiee avant production',
   'Accompagnement humain',
 ]
 
 const authRequiredMessage = 'Connectez-vous pour finaliser votre commande.'
+const stripeSessionErrorMessage =
+  "La session de paiement Stripe n'a pas pu etre creee."
 
 const productionOptions = [
   {
@@ -68,7 +75,6 @@ export function CheckoutPage({
   cart,
   onOrderSuccess,
   onReturnToCart,
-  onReturnToStudio,
   totals,
 }: CheckoutPageProps) {
   const { isAuthenticated } = useAuth()
@@ -76,11 +82,17 @@ export function CheckoutPage({
   const [productionOption, setProductionOption] =
     useState<ProductionOption>('standard')
   const [submitStatus, setSubmitStatus] = useState<SubmitStatus>('idle')
-  const [isOrderCreated, setIsOrderCreated] = useState(false)
+  const [createdOrderId, setCreatedOrderId] = useState<number | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const isCartEmpty = cart.items.length === 0
-  const isSubmitting = submitStatus === 'loading'
+  const isSubmitting =
+    submitStatus === 'creating-order' || submitStatus === 'redirecting-payment'
+  const isRedirectingPayment = submitStatus === 'redirecting-payment'
   const shouldShowLoginAction = errorMessage === authRequiredMessage
+  const canRetryPaymentRedirect =
+    submitStatus === 'error' &&
+    createdOrderId !== null &&
+    errorMessage === stripeSessionErrorMessage
   const selectedProductionOption = getProductionOptionDetails(productionOption)
   const productionSupplement = totals.total * selectedProductionOption.percentage
   const estimatedTotal = totals.total + productionSupplement
@@ -95,7 +107,7 @@ export function CheckoutPage({
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    if (isCartEmpty || isSubmitting) {
+    if (isCartEmpty || isSubmitting || createdOrderId !== null) {
       return
     }
 
@@ -105,18 +117,19 @@ export function CheckoutPage({
       return
     }
 
-    setSubmitStatus('loading')
-    setIsOrderCreated(false)
+    setSubmitStatus('creating-order')
+    setCreatedOrderId(null)
     setErrorMessage(null)
 
     try {
       const checkoutDraft = createCheckoutDraft(cart, formData, productionOption)
       const orderPayload = createOrderPayloadFromCheckoutDraft(checkoutDraft)
 
-      await createOrder(orderPayload)
-      setIsOrderCreated(true)
-      setSubmitStatus('success')
+      const createdOrder = await createOrder(orderPayload)
+
+      setCreatedOrderId(createdOrder.orderId)
       onOrderSuccess()
+      await redirectToStripeCheckout(createdOrder.orderId)
     } catch (error) {
       setSubmitStatus('error')
       setErrorMessage(
@@ -127,41 +140,27 @@ export function CheckoutPage({
     }
   }
 
-  if (isOrderCreated) {
-    return (
-      <section className="rounded-[1.25rem] border border-emerald-200 bg-white p-5 shadow-[0_18px_42px_-34px_rgba(15,23,42,0.35)]">
-        <div className="rounded-[1.1rem] border border-emerald-200 bg-emerald-50 px-4 py-4 text-emerald-900">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-700">
-            Demande enregistrée
-          </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-            Votre demande a bien été envoyée
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6">
-            Votre commande a bien été enregistrée. Nous vous recontactons
-            rapidement pour valider les détails avant production.
-          </p>
-        </div>
+  async function redirectToStripeCheckout(orderId: number) {
+    setSubmitStatus('redirecting-payment')
+    setErrorMessage(null)
 
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Link
-            to="/account"
-            className="inline-flex min-h-11 items-center justify-center rounded-[1rem] bg-blue-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-200"
-          >
-            Voir mes commandes
-          </Link>
-          <button
-            type="button"
-            className="inline-flex min-h-11 items-center justify-center rounded-[1rem] border border-blue-100 bg-white px-4 py-2.5 text-sm font-semibold text-blue-950 transition hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-200"
-            onClick={onReturnToStudio}
-          >
-            Retour au studio
-          </button>
-        </div>
-      </section>
-    )
+    try {
+      const checkoutSession = await createCheckoutSession(orderId)
+
+      window.location.assign(checkoutSession.checkoutUrl)
+    } catch {
+      setSubmitStatus('error')
+      setErrorMessage(stripeSessionErrorMessage)
+    }
   }
 
+  async function handleRetryPaymentRedirect() {
+    if (createdOrderId === null || isSubmitting) {
+      return
+    }
+
+    await redirectToStripeCheckout(createdOrderId)
+  }
   return (
     <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
       <form
@@ -174,7 +173,7 @@ export function CheckoutPage({
               Validation
             </p>
             <h1 className="mt-1 text-2xl font-semibold tracking-tight text-blue-950">
-              Finaliser votre demande
+              Finaliser votre commande
             </h1>
             <p className="mt-1 max-w-2xl text-sm leading-6 text-blue-800">
               Renseignez vos informations, nous vous recontactons rapidement
@@ -200,6 +199,7 @@ export function CheckoutPage({
                 label="Prénom"
                 name="firstName"
                 required
+                disabled={isSubmitting || createdOrderId !== null}
                 value={formData.firstName}
                 onChange={(value) => handleFieldChange('firstName', value)}
               />
@@ -207,6 +207,7 @@ export function CheckoutPage({
                 label="Nom"
                 name="lastName"
                 required
+                disabled={isSubmitting || createdOrderId !== null}
                 value={formData.lastName}
                 onChange={(value) => handleFieldChange('lastName', value)}
               />
@@ -215,6 +216,7 @@ export function CheckoutPage({
                 label="Email"
                 name="email"
                 required
+                disabled={isSubmitting || createdOrderId !== null}
                 type="email"
                 value={formData.email}
                 onChange={(value) => handleFieldChange('email', value)}
@@ -224,6 +226,7 @@ export function CheckoutPage({
                 label="Téléphone"
                 name="phone"
                 required
+                disabled={isSubmitting || createdOrderId !== null}
                 type="tel"
                 value={formData.phone}
                 onChange={(value) => handleFieldChange('phone', value)}
@@ -232,6 +235,7 @@ export function CheckoutPage({
                 label="Pays"
                 name="pays"
                 required
+                disabled={isSubmitting || createdOrderId !== null}
                 type="text"
                 value={formData.pays}
                 onChange={(value) => handleFieldChange('pays', value)}
@@ -240,6 +244,7 @@ export function CheckoutPage({
                 label="Ville"
                 name="ville"
                 required
+                disabled={isSubmitting || createdOrderId !== null}
                 value={formData.ville}
                 onChange={(value) => handleFieldChange('ville', value)}
               />
@@ -247,6 +252,7 @@ export function CheckoutPage({
                 label="Code Postal"
                 name="codePostal"
                 required
+                disabled={isSubmitting || createdOrderId !== null}
                 value={formData.codePostal}
                 onChange={(value) => handleFieldChange('codePostal', value)}
               />
@@ -254,6 +260,7 @@ export function CheckoutPage({
             <FormField
               label="Numero et nom de rue"
               name="adresse"
+              disabled={isSubmitting || createdOrderId !== null}
               value={formData.adresse}
               onChange={(value) => handleFieldChange('adresse', value)}
             />
@@ -279,7 +286,7 @@ export function CheckoutPage({
                     <input
                       checked={isSelected}
                       className="sr-only"
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || createdOrderId !== null}
                       name="productionOption"
                       type="radio"
                       value={option.id}
@@ -308,6 +315,7 @@ export function CheckoutPage({
             <FormField
               label="Entreprise"
               name="company"
+              disabled={isSubmitting || createdOrderId !== null}
               value={formData.company}
               onChange={(value) => handleFieldChange('company', value)}
             />
@@ -318,7 +326,7 @@ export function CheckoutPage({
               </span>
               <textarea
                 className="mt-1 min-h-32 w-full rounded-[0.95rem] border border-blue-100 bg-blue-50 px-3 py-2.5 text-sm text-blue-950 outline-none transition placeholder:text-blue-400 focus:border-red-400 focus:bg-white disabled:cursor-not-allowed disabled:bg-blue-50/60"
-                disabled={isSubmitting}
+                disabled={isSubmitting || createdOrderId !== null}
                 name="comment"
                 value={formData.comment}
                 onChange={(event) =>
@@ -339,7 +347,7 @@ export function CheckoutPage({
               </span>
               <div>
                 <p className="text-sm font-semibold text-blue-950">
-                  Pas de paiement immédiat
+                  Paiement securise
                 </p>
                 <p className="mt-1 text-sm leading-5 text-blue-800">
                   Votre demande sert à valider les détails avant toute
@@ -352,14 +360,29 @@ export function CheckoutPage({
           <button
             type="submit"
             className="rounded-[1rem] bg-red-600 px-4 py-3.5 text-base font-semibold text-white shadow-[0_18px_38px_-28px_rgba(220,38,38,0.75)] transition hover:bg-red-700 disabled:cursor-not-allowed disabled:border disabled:border-blue-100 disabled:bg-blue-50 disabled:text-blue-300 disabled:shadow-none"
-            disabled={isCartEmpty || isSubmitting}
+            disabled={isCartEmpty || isSubmitting || createdOrderId !== null}
           >
-            {isSubmitting ? 'Envoi en cours...' : 'Envoyer ma demande de devis'}
+            {getSubmitButtonLabel(submitStatus)}
           </button>
+
+          {isSubmitting ? (
+            <div className="rounded-[1rem] border border-blue-100 bg-blue-50 px-3 py-3 text-sm text-blue-800">
+              <p className="font-semibold text-blue-950">
+                {isRedirectingPayment
+                  ? 'Redirection vers Stripe'
+                  : 'Creation de la commande'}
+              </p>
+              <p className="mt-1 leading-5">
+                {isRedirectingPayment
+                  ? 'La commande est enregistree. Ouverture du paiement securise...'
+                  : 'Nous enregistrons votre commande avant de preparer le paiement.'}
+              </p>
+            </div>
+          ) : null}
 
           {submitStatus === 'error' && errorMessage ? (
             <div className="rounded-[1rem] border border-red-200 bg-red-50 px-3 py-3 text-sm text-red-700">
-              <p className="font-semibold">Envoi impossible</p>
+              <p className="font-semibold">Action impossible</p>
               <p className="mt-1 leading-5">{errorMessage}</p>
               {shouldShowLoginAction ? (
                 <Link
@@ -369,6 +392,15 @@ export function CheckoutPage({
                 >
                   Se connecter
                 </Link>
+              ) : null}
+              {canRetryPaymentRedirect ? (
+                <button
+                  type="button"
+                  className="mt-3 inline-flex min-h-10 items-center justify-center rounded-[0.9rem] bg-blue-950 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+                  onClick={handleRetryPaymentRedirect}
+                >
+                  Reessayer le paiement
+                </button>
               ) : null}
             </div>
           ) : null}
@@ -446,6 +478,7 @@ export function CheckoutPage({
 }
 
 type FormFieldProps = {
+  disabled?: boolean
   helpText?: string
   label: string
   name: keyof CheckoutFormData
@@ -456,6 +489,7 @@ type FormFieldProps = {
 }
 
 function FormField({
+  disabled = false,
   helpText,
   label,
   name,
@@ -469,6 +503,7 @@ function FormField({
       <span className="text-sm font-semibold text-blue-950">{label}</span>
       <input
         className="mt-1 w-full rounded-[0.95rem] border border-blue-100 bg-blue-50 px-3 py-2.5 text-sm text-blue-950 outline-none transition focus:border-red-400 focus:bg-white disabled:cursor-not-allowed disabled:bg-blue-50/60"
+        disabled={disabled}
         name={name}
         required={required}
         type={type}
@@ -482,6 +517,18 @@ function FormField({
       ) : null}
     </label>
   )
+}
+
+function getSubmitButtonLabel(submitStatus: SubmitStatus): string {
+  if (submitStatus === 'creating-order') {
+    return 'Creation de la commande...'
+  }
+
+  if (submitStatus === 'redirecting-payment') {
+    return 'Redirection vers Stripe...'
+  }
+
+  return 'Payer ma commande'
 }
 
 type SummaryRowProps = {

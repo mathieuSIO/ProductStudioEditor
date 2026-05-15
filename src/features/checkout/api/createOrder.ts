@@ -3,7 +3,7 @@ import { createAuthHeaders } from '../../auth'
 import type { CreateOrderPayload } from '../types'
 
 export type CreateOrderResponse = {
-  orderId: string
+  orderId: number
   status: 'received'
 }
 
@@ -48,35 +48,41 @@ async function readResponseBody(response: Response): Promise<unknown> {
 
 function normalizeCreateOrderResponse(value: unknown): CreateOrderResponse {
   if (!isRecord(value)) {
-    return {
-      orderId: '',
-      status: 'received',
-    }
+    throw new Error("La commande a ete creee sans identifiant exploitable.")
   }
 
   if (value.success === true && isRecord(value.data)) {
     return normalizeCreateOrderResponse(value.data)
   }
 
+  const orderId = readNumberValue(value, 'orderId') ?? readNumberValue(value, 'id')
+
+  if (orderId === null) {
+    throw new Error("La commande a ete creee sans identifiant exploitable.")
+  }
+
   return {
-    orderId:
-      readStringValue(value, 'orderId') ?? readStringValue(value, 'id') ?? '',
+    orderId,
     status: 'received',
   }
 }
 
-function readStringValue(
+function readNumberValue(
   record: Record<string, unknown>,
   key: string,
-): string | null {
+): number | null {
   const value = record[key]
 
-  if (typeof value === 'string') {
+  if (typeof value === 'number' && Number.isInteger(value) && value > 0) {
     return value
   }
 
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return String(value)
+  if (typeof value === 'string') {
+    const parsedValue = Number(value)
+
+    if (Number.isInteger(parsedValue) && parsedValue > 0) {
+      return parsedValue
+    }
   }
 
   return null

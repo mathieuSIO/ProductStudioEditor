@@ -9,6 +9,8 @@ import {
 import { AdminOrderDetailsPage, AdminOrdersPage } from '../features/admin'
 import { AccountDashboardPage, OrderDetailsPage } from '../features/account'
 import { LoginPage, RegisterPage, useAuth } from '../features/auth'
+import { CheckoutCancelPage } from '../pages/CheckoutCancelPage'
+import { CheckoutSuccessPage } from '../pages/CheckoutSuccessPage'
 import { HomePage } from '../pages/HomePage'
 
 function App() {
@@ -16,6 +18,8 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
+        <Route path="/checkout/cancel" element={<CheckoutCancelPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { AppShell } from '../../components/layout/AppShell'
 import {
@@ -15,6 +15,7 @@ type HomePageView = 'cart' | 'checkout' | 'studio'
 
 export function HomePage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const {
     addItem,
     cart,
@@ -24,7 +25,9 @@ export function HomePage() {
     setProfessionalLogoReview,
     totals,
   } = useCart()
-  const [currentView, setCurrentView] = useState<HomePageView>('studio')
+  const [currentView, setCurrentView] = useState<HomePageView>(() =>
+    searchParams.get('view') === 'cart' ? 'cart' : 'studio',
+  )
 
   function handleAddToCart(configuration: CreateCartItemFromEditorInput) {
     addItem(createCartItemFromEditor(configuration))
