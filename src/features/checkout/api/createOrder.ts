@@ -5,6 +5,7 @@ import type { CreateOrderPayload } from '../types'
 export type CreateOrderResponse = {
   orderId: number
   status: 'received'
+  totalPriceCents?: number
 }
 
 export async function createOrder(
@@ -61,9 +62,14 @@ function normalizeCreateOrderResponse(value: unknown): CreateOrderResponse {
     throw new Error("La commande a ete creee sans identifiant exploitable.")
   }
 
+  const totalPriceCents =
+    readNumberValue(value, 'totalPriceCents') ??
+    readNumberValue(value, 'total_price_cents')
+
   return {
     orderId,
     status: 'received',
+    ...(totalPriceCents !== null ? { totalPriceCents } : {}),
   }
 }
 

@@ -1,15 +1,18 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 
 import { useAuth } from '../../features/auth'
-import { type Cart, type CartTotals } from '../../features/cart'
+import { type Cart, type CartItem, type CartTotals } from '../../features/cart'
 import {
   createCheckoutSession,
   createCheckoutDraft,
   createOrder,
   createOrderPayloadFromCheckoutDraft,
+  createShippingEstimate,
   type CheckoutFormData,
   type ProductionOption,
+  type ShippingEstimate,
+  type ShippingEstimateItem,
 } from '../../features/checkout'
 import { formatEuro } from '../../shared/formatters/formatEuro'
 
@@ -26,6 +29,8 @@ type SubmitStatus =
   | 'error'
   | 'idle'
   | 'redirecting-payment'
+
+type ShippingEstimateStatus = 'error' | 'idle' | 'loading' | 'success'
 
 const initialFormData: CheckoutFormData = {
   comment: '',
@@ -83,6 +88,16 @@ export function CheckoutPage({
     useState<ProductionOption>('standard')
   const [submitStatus, setSubmitStatus] = useState<SubmitStatus>('idle')
   const [createdOrderId, setCreatedOrderId] = useState<number | null>(null)
+  const [backendTotalPriceCents, setBackendTotalPriceCents] = useState<
+    number | null
+  >(null)
+  const [shippingEstimate, setShippingEstimate] =
+    useState<ShippingEstimate | null>(null)
+  const [shippingEstimateStatus, setShippingEstimateStatus] =
+    useState<ShippingEstimateStatus>('idle')
+  const [shippingEstimateError, setShippingEstimateError] = useState<
+    string | null
+  >(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const isCartEmpty = cart.items.length === 0
   const isSubmitting =
@@ -96,6 +111,56 @@ export function CheckoutPage({
   const selectedProductionOption = getProductionOptionDetails(productionOption)
   const productionSupplement = totals.total * selectedProductionOption.percentage
   const estimatedTotal = totals.total + productionSupplement
+  const estimatedTotalWithShipping =
+    estimatedTotal + (shippingEstimate?.shippingPriceCents ?? 0) / 100
+
+  useEffect(() => {
+    let isCurrentRequest = true
+
+    async function loadShippingEstimate() {
+      if (cart.items.length === 0) {
+        setShippingEstimate(null)
+        setShippingEstimateStatus('idle')
+        setShippingEstimateError(null)
+        return
+      }
+
+      try {
+        const items = createShippingEstimateItems(cart.items)
+
+        setShippingEstimate(null)
+        setShippingEstimateStatus('loading')
+        setShippingEstimateError(null)
+
+        const estimate = await createShippingEstimate({ items })
+
+        if (!isCurrentRequest) {
+          return
+        }
+
+        setShippingEstimate(estimate)
+        setShippingEstimateStatus('success')
+      } catch (error) {
+        if (!isCurrentRequest) {
+          return
+        }
+
+        setShippingEstimate(null)
+        setShippingEstimateStatus('error')
+        setShippingEstimateError(
+          error instanceof Error
+            ? error.message
+            : "La livraison n'a pas pu etre estimee.",
+        )
+      }
+    }
+
+    void loadShippingEstimate()
+
+    return () => {
+      isCurrentRequest = false
+    }
+  }, [cart.items])
 
   function handleFieldChange(field: keyof CheckoutFormData, value: string) {
     setFormData((currentFormData) => ({
@@ -119,6 +184,7 @@ export function CheckoutPage({
 
     setSubmitStatus('creating-order')
     setCreatedOrderId(null)
+    setBackendTotalPriceCents(null)
     setErrorMessage(null)
 
     try {
@@ -128,6 +194,7 @@ export function CheckoutPage({
       const createdOrder = await createOrder(orderPayload)
 
       setCreatedOrderId(createdOrder.orderId)
+      setBackendTotalPriceCents(createdOrder.totalPriceCents ?? null)
       onOrderSuccess()
       await redirectToStripeCheckout(createdOrder.orderId)
     } catch (error) {
@@ -350,8 +417,8 @@ export function CheckoutPage({
                   Paiement securise
                 </p>
                 <p className="mt-1 text-sm leading-5 text-blue-800">
-                  Votre demande sert à valider les détails avant toute
-                  production.
+                  Stripe utilise la session creee par le backend a partir du
+                  total de commande serveur.
                 </p>
               </div>
             </div>
@@ -374,7 +441,7 @@ export function CheckoutPage({
               </p>
               <p className="mt-1 leading-5">
                 {isRedirectingPayment
-                  ? 'La commande est enregistree. Ouverture du paiement securise...'
+                  ? getPaymentRedirectMessage(backendTotalPriceCents)
                   : 'Nous enregistrons votre commande avant de preparer le paiement.'}
               </p>
             </div>
@@ -450,15 +517,58 @@ export function CheckoutPage({
           />
         </div>
 
+        <div className="mt-4 rounded-[1rem] border border-blue-100 bg-blue-50 px-3 py-3">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-red-600">
+            Livraison
+          </p>
+          <div className="mt-2 flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-blue-950">
+                {shippingEstimate?.shippingLabel ?? 'Mondial Relay'}
+              </p>
+              {shippingEstimateStatus === 'loading' ? (
+                <p className="mt-1 text-xs leading-5 text-blue-700">
+                  Calcul de la livraison en cours...
+                </p>
+              ) : null}
+              {shippingEstimateStatus === 'success' && shippingEstimate ? (
+                <p className="mt-1 text-xs leading-5 text-blue-700">
+                  Poids total : {formatWeight(shippingEstimate.totalWeightGrams)}
+                </p>
+              ) : null}
+              {shippingEstimateStatus === 'error' && shippingEstimateError ? (
+                <p className="mt-1 text-xs leading-5 text-red-700">
+                  {shippingEstimateError}
+                </p>
+              ) : null}
+              {shippingEstimateStatus === 'idle' ? (
+                <p className="mt-1 text-xs leading-5 text-blue-700">
+                  Prix calcule selon le poids de votre commande
+                </p>
+              ) : null}
+            </div>
+            <p className="shrink-0 text-sm font-semibold text-blue-950">
+              {getShippingEstimateValue(
+                shippingEstimateStatus,
+                shippingEstimate,
+              )}
+            </p>
+          </div>
+        </div>
+
         <div className="mt-4 rounded-[1.05rem] border border-blue-950 bg-blue-950 px-4 py-4 text-white">
           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-100">
-            Total estimé
+            {shippingEstimate
+              ? 'Total indicatif avec livraison'
+              : 'Total indicatif avant livraison'}
           </p>
           <p className="mt-1 text-3xl font-semibold tracking-tight">
-            {formatEuro(estimatedTotal)}
+            {formatEuro(
+              shippingEstimate ? estimatedTotalWithShipping : estimatedTotal,
+            )}
           </p>
           <p className="mt-2 text-xs leading-5 text-blue-100">
-            Indicatif : le backend recalcule le total final.
+            Indicatif : le backend calcule la livraison et le total final.
           </p>
         </div>
 
@@ -529,6 +639,56 @@ function getSubmitButtonLabel(submitStatus: SubmitStatus): string {
   }
 
   return 'Payer ma commande'
+}
+
+function getPaymentRedirectMessage(totalPriceCents: number | null): string {
+  if (totalPriceCents !== null) {
+    return `Total backend confirme : ${formatEuro(totalPriceCents / 100)}. Ouverture du paiement securise...`
+  }
+
+  return 'La commande est enregistree. Ouverture du paiement securise...'
+}
+
+function createShippingEstimateItems(
+  cartItems: CartItem[],
+): ShippingEstimateItem[] {
+  return cartItems.map((cartItem) => {
+    if (cartItem.product.catalogProductId === undefined) {
+      throw new Error(
+        "Impossible d'estimer la livraison : un produit du panier n'est pas relie au catalogue.",
+      )
+    }
+
+    return {
+      productId: cartItem.product.catalogProductId,
+      quantity: cartItem.pricing.totalQuantity,
+    }
+  })
+}
+
+function getShippingEstimateValue(
+  status: ShippingEstimateStatus,
+  estimate: ShippingEstimate | null,
+): string {
+  if (status === 'loading') {
+    return 'Calcul...'
+  }
+
+  if (status === 'success' && estimate) {
+    return formatEuro(estimate.shippingPriceCents / 100)
+  }
+
+  return 'Non disponible'
+}
+
+function formatWeight(weightGrams: number): string {
+  if (weightGrams >= 1000) {
+    return `${(weightGrams / 1000).toLocaleString('fr-FR', {
+      maximumFractionDigits: 1,
+    })} kg`
+  }
+
+  return `${weightGrams.toLocaleString('fr-FR')} g`
 }
 
 type SummaryRowProps = {
