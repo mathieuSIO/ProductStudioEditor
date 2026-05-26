@@ -1,11 +1,15 @@
+import { NavLink } from 'react-router-dom'
+
 type AccountSidebarProps = {
   onLogout: () => void
   onReturnToStudio: () => void
   userName?: string
 }
 
-// const accountLinks = ['Mes commandes', 'Mes informations', 'Aide projet']
-const accountLinks = ['Mes commandes']
+const accountLinks = [
+  { label: 'Mes commandes', to: '/account' },
+  { label: 'Mon compte', to: '/account/profile' },
+]
 
 export function AccountSidebar({
   onLogout,
@@ -27,22 +31,28 @@ export function AccountSidebar({
       </div>
 
       <nav className="mt-3 grid gap-1.5" aria-label="Navigation compte">
-        {accountLinks.map((link, index) => (
-          <button
-            key={link}
-            type="button"
-            className={`flex items-center justify-between rounded-[0.9rem] px-3 py-2.5 text-left text-sm font-semibold transition ${
-              index === 0
-                ? 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-100'
-                : 'text-blue-900 hover:bg-blue-50'
-            }`}
-            disabled={index !== 0}
+        {accountLinks.map((link) => (
+          <NavLink
+            key={link.to}
+            to={link.to}
+            end={link.to === '/account'}
+            className={({ isActive }) =>
+              `flex items-center justify-between rounded-[0.9rem] px-3 py-2.5 text-left text-sm font-semibold transition ${
+                isActive
+                  ? 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-100'
+                  : 'text-blue-900 hover:bg-blue-50'
+              }`
+            }
           >
-            <span>{link}</span>
-            {index === 0 ? (
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
-            ) : null}
-          </button>
+            {({ isActive }) => (
+              <>
+                <span>{link.label}</span>
+                {isActive ? (
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                ) : null}
+              </>
+            )}
+          </NavLink>
         ))}
       </nav>
 

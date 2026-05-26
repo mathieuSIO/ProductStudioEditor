@@ -1,5 +1,34 @@
 import type { FinalPreviewUrls } from '../../../shared/utils/previewImages'
 
+export type AccountProfile = {
+  addressLine1: string | null
+  addressLine2: string | null
+  city: string | null
+  country: string
+  email: string
+  firstName: string
+  id: number
+  lastName: string
+  phone: string | null
+  postalCode: string | null
+}
+
+export type UpdateAccountProfilePayload = {
+  addressLine1: string | null
+  addressLine2: string | null
+  city: string | null
+  country: string
+  firstName: string
+  lastName: string
+  phone: string | null
+  postalCode: string | null
+}
+
+export type UpdateAccountPasswordPayload = {
+  currentPassword: string
+  newPassword: string
+}
+
 export type ApiResponse<T> =
   | {
       data: T

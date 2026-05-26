@@ -7,7 +7,11 @@ import {
 } from 'react-router-dom'
 
 import { AdminOrderDetailsPage, AdminOrdersPage } from '../features/admin'
-import { AccountDashboardPage, OrderDetailsPage } from '../features/account'
+import {
+  AccountDashboardPage,
+  AccountPage,
+  OrderDetailsPage,
+} from '../features/account'
 import {
   ForgotPasswordPage,
   LoginPage,
@@ -51,6 +55,14 @@ function App() {
           element={
             <RequireAuth>
               <AccountDashboardPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/account/profile"
+          element={
+            <RequireAuth>
+              <AccountPage />
             </RequireAuth>
           }
         />

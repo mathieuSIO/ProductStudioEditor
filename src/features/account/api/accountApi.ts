@@ -2,6 +2,7 @@ import { env } from '../../../shared/config/env'
 import type { FinalPreviewUrls } from '../../../shared/utils/previewImages'
 import { createAuthHeaders } from '../../auth'
 import type {
+  AccountProfile,
   ApiResponse,
   OrderCustomer,
   OrderDetails,
@@ -11,6 +12,8 @@ import type {
   OrderSummary,
   OrderStatus,
   ShippingAddress,
+  UpdateAccountPasswordPayload,
+  UpdateAccountProfilePayload,
 } from '../types/account.types'
 
 export class AccountApiError extends Error {
@@ -33,6 +36,63 @@ export async function fetchUserOrders(): Promise<OrderSummary[]> {
   return orders.map(normalizeOrderSummary).filter(isOrderSummary)
 }
 
+export async function fetchAccountProfile(): Promise<AccountProfile> {
+  const profile = await fetchAccountResource<unknown>('/api/me')
+  const normalizedProfile = normalizeAccountProfile(profile)
+
+  if (!normalizedProfile) {
+    throw new Error('Le profil utilisateur est invalide.')
+  }
+
+  return normalizedProfile
+}
+
+export async function updateAccountProfile(
+  payload: UpdateAccountProfilePayload,
+): Promise<AccountProfile> {
+  const profile = await fetchAccountResource<unknown>('/api/me', {
+    body: JSON.stringify(payload),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    method: 'PATCH',
+  })
+  const normalizedProfile = normalizeAccountProfile(profile)
+
+  if (!normalizedProfile) {
+    throw new Error('Le profil utilisateur est invalide.')
+  }
+
+  return normalizedProfile
+}
+
+export async function updateAccountPassword(
+  payload: UpdateAccountPasswordPayload,
+): Promise<void> {
+  const response = await fetch(`${env.apiBaseUrl}/api/me/password`, {
+    body: JSON.stringify(payload),
+    headers: {
+      ...createAuthHeaders(),
+      'Content-Type': 'application/json',
+    },
+    method: 'PATCH',
+  })
+  const responseBody: unknown = await response.json()
+
+  if (!isMessageApiResponse(responseBody)) {
+    throw new AccountApiError('La reponse serveur est invalide.', response.status)
+  }
+
+  if (!response.ok || !responseBody.success) {
+    throw new AccountApiError(
+      response.status === 401
+        ? 'Votre session a expire. Veuillez vous reconnecter.'
+        : responseBody.message,
+      response.status,
+    )
+  }
+}
+
 export async function fetchUserOrderDetails(
   orderId: string,
 ): Promise<OrderDetails> {
@@ -48,9 +108,16 @@ export async function fetchUserOrderDetails(
   return normalizedOrder
 }
 
-async function fetchAccountResource<T>(path: string): Promise<T> {
+async function fetchAccountResource<T>(
+  path: string,
+  init: RequestInit = {},
+): Promise<T> {
   const response = await fetch(`${env.apiBaseUrl}${path}`, {
-    headers: createAuthHeaders(),
+    ...init,
+    headers: {
+      ...createAuthHeaders(),
+      ...init.headers,
+    },
   })
   const responseBody: unknown = await response.json()
 
@@ -73,6 +140,42 @@ async function fetchAccountResource<T>(path: string): Promise<T> {
   }
 
   return responseBody.data
+}
+
+function normalizeAccountProfile(value: unknown): AccountProfile | null {
+  if (!isRecord(value)) {
+    return null
+  }
+
+  const id = readNumber(value, 'id')
+  const email = readString(value, 'email')
+  const firstName = readString(value, 'firstName') ?? readString(value, 'first_name')
+  const lastName = readString(value, 'lastName') ?? readString(value, 'last_name')
+  const country = readString(value, 'country') ?? 'France'
+
+  if (
+    typeof id !== 'number' ||
+    email === null ||
+    firstName === null ||
+    lastName === null
+  ) {
+    return null
+  }
+
+  return {
+    addressLine1:
+      readString(value, 'addressLine1') ?? readString(value, 'address_line_1'),
+    addressLine2:
+      readString(value, 'addressLine2') ?? readString(value, 'address_line_2'),
+    city: readString(value, 'city'),
+    country,
+    email,
+    firstName,
+    id,
+    lastName,
+    phone: readString(value, 'phone'),
+    postalCode: readString(value, 'postalCode') ?? readString(value, 'postal_code'),
+  }
 }
 
 function normalizeOrderDetails(value: unknown): OrderDetails | null {
@@ -513,6 +616,16 @@ function isApiResponse<T>(value: unknown): value is ApiResponse<T> {
   }
 
   return value.success === false && typeof value.message === 'string'
+}
+
+function isMessageApiResponse(
+  value: unknown,
+): value is { message: string; success: boolean } {
+  return (
+    isRecord(value) &&
+    typeof value.success === 'boolean' &&
+    typeof value.message === 'string'
+  )
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

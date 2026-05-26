@@ -51,7 +51,7 @@ export function HomePage() {
   }
 
   function handleOpenAccount() {
-    navigate('/account')
+    navigate('/account/profile')
   }
 
   function handleReturnToStudio() {
