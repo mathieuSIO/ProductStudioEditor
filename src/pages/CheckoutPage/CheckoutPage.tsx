@@ -346,11 +346,10 @@ export function CheckoutPage({
                 return (
                   <label
                     key={option.id}
-                    className={`grid cursor-pointer gap-2 rounded-[1rem] border px-3 py-3 transition ${
-                      isSelected
+                    className={`grid cursor-pointer gap-2 rounded-[1rem] border px-3 py-3 transition ${isSelected
                         ? 'border-red-300 bg-red-50 text-blue-950'
                         : 'border-blue-100 bg-blue-50 text-blue-900 hover:border-red-200 hover:bg-white'
-                    }`}
+                      }`}
                   >
                     <input
                       checked={isSelected}
@@ -521,7 +520,7 @@ export function CheckoutPage({
 
         <div className="mt-4 rounded-[1rem] border border-blue-100 bg-blue-50 px-3 py-3">
           <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-red-600">
-            Livraison
+            Livraison <span className="text-[8px] font-semibold uppercase tracking-[0.16em] text-blue-800">(3 à 5 jours ouvrés après production)</span>
           </p>
           <div className="mt-2 flex items-start justify-between gap-3">
             <div className="min-w-0">
