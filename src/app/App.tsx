@@ -8,7 +8,13 @@ import {
 
 import { AdminOrderDetailsPage, AdminOrdersPage } from '../features/admin'
 import { AccountDashboardPage, OrderDetailsPage } from '../features/account'
-import { LoginPage, RegisterPage, useAuth } from '../features/auth'
+import {
+  ForgotPasswordPage,
+  LoginPage,
+  RegisterPage,
+  ResetPasswordPage,
+  useAuth,
+} from '../features/auth'
 import { CheckoutCancelPage } from '../pages/CheckoutCancelPage'
 import { CheckoutSuccessPage } from '../pages/CheckoutSuccessPage'
 import { HomePage } from '../pages/HomePage'
@@ -22,6 +28,8 @@ function App() {
         <Route path="/checkout/cancel" element={<CheckoutCancelPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route
           path="/admin/orders"
           element={

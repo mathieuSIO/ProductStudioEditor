@@ -58,6 +58,14 @@ export function LoginPage() {
         type="password"
         value={password}
       />
+      <div className="text-right text-sm">
+        <Link
+          to="/forgot-password"
+          className="font-semibold text-blue-950 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-800"
+        >
+          Mot de passe oublie ?
+        </Link>
+      </div>
     </AuthFormShell>
   )
 }

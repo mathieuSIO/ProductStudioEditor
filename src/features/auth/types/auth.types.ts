@@ -29,6 +29,15 @@ export type RegisterPayload = {
   password: string
 }
 
+export type ForgotPasswordPayload = {
+  email: string
+}
+
+export type ResetPasswordPayload = {
+  password: string
+  token: string
+}
+
 export type AuthApiResponse<T> =
   | {
       success: true
@@ -37,4 +46,14 @@ export type AuthApiResponse<T> =
   | {
       success: false
       message: string
+    }
+
+export type AuthMessageApiResponse =
+  | {
+      message: string
+      success: true
+    }
+  | {
+      message: string
+      success: false
     }

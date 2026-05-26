@@ -1,10 +1,13 @@
 import { env } from '../../../shared/config/env'
 import type {
+  AuthMessageApiResponse,
   AuthApiResponse,
   AuthSession,
   AuthUser,
+  ForgotPasswordPayload,
   LoginPayload,
   RegisterPayload,
+  ResetPasswordPayload,
 } from '../types/auth.types'
 
 export async function loginUser(payload: LoginPayload): Promise<AuthSession> {
@@ -15,6 +18,18 @@ export async function registerUser(
   payload: RegisterPayload,
 ): Promise<AuthSession> {
   return postAuthResource('/api/auth/register', payload)
+}
+
+export async function requestPasswordReset(
+  payload: ForgotPasswordPayload,
+): Promise<string> {
+  return postAuthMessageResource('/api/auth/forgot-password', payload)
+}
+
+export async function resetPassword(
+  payload: ResetPasswordPayload,
+): Promise<string> {
+  return postAuthMessageResource('/api/auth/reset-password', payload)
 }
 
 async function postAuthResource<TPayload>(
@@ -45,6 +60,34 @@ async function postAuthResource<TPayload>(
   return responseBody.data
 }
 
+async function postAuthMessageResource<TPayload>(
+  path: string,
+  payload: TPayload,
+): Promise<string> {
+  const response = await fetch(`${env.apiBaseUrl}${path}`, {
+    body: JSON.stringify(payload),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    method: 'POST',
+  })
+  const responseBody = await readJsonResponse(response)
+
+  if (!isAuthMessageApiResponse(responseBody)) {
+    throw new Error('La reponse serveur est invalide.')
+  }
+
+  if (!response.ok || !responseBody.success) {
+    throw new Error(
+      responseBody.success
+        ? 'La demande est momentanement indisponible.'
+        : responseBody.message,
+    )
+  }
+
+  return responseBody.message
+}
+
 async function readJsonResponse(response: Response): Promise<unknown> {
   try {
     return await response.json()
@@ -65,6 +108,18 @@ function isAuthApiResponse(
   }
 
   return value.success === true && isAuthSession(value.data)
+}
+
+function isAuthMessageApiResponse(
+  value: unknown,
+): value is AuthMessageApiResponse {
+  if (!isRecord(value)) {
+    return false
+  }
+
+  return (
+    typeof value.success === 'boolean' && typeof value.message === 'string'
+  )
 }
 
 function isAuthSession(value: unknown): value is AuthSession {
