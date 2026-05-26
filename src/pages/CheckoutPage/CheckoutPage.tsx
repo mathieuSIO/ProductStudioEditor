@@ -109,7 +109,10 @@ export function CheckoutPage({
     createdOrderId !== null &&
     errorMessage === stripeSessionErrorMessage
   const selectedProductionOption = getProductionOptionDetails(productionOption)
-  const productionSupplement = totals.total * selectedProductionOption.percentage
+  const productionSupplementCents = Math.round(
+    totals.subtotal * 100 * selectedProductionOption.percentage,
+  )
+  const productionSupplement = productionSupplementCents / 100
   const estimatedTotal = totals.total + productionSupplement
   const estimatedTotalWithShipping =
     estimatedTotal + (shippingEstimate?.shippingPriceCents ?? 0) / 100
