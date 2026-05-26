@@ -23,16 +23,16 @@ const supportedProductSizes = [
 ] satisfies ProductSize[]
 
 const productIdAliases = {
-  cap: ['cap', 'casquette'],
-  other: ['other', 'autre'],
-  polo: ['polo'],
-  sweatshirt: ['sweatshirt', 'sweat', 'pull'],
-  tshirt: ['tshirt', 't-shirt', 'tee-shirt', 'tee shirt'],
+  // cap: ['cap', 'casquette'],
+  // other: ['other', 'autre'],
+  // polo: ['polo'],
+  // sweatshirt: ['sweatshirt', 'sweat', 'pull'],
+  tshirt: ['tshirt', 't-shirt', 'tee-shirt', 'tee shirt']
 } satisfies Record<ProductId, string[]>
 
 const colorIdAliases = {
   black: ['black', 'noir'],
-  navy: ['navy', 'marine', 'bleu marine'],
+  // navy: ['navy', 'marine', 'bleu marine'],
   white: ['white', 'blanc'],
 } satisfies Record<ProductColorId, string[]>
 
@@ -195,4 +195,4 @@ function normalizeSearchValue(value: string): string {
     .replace(/[^a-z0-9]+/g, '')
 }
 
-const supportedColorIds = ['black', 'navy', 'white'] satisfies ProductColorId[]
+const supportedColorIds = ['black', 'white'] satisfies ProductColorId[]

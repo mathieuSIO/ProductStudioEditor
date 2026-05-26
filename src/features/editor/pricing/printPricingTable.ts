@@ -4,8 +4,8 @@ export const defaultTextileUnitPrice = 4
 
 export const printPricingTable: PrintPricingTable = {
   A3: [
-    { minQuantity: 1, maxQuantity: 4, unitPrice: 17 },
-    { minQuantity: 5, maxQuantity: 9, unitPrice: 11.4 },
+    { minQuantity: 1, maxQuantity: 4, unitPrice: 15 },
+    { minQuantity: 5, maxQuantity: 9, unitPrice: 10.4 },
     { minQuantity: 10, maxQuantity: 19, unitPrice: 9.5 },
     { minQuantity: 20, maxQuantity: 29, unitPrice: 8.5 },
     { minQuantity: 30, maxQuantity: 39, unitPrice: 7.8 },

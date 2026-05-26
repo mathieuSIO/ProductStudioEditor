@@ -239,20 +239,20 @@ function getThumbnailMockupClasses(
   view: ProductViewId,
 ) {
   switch (mockup) {
-    case 'cap':
-      return view === 'front' || view === 'back'
-        ? 'h-10 w-16 rounded-[50%_50%_38%_38%/70%_70%_34%_34%] border border-black/10'
-        : 'h-9 w-14 rounded-[48%_48%_40%_40%/62%_62%_34%_34%] border border-black/10'
-    case 'generic':
-      return 'h-10 w-7 rounded-[0.8rem] border border-black/10'
-    case 'polo':
-      return view === 'front' || view === 'back'
-        ? 'h-10 w-7 rounded-[0.8rem] border border-black/10'
-        : 'h-10 w-5 rounded-[0.7rem] border border-black/10'
-    case 'sweatshirt':
-      return view === 'front' || view === 'back'
-        ? 'h-10 w-9 rounded-[0.9rem] border border-black/10'
-        : 'h-10 w-5 rounded-[0.75rem] border border-black/10'
+    // case 'cap':
+    //   return view === 'front' || view === 'back'
+    //     ? 'h-10 w-16 rounded-[50%_50%_38%_38%/70%_70%_34%_34%] border border-black/10'
+    //     : 'h-9 w-14 rounded-[48%_48%_40%_40%/62%_62%_34%_34%] border border-black/10'
+    // case 'generic':
+    //   return 'h-10 w-7 rounded-[0.8rem] border border-black/10'
+    // case 'polo':
+    //   return view === 'front' || view === 'back'
+    //     ? 'h-10 w-7 rounded-[0.8rem] border border-black/10'
+    //     : 'h-10 w-5 rounded-[0.7rem] border border-black/10'
+    // case 'sweatshirt':
+      // // return view === 'front' || view === 'back'
+      //   ? 'h-10 w-9 rounded-[0.9rem] border border-black/10'
+      //   : 'h-10 w-5 rounded-[0.75rem] border border-black/10'
     case 'tshirt':
       return view === 'front' || view === 'back'
         ? 'h-10 w-7 rounded-[0.82rem] border border-black/10'

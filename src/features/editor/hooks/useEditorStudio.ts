@@ -59,10 +59,10 @@ const initialQuantitiesByProduct = mockProducts.reduce<QuantitiesByProduct>(
     return accumulator
   },
   {
-    cap: {},
-    other: {},
-    polo: {},
-    sweatshirt: {},
+    // cap: {},
+    // other: {},
+    // polo: {},
+    // sweatshirt: {},
     tshirt: {},
   },
 )

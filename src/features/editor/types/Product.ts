@@ -2,9 +2,11 @@ import type { PrintableArea } from './PrintableArea'
 
 export type ProductCategory = 'headwear' | 'other' | 'top'
 
-export type ProductId = 'cap' | 'other' | 'polo' | 'sweatshirt' | 'tshirt'
+// export type ProductId = 'cap' | 'other' | 'polo' | 'sweatshirt' | 'tshirt'
+export type ProductId = 'tshirt'
 
-export type ProductMockup = 'cap' | 'generic' | 'polo' | 'sweatshirt' | 'tshirt'
+// export type ProductMockup = 'cap' | 'generic' | 'polo' | 'sweatshirt' | 'tshirt'
+export type ProductMockup = 'tshirt'
 
 export type ProductViewId = 'back' | 'custom' | 'front'
 
@@ -18,7 +20,7 @@ export type ProductSize =
   | 'XXXL'
   | 'TU'
 
-export type ProductColorId = 'black' | 'navy' | 'white'
+export type ProductColorId = 'black' | 'white'
 
 export type ProductMockupAsset =
   | {
