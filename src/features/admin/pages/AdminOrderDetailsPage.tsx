@@ -5,9 +5,13 @@ import { OrderDetailsPanel } from '../../account/components/OrderDetailsPanel'
 import { OrderItemsList } from '../../account/components/OrderItemsList'
 import { formatOrderReference } from '../../account/utils/orderFormatters'
 import { useAuth } from '../../auth'
+import { AdminOrderShippingControl } from '../components/AdminOrderShippingControl'
 import { AdminOrderStatusControl } from '../components/AdminOrderStatusControl'
 import { useAdminOrderDetails } from '../hooks/useAdminOrderDetails'
-import type { AdminOrderStatus } from '../types/admin.types'
+import type {
+  AdminOrderStatus,
+  UpdateAdminOrderShippingPayload,
+} from '../types/admin.types'
 
 export function AdminOrderDetailsPage() {
   const navigate = useNavigate()
@@ -18,8 +22,12 @@ export function AdminOrderDetailsPage() {
     error,
     errorStatus,
     isLoading,
+    isUpdatingShipping,
     isUpdatingStatus,
+    shippingError,
+    shippingSuccess,
     statusError,
+    updateShipping,
     updateStatus,
   } = useAdminOrderDetails(orderId ?? null)
 
@@ -42,6 +50,10 @@ export function AdminOrderDetailsPage() {
 
   function handleStatusChange(status: AdminOrderStatus) {
     void updateStatus(status)
+  }
+
+  function handleShippingUpdate(payload: UpdateAdminOrderShippingPayload) {
+    void updateShipping(payload)
   }
 
   return (
@@ -101,6 +113,19 @@ export function AdminOrderDetailsPage() {
               isUpdating={isUpdatingStatus}
               status={order.status}
               onStatusChange={handleStatusChange}
+            />
+          </PanelCard>
+          <PanelCard
+            eyebrow="Livraison"
+            title="Livraison / Suivi"
+            description="Renseignez les informations de tracking transport visibles sur la commande."
+          >
+            <AdminOrderShippingControl
+              error={shippingError}
+              isUpdating={isUpdatingShipping}
+              shipment={order.shipment}
+              success={shippingSuccess}
+              onShippingUpdate={handleShippingUpdate}
             />
           </PanelCard>
           <OrderDetailsPanel order={order} />

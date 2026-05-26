@@ -75,6 +75,7 @@ export type OrderShipment = {
   shippingLabel?: string | null
   shippingMethod?: string | null
   shippingPriceCents?: number | null
+  shippingStatus?: string | null
   status?: string | null
   totalWeightGrams?: number | null
   trackingNumber?: string | null

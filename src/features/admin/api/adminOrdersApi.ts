@@ -12,7 +12,12 @@ import type {
   OrderSummary,
   ShippingAddress,
 } from '../../account'
-import type { AdminOrderDetails, AdminOrderStatus, AdminOrderSummary } from '../types/admin.types'
+import type {
+  AdminOrderDetails,
+  AdminOrderStatus,
+  AdminOrderSummary,
+  UpdateAdminOrderShippingPayload,
+} from '../types/admin.types'
 
 export class AdminOrdersApiError extends Error {
   readonly status: number
@@ -67,6 +72,29 @@ export async function updateAdminOrderStatus(
 
   if (!normalizedOrder) {
     throw new Error('La réponse de mise à jour est invalide.')
+  }
+
+  return normalizedOrder
+}
+
+export async function updateAdminOrderShipping(
+  orderId: string,
+  payload: UpdateAdminOrderShippingPayload,
+): Promise<AdminOrderDetails> {
+  const order = await fetchAdminResource<unknown>(
+    `/api/admin/orders/${encodeURIComponent(orderId)}/shipping`,
+    {
+      body: JSON.stringify(payload),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      method: 'PATCH',
+    },
+  )
+  const normalizedOrder = normalizeOrderDetails(order)
+
+  if (!normalizedOrder) {
+    throw new Error('La rÃ©ponse de mise Ã  jour livraison est invalide.')
   }
 
   return normalizedOrder
@@ -410,7 +438,8 @@ function normalizeOrderShipment(value: Record<string, unknown>): OrderShipment |
     readRecord(value, 'order_shipment') ??
     readFirstRecord(value, 'shipments') ??
     readFirstRecord(value, 'orderShipments') ??
-    readFirstRecord(value, 'order_shipments')
+    readFirstRecord(value, 'order_shipments') ??
+    (hasFlatShipmentFields(value) ? value : null)
 
   if (!rawShipment) {
     return null
@@ -436,7 +465,13 @@ function normalizeOrderShipment(value: Record<string, unknown>): OrderShipment |
     shippingPriceCents:
       readNumber(rawShipment, 'shippingPriceCents') ??
       readNumber(rawShipment, 'shipping_price_cents'),
-    status: readString(rawShipment, 'status'),
+    shippingStatus:
+      readString(rawShipment, 'shippingStatus') ??
+      readString(rawShipment, 'shipping_status'),
+    status:
+      readString(rawShipment, 'status') ??
+      readString(rawShipment, 'shippingStatus') ??
+      readString(rawShipment, 'shipping_status'),
     totalWeightGrams:
       readNumber(rawShipment, 'totalWeightGrams') ??
       readNumber(rawShipment, 'total_weight_grams'),
@@ -447,6 +482,19 @@ function normalizeOrderShipment(value: Record<string, unknown>): OrderShipment |
       readString(rawShipment, 'trackingUrl') ??
       readString(rawShipment, 'tracking_url'),
   }
+}
+
+function hasFlatShipmentFields(value: Record<string, unknown>): boolean {
+  return (
+    readString(value, 'shipping_method') !== null ||
+    readString(value, 'shipping_label') !== null ||
+    readNumber(value, 'shipping_price_cents') !== null ||
+    readNumber(value, 'total_weight_grams') !== null ||
+    readString(value, 'carrier') !== null ||
+    readString(value, 'tracking_number') !== null ||
+    readString(value, 'tracking_url') !== null ||
+    readString(value, 'shipping_status') !== null
+  )
 }
 
 function readFirstRecord(

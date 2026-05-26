@@ -3,16 +3,25 @@ import { useEffect, useState } from 'react'
 import {
   AdminOrdersApiError,
   fetchAdminOrderDetails,
+  updateAdminOrderShipping,
   updateAdminOrderStatus,
 } from '../api/adminOrdersApi'
-import type { AdminOrderDetails, AdminOrderStatus } from '../types/admin.types'
+import type {
+  AdminOrderDetails,
+  AdminOrderStatus,
+  UpdateAdminOrderShippingPayload,
+} from '../types/admin.types'
 
 type UseAdminOrderDetailsResult = {
   data: AdminOrderDetails | null
   error: string | null
   errorStatus: number | null
   isLoading: boolean
+  isUpdatingShipping: boolean
   isUpdatingStatus: boolean
+  shippingError: string | null
+  shippingSuccess: string | null
+  updateShipping: (payload: UpdateAdminOrderShippingPayload) => Promise<void>
   statusError: string | null
   updateStatus: (status: AdminOrderStatus) => Promise<void>
 }
@@ -23,8 +32,11 @@ export function useAdminOrderDetails(
   const [order, setOrder] = useState<AdminOrderDetails | null>(null)
   const [isLoading, setIsLoading] = useState(Boolean(orderId))
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false)
+  const [isUpdatingShipping, setIsUpdatingShipping] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [statusError, setStatusError] = useState<string | null>(null)
+  const [shippingError, setShippingError] = useState<string | null>(null)
+  const [shippingSuccess, setShippingSuccess] = useState<string | null>(null)
   const [errorStatus, setErrorStatus] = useState<number | null>(null)
 
   useEffect(() => {
@@ -33,6 +45,8 @@ export function useAdminOrderDetails(
       setIsLoading(false)
       setError(null)
       setStatusError(null)
+      setShippingError(null)
+      setShippingSuccess(null)
       setErrorStatus(null)
       return
     }
@@ -44,6 +58,8 @@ export function useAdminOrderDetails(
       setIsLoading(true)
       setError(null)
       setStatusError(null)
+      setShippingError(null)
+      setShippingSuccess(null)
       setErrorStatus(null)
 
       try {
@@ -100,13 +116,44 @@ export function useAdminOrderDetails(
     }
   }
 
+  async function updateShipping(
+    payload: UpdateAdminOrderShippingPayload,
+  ): Promise<void> {
+    if (!orderId) {
+      return
+    }
+
+    setIsUpdatingShipping(true)
+    setShippingError(null)
+    setShippingSuccess(null)
+
+    try {
+      const updatedOrder = await updateAdminOrderShipping(orderId, payload)
+
+      setOrder(updatedOrder)
+      setShippingSuccess('Les informations de livraison ont ete mises a jour.')
+    } catch (updateError) {
+      setShippingError(
+        updateError instanceof Error
+          ? updateError.message
+          : "Les informations de livraison n'ont pas pu etre mises a jour.",
+      )
+    } finally {
+      setIsUpdatingShipping(false)
+    }
+  }
+
   return {
     data: order,
     error,
     errorStatus,
     isLoading,
+    isUpdatingShipping,
     isUpdatingStatus,
+    shippingError,
+    shippingSuccess,
     statusError,
+    updateShipping,
     updateStatus,
   }
 }

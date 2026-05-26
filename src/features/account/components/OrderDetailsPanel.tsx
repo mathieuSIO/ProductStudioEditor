@@ -39,11 +39,11 @@ export function OrderDetailsPanel({ order }: OrderDetailsPanelProps) {
         </address>
       </div>
 
-      {hasShipmentDetails(order) ? (
-        <div className="mt-4 rounded-[1rem] border border-blue-100 bg-blue-50 px-4 py-4">
-          <p className="text-sm font-semibold text-blue-950">
-            Livraison
-          </p>
+      <div className="mt-4 rounded-[1rem] border border-blue-100 bg-blue-50 px-4 py-4">
+        <p className="text-sm font-semibold text-blue-950">Livraison</p>
+
+        {hasShipmentDetails(order) ? (
+          <>
           <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
             {order.shipment?.shippingLabel ? (
               <OptionStat
@@ -66,10 +66,17 @@ export function OrderDetailsPanel({ order }: OrderDetailsPanelProps) {
               />
             ) : null}
 
-            {order.shipment?.status ? (
+            {getShipmentStatus(order) ? (
               <OptionStat
                 label="Statut livraison"
-                value={order.shipment.status}
+                value={formatShipmentStatus(getShipmentStatus(order))}
+              />
+            ) : null}
+
+            {order.shipment?.trackingNumber ? (
+              <OptionStat
+                label="Numero de suivi"
+                value={order.shipment.trackingNumber}
               />
             ) : null}
           </div>
@@ -83,25 +90,23 @@ export function OrderDetailsPanel({ order }: OrderDetailsPanelProps) {
             </p>
           ) : null}
 
-          {order.shipment?.trackingNumber ? (
-            <p className="mt-3 text-sm font-medium text-blue-950">
-              Suivi :{' '}
-              {order.shipment.trackingUrl ? (
-                <a
-                  className="font-semibold text-emerald-700 underline-offset-4 hover:underline"
-                  href={order.shipment.trackingUrl}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  {order.shipment.trackingNumber}
-                </a>
-              ) : (
-                <span>{order.shipment.trackingNumber}</span>
-              )}
-            </p>
+          {order.shipment?.trackingUrl ? (
+            <a
+              className="mt-3 inline-flex min-h-10 items-center justify-center rounded-[0.9rem] bg-blue-950 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+              href={order.shipment.trackingUrl}
+              rel="noreferrer"
+              target="_blank"
+            >
+              Suivre mon colis
+            </a>
           ) : null}
-        </div>
-      ) : null}
+          </>
+        ) : (
+          <p className="mt-2 text-sm leading-6 text-blue-800">
+            Votre commande est en préparation.
+          </p>
+        )}
+      </div>
 
       {hasOrderOptions(order) ? (
         <div className="mt-4 rounded-[1rem] border border-emerald-100 bg-emerald-50 px-4 py-4">
@@ -187,11 +192,34 @@ function hasShipmentDetails(order: OrderDetails): boolean {
     order.shipment?.shippingLabel ||
       typeof order.shipment?.shippingPriceCents === 'number' ||
       typeof order.shipment?.totalWeightGrams === 'number' ||
+      order.shipment?.shippingStatus ||
       order.shipment?.status ||
       order.shipment?.relayPointName ||
       order.shipment?.relayPointAddress ||
       order.shipment?.trackingNumber,
   )
+}
+
+function getShipmentStatus(order: OrderDetails): string | null {
+  return order.shipment?.shippingStatus ?? order.shipment?.status ?? null
+}
+
+function formatShipmentStatus(status: string | null): string {
+  switch (status) {
+    case 'delivered':
+      return 'Livrée'
+    case 'failed':
+      return 'Incident livraison'
+    case 'label_created':
+      return 'Étiquette créée'
+    case 'pending':
+    case null:
+      return 'En préparation'
+    case 'shipped':
+      return 'Expédiée'
+    default:
+      return status
+  }
 }
 
 function formatProductionOption(order: OrderDetails): string {
