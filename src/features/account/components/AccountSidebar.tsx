@@ -4,7 +4,8 @@ type AccountSidebarProps = {
   userName?: string
 }
 
-const accountLinks = ['Mes commandes', 'Mes informations', 'Aide projet']
+// const accountLinks = ['Mes commandes', 'Mes informations', 'Aide projet']
+const accountLinks = ['Mes commandes']
 
 export function AccountSidebar({
   onLogout,
