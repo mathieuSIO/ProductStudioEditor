@@ -1,6 +1,8 @@
 import { env } from '../../../shared/config/env'
 import { createAuthHeaders } from '../../auth'
 
+export const pendingCheckoutOrderIdStorageKey = 'pendingOrderId'
+
 export type CreateCheckoutSessionResponse = {
   checkoutUrl: string
 }

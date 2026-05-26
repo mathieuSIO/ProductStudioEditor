@@ -1,21 +1,92 @@
-import { Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
+
+import { fetchUserOrderDetails } from '../../features/account/api/accountApi'
+import { createEmptyCart, saveCart } from '../../features/cart'
+import { pendingCheckoutOrderIdStorageKey } from '../../features/checkout'
+
+type PaymentConfirmationStatus =
+  | 'checking'
+  | 'missing-order'
+  | 'paid'
+  | 'unconfirmed'
+
+const maxPaymentStatusChecks = 10
+const paymentStatusPollingDelayMs = 1000
 
 export function CheckoutSuccessPage() {
+  const [searchParams] = useSearchParams()
+  const sessionId = searchParams.get('session_id')
+  const [pendingOrderId] = useState<string | null>(() =>
+    readPendingCheckoutOrderId(),
+  )
+  const [confirmationStatus, setConfirmationStatus] =
+    useState<PaymentConfirmationStatus>(() =>
+      pendingOrderId ? 'checking' : 'missing-order',
+    )
+
+  useEffect(() => {
+    if (!pendingOrderId) {
+      return undefined
+    }
+
+    const orderId = pendingOrderId
+    let isCurrentCheck = true
+    let timeoutId: number | null = null
+
+    async function checkPaymentStatus(attempt: number) {
+      try {
+        const order = await fetchUserOrderDetails(orderId)
+
+        if (!isCurrentCheck) {
+          return
+        }
+
+        if (order.status === 'paid') {
+          clearConfirmedCheckoutCart()
+          setConfirmationStatus('paid')
+          return
+        }
+      } catch {
+        if (!isCurrentCheck) {
+          return
+        }
+      }
+
+      if (attempt >= maxPaymentStatusChecks) {
+        setConfirmationStatus('unconfirmed')
+        return
+      }
+
+      timeoutId = window.setTimeout(() => {
+        void checkPaymentStatus(attempt + 1)
+      }, paymentStatusPollingDelayMs)
+    }
+
+    void checkPaymentStatus(1)
+
+    return () => {
+      isCurrentCheck = false
+
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId)
+      }
+    }
+  }, [pendingOrderId])
+
   return (
     <main className="min-h-screen bg-blue-50/55 px-4 py-6 text-blue-950">
       <section className="mx-auto grid min-h-[calc(100vh-3rem)] max-w-3xl place-items-center">
         <div className="w-full rounded-[1.25rem] border border-emerald-200 bg-white p-5 shadow-[0_18px_42px_-34px_rgba(15,23,42,0.35)]">
-          <div className="rounded-[1.1rem] border border-emerald-200 bg-emerald-50 px-4 py-4 text-emerald-900">
+          <div className={getStatusPanelClassName(confirmationStatus)}>
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-700">
               Paiement
             </p>
             <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-              Paiement en cours de confirmation
+              {getStatusTitle(confirmationStatus)}
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-6">
-              Merci, votre paiement a bien ete transmis. La confirmation finale
-              est geree par Stripe et peut prendre quelques secondes a
-              apparaitre dans votre espace client.
+              {getStatusDescription(confirmationStatus, sessionId)}
             </p>
           </div>
 
@@ -37,4 +108,72 @@ export function CheckoutSuccessPage() {
       </section>
     </main>
   )
+}
+
+function readPendingCheckoutOrderId(): string | null {
+  if (typeof window === 'undefined') {
+    return null
+  }
+
+  const orderId = window.localStorage.getItem(pendingCheckoutOrderIdStorageKey)
+
+  return orderId && orderId.trim().length > 0 ? orderId : null
+}
+
+function clearConfirmedCheckoutCart(): void {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  saveCart(createEmptyCart())
+  window.localStorage.removeItem(pendingCheckoutOrderIdStorageKey)
+}
+
+function getStatusPanelClassName(status: PaymentConfirmationStatus): string {
+  if (status === 'paid') {
+    return 'rounded-[1.1rem] border border-emerald-200 bg-emerald-50 px-4 py-4 text-emerald-900'
+  }
+
+  if (status === 'unconfirmed' || status === 'missing-order') {
+    return 'rounded-[1.1rem] border border-amber-200 bg-amber-50 px-4 py-4 text-amber-950'
+  }
+
+  return 'rounded-[1.1rem] border border-blue-100 bg-blue-50 px-4 py-4 text-blue-950'
+}
+
+function getStatusTitle(status: PaymentConfirmationStatus): string {
+  if (status === 'paid') {
+    return 'Paiement confirme'
+  }
+
+  if (status === 'missing-order') {
+    return 'Commande a verifier'
+  }
+
+  if (status === 'unconfirmed') {
+    return 'Paiement encore en confirmation'
+  }
+
+  return 'Paiement en cours de confirmation'
+}
+
+function getStatusDescription(
+  status: PaymentConfirmationStatus,
+  sessionId: string | null,
+): string {
+  if (status === 'paid') {
+    return 'Votre paiement est confirme. Votre panier a ete vide et votre commande est disponible dans votre espace client.'
+  }
+
+  if (status === 'missing-order') {
+    return "Nous n'avons pas trouve d'identifiant de commande local a verifier. Votre panier n'a pas ete modifie."
+  }
+
+  if (status === 'unconfirmed') {
+    return "La confirmation Stripe n'est pas encore visible cote espace client. Votre panier n'a pas ete modifie."
+  }
+
+  return sessionId
+    ? 'Merci, Stripe a renvoye votre session. Nous verifions maintenant que la commande est bien payee avant de vider le panier.'
+    : 'Merci, nous verifions maintenant que la commande est bien payee avant de vider le panier.'
 }

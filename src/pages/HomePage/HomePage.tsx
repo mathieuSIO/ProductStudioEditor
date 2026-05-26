@@ -19,7 +19,6 @@ export function HomePage() {
   const {
     addItem,
     cart,
-    clearCart,
     itemCount,
     removeItem,
     setProfessionalLogoReview,
@@ -110,7 +109,6 @@ export function HomePage() {
       ) : currentView === 'checkout' ? (
         <CheckoutPage
           cart={cart}
-          onOrderSuccess={clearCart}
           onReturnToCart={() => setCurrentView('cart')}
           onReturnToStudio={handleReturnToStudio}
           totals={totals}

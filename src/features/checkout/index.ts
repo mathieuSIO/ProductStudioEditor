@@ -1,4 +1,7 @@
-export { createCheckoutSession } from './api/createCheckoutSession'
+export {
+  createCheckoutSession,
+  pendingCheckoutOrderIdStorageKey,
+} from './api/createCheckoutSession'
 export { createOrder } from './api/createOrder'
 export { createShippingEstimate } from './api/createShippingEstimate'
 export {

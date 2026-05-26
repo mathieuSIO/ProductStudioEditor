@@ -6,6 +6,7 @@ export type {
   OrderDetails,
   OrderItemDetails,
   OrderOptions,
+  OrderShipment,
   OrderStatus,
   OrderSummary,
   ShippingAddress,

@@ -38,6 +38,20 @@ export type ShippingAddress = {
   postalCode?: string | null
 }
 
+export type OrderShipment = {
+  carrier?: string | null
+  relayPointAddress?: string | null
+  relayPointId?: string | null
+  relayPointName?: string | null
+  shippingLabel?: string | null
+  shippingMethod?: string | null
+  shippingPriceCents?: number | null
+  status?: string | null
+  totalWeightGrams?: number | null
+  trackingNumber?: string | null
+  trackingUrl?: string | null
+}
+
 export type OrderOptions = {
   professionalLogoReview?: boolean | null
   professionalLogoReviewPriceCents?: number | null
@@ -85,4 +99,5 @@ export type OrderDetails = OrderSummary & {
   shippingCountry?: string | null
   shippingPostalCode?: string | null
   shippingAddress?: ShippingAddress | null
+  shipment?: OrderShipment | null
 }

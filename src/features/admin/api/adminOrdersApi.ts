@@ -7,6 +7,7 @@ import type {
   OrderDetails,
   OrderItemDetails,
   OrderOptions,
+  OrderShipment,
   OrderStatus,
   OrderSummary,
   ShippingAddress,
@@ -166,6 +167,7 @@ function normalizeOrderDetails(value: unknown): OrderDetails | null {
     shippingCity: shippingAddress?.city,
     shippingCountry: shippingAddress?.country,
     shippingPostalCode: shippingAddress?.postalCode,
+    shipment: normalizeOrderShipment(value),
   }
 }
 
@@ -399,6 +401,62 @@ function normalizeShippingAddress(
       readString(value, 'shipping_postal_code') ??
       readString(value, 'postal_code'),
   }
+}
+
+function normalizeOrderShipment(value: Record<string, unknown>): OrderShipment | null {
+  const rawShipment =
+    readRecord(value, 'shipment') ??
+    readRecord(value, 'orderShipment') ??
+    readRecord(value, 'order_shipment') ??
+    readFirstRecord(value, 'shipments') ??
+    readFirstRecord(value, 'orderShipments') ??
+    readFirstRecord(value, 'order_shipments')
+
+  if (!rawShipment) {
+    return null
+  }
+
+  return {
+    carrier: readString(rawShipment, 'carrier'),
+    relayPointAddress:
+      readString(rawShipment, 'relayPointAddress') ??
+      readString(rawShipment, 'relay_point_address'),
+    relayPointId:
+      readString(rawShipment, 'relayPointId') ??
+      readString(rawShipment, 'relay_point_id'),
+    relayPointName:
+      readString(rawShipment, 'relayPointName') ??
+      readString(rawShipment, 'relay_point_name'),
+    shippingLabel:
+      readString(rawShipment, 'shippingLabel') ??
+      readString(rawShipment, 'shipping_label'),
+    shippingMethod:
+      readString(rawShipment, 'shippingMethod') ??
+      readString(rawShipment, 'shipping_method'),
+    shippingPriceCents:
+      readNumber(rawShipment, 'shippingPriceCents') ??
+      readNumber(rawShipment, 'shipping_price_cents'),
+    status: readString(rawShipment, 'status'),
+    totalWeightGrams:
+      readNumber(rawShipment, 'totalWeightGrams') ??
+      readNumber(rawShipment, 'total_weight_grams'),
+    trackingNumber:
+      readString(rawShipment, 'trackingNumber') ??
+      readString(rawShipment, 'tracking_number'),
+    trackingUrl:
+      readString(rawShipment, 'trackingUrl') ??
+      readString(rawShipment, 'tracking_url'),
+  }
+}
+
+function readFirstRecord(
+  record: Record<string, unknown>,
+  key: string,
+): Record<string, unknown> | null {
+  const values = readArray(record, key)
+  const firstValue = values?.[0]
+
+  return isRecord(firstValue) ? firstValue : null
 }
 
 function readFinalPreviewUrls(

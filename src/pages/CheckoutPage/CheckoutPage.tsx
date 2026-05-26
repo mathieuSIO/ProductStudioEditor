@@ -9,6 +9,7 @@ import {
   createOrder,
   createOrderPayloadFromCheckoutDraft,
   createShippingEstimate,
+  pendingCheckoutOrderIdStorageKey,
   type CheckoutFormData,
   type ProductionOption,
   type ShippingEstimate,
@@ -18,7 +19,6 @@ import { formatEuro } from '../../shared/formatters/formatEuro'
 
 type CheckoutPageProps = {
   cart: Cart
-  onOrderSuccess: () => void
   onReturnToCart: () => void
   onReturnToStudio: () => void
   totals: CartTotals
@@ -78,7 +78,6 @@ const productionOptions = [
 
 export function CheckoutPage({
   cart,
-  onOrderSuccess,
   onReturnToCart,
   totals,
 }: CheckoutPageProps) {
@@ -198,7 +197,7 @@ export function CheckoutPage({
 
       setCreatedOrderId(createdOrder.orderId)
       setBackendTotalPriceCents(createdOrder.totalPriceCents ?? null)
-      onOrderSuccess()
+      savePendingCheckoutOrderId(createdOrder.orderId)
       await redirectToStripeCheckout(createdOrder.orderId)
     } catch (error) {
       setSubmitStatus('error')
@@ -587,6 +586,17 @@ export function CheckoutPage({
         </div>
       </aside>
     </section>
+  )
+}
+
+function savePendingCheckoutOrderId(orderId: number): void {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  window.localStorage.setItem(
+    pendingCheckoutOrderIdStorageKey,
+    String(orderId),
   )
 }
 
