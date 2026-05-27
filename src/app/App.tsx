@@ -19,6 +19,10 @@ import {
   ResetPasswordPage,
   useAuth,
 } from '../features/auth'
+import {
+  AdminCustomRequestDetailsPage,
+  AdminCustomRequestsPage,
+} from '../features/customRequests'
 import { CheckoutCancelPage } from '../pages/CheckoutCancelPage'
 import { CheckoutSuccessPage } from '../pages/CheckoutSuccessPage'
 import { HomePage } from '../pages/HomePage'
@@ -47,6 +51,22 @@ function App() {
           element={
             <RequireAdmin>
               <AdminOrderDetailsPage />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/admin/custom-requests"
+          element={
+            <RequireAdmin>
+              <AdminCustomRequestsPage />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/admin/custom-requests/:requestId"
+          element={
+            <RequireAdmin>
+              <AdminCustomRequestDetailsPage />
             </RequireAdmin>
           }
         />
