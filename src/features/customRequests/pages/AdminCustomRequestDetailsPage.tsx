@@ -59,6 +59,13 @@ export function AdminCustomRequestDetailsPage() {
           <button
             type="button"
             className="rounded-[0.95rem] border border-blue-100 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-950 transition hover:border-emerald-200 hover:bg-white hover:text-emerald-800"
+            onClick={() => navigate('/admin')}
+          >
+            Admin
+          </button>
+          <button
+            type="button"
+            className="rounded-[0.95rem] border border-blue-100 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-950 transition hover:border-emerald-200 hover:bg-white hover:text-emerald-800"
             onClick={() => navigate('/admin/custom-requests')}
           >
             Demandes

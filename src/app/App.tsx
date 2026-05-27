@@ -6,7 +6,11 @@ import {
   useLocation,
 } from 'react-router-dom'
 
-import { AdminOrderDetailsPage, AdminOrdersPage } from '../features/admin'
+import {
+  AdminHomePage,
+  AdminOrderDetailsPage,
+  AdminOrdersPage,
+} from '../features/admin'
 import {
   AccountDashboardPage,
   AccountPage,
@@ -38,6 +42,14 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route
+          path="/admin"
+          element={
+            <RequireAdmin>
+              <AdminHomePage />
+            </RequireAdmin>
+          }
+        />
         <Route
           path="/admin/orders"
           element={
