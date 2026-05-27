@@ -1,7 +1,9 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
+import { env } from '../../../shared/config/env'
 import { AuthFormShell } from '../components/AuthFormShell'
+import { TurnstileWidget } from '../components/TurnstileWidget'
 import { useAuth } from '../hooks/useAuth'
 
 export function RegisterPage() {
@@ -11,14 +13,29 @@ export function RegisterPage() {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [password, setPassword] = useState('')
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0)
+  const turnstileSiteKey = env.turnstileSiteKey
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
+    if (!turnstileToken) {
+      return
+    }
+
     try {
-      await register({ email, firstName, lastName, password })
+      await register({
+        email,
+        firstName,
+        lastName,
+        password,
+        turnstileToken,
+      })
       navigate('/account', { replace: true })
     } catch {
+      setTurnstileToken(null)
+      setTurnstileResetKey((currentKey) => currentKey + 1)
       // L'erreur affichée est centralisée dans useAuth.
     }
   }
@@ -38,6 +55,7 @@ export function RegisterPage() {
         </>
       }
       isLoading={isLoading}
+      isSubmitDisabled={!turnstileToken}
       onSubmit={handleSubmit}
       submitLabel="Créer mon compte"
       subtitle="Créez votre accès client pour suivre vos commandes MPM."
@@ -77,6 +95,17 @@ export function RegisterPage() {
         type="password"
         value={password}
       />
+      {turnstileSiteKey ? (
+        <TurnstileWidget
+          onTokenChange={setTurnstileToken}
+          resetKey={turnstileResetKey}
+          siteKey={turnstileSiteKey}
+        />
+      ) : (
+        <div className="rounded-[1rem] border border-red-200 bg-red-50 px-3 py-2.5 text-sm font-medium text-red-700">
+          La verification anti-spam est indisponible.
+        </div>
+      )}
     </AuthFormShell>
   )
 }

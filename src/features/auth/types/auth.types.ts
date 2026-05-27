@@ -27,6 +27,7 @@ export type RegisterPayload = {
   firstName: string
   lastName: string
   password: string
+  turnstileToken: string
 }
 
 export type ForgotPasswordPayload = {

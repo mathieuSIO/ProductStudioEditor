@@ -5,6 +5,7 @@ type AuthFormShellProps = PropsWithChildren<{
   error: string | null
   footer: ReactNode
   isLoading: boolean
+  isSubmitDisabled?: boolean
   onSubmit: (event: FormEvent<HTMLFormElement>) => void
   submitLabel: string
   subtitle: string
@@ -16,6 +17,7 @@ export function AuthFormShell({
   error,
   footer,
   isLoading,
+  isSubmitDisabled = false,
   onSubmit,
   submitLabel,
   subtitle,
@@ -82,7 +84,7 @@ export function AuthFormShell({
               <button
                 type="submit"
                 className="rounded-[0.95rem] bg-blue-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-400"
-                disabled={isLoading}
+                disabled={isLoading || isSubmitDisabled}
               >
                 {isLoading ? 'Traitement en cours...' : submitLabel}
               </button>
