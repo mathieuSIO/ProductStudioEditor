@@ -6,6 +6,7 @@ export type AccountProfile = {
   city: string | null
   country: string
   email: string
+  emailVerified?: boolean
   firstName: string
   id: number
   lastName: string

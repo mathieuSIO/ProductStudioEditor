@@ -1,4 +1,5 @@
 export type AuthUser = {
+  emailVerified?: boolean
   id: number
   email: string
   firstName: string
@@ -38,6 +39,22 @@ export type ResetPasswordPayload = {
   password: string
   token: string
 }
+
+export type ResendVerificationEmailPayload = {
+  email: string
+}
+
+export type RegisterApiResponse =
+  | {
+      data: {
+        message: string
+      }
+      success: true
+    }
+  | {
+      message: string
+      success: false
+    }
 
 export type AuthApiResponse<T> =
   | {

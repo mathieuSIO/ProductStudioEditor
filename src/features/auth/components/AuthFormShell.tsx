@@ -6,8 +6,8 @@ type AuthFormShellProps = PropsWithChildren<{
   footer: ReactNode
   isLoading: boolean
   isSubmitDisabled?: boolean
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void
-  submitLabel: string
+  onSubmit?: (event: FormEvent<HTMLFormElement>) => void
+  submitLabel?: string
   subtitle: string
   title: string
 }>
@@ -72,23 +72,27 @@ export function AuthFormShell({
               </p>
             </div>
 
-            <form className="mt-6 grid gap-4" onSubmit={onSubmit}>
-              {children}
+            {onSubmit && submitLabel ? (
+              <form className="mt-6 grid gap-4" onSubmit={onSubmit}>
+                {children}
 
-              {error ? (
-                <div className="rounded-[1rem] border border-red-200 bg-red-50 px-3 py-2.5 text-sm font-medium text-red-700">
-                  {error}
-                </div>
-              ) : null}
+                {error ? (
+                  <div className="rounded-[1rem] border border-red-200 bg-red-50 px-3 py-2.5 text-sm font-medium text-red-700">
+                    {error}
+                  </div>
+                ) : null}
 
-              <button
-                type="submit"
-                className="rounded-[0.95rem] bg-blue-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-400"
-                disabled={isLoading || isSubmitDisabled}
-              >
-                {isLoading ? 'Traitement en cours...' : submitLabel}
-              </button>
-            </form>
+                <button
+                  type="submit"
+                  className="rounded-[0.95rem] bg-blue-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-400"
+                  disabled={isLoading || isSubmitDisabled}
+                >
+                  {isLoading ? 'Traitement en cours...' : submitLabel}
+                </button>
+              </form>
+            ) : (
+              <div className="mt-6 grid gap-4">{children}</div>
+            )}
 
             <div className="mt-5 text-sm text-stone-600">{footer}</div>
           </div>

@@ -20,7 +20,7 @@ type UseAuthResult = {
   isLoading: boolean
   login: (payload: LoginPayload) => Promise<AuthSession>
   logout: () => void
-  register: (payload: RegisterPayload) => Promise<AuthSession>
+  register: (payload: RegisterPayload) => Promise<string>
   token: string | null
   user: AuthUser | null
 }
@@ -42,8 +42,23 @@ export function useAuth(): UseAuthResult {
     return authenticate(() => loginUser(payload))
   }
 
-  async function register(payload: RegisterPayload): Promise<AuthSession> {
-    return authenticate(() => registerUser(payload))
+  async function register(payload: RegisterPayload): Promise<string> {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      return await registerUser(payload)
+    } catch (authError) {
+      const message =
+        authError instanceof Error
+          ? authError.message
+          : "La demande d'inscription a echoue."
+
+      setError(message)
+      throw new Error(message)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   async function authenticate(

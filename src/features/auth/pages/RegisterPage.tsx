@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 import { env } from '../../../shared/config/env'
 import { AuthFormShell } from '../components/AuthFormShell'
@@ -7,7 +7,6 @@ import { TurnstileWidget } from '../components/TurnstileWidget'
 import { useAuth } from '../hooks/useAuth'
 
 export function RegisterPage() {
-  const navigate = useNavigate()
   const { error, isLoading, register } = useAuth()
   const [email, setEmail] = useState('')
   const [firstName, setFirstName] = useState('')
@@ -15,6 +14,7 @@ export function RegisterPage() {
   const [password, setPassword] = useState('')
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
   const [turnstileResetKey, setTurnstileResetKey] = useState(0)
+  const [isRegistered, setIsRegistered] = useState(false)
   const turnstileSiteKey = env.turnstileSiteKey
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -32,12 +32,42 @@ export function RegisterPage() {
         password,
         turnstileToken,
       })
-      navigate('/account', { replace: true })
+      setIsRegistered(true)
     } catch {
       setTurnstileToken(null)
       setTurnstileResetKey((currentKey) => currentKey + 1)
       // L'erreur affichée est centralisée dans useAuth.
     }
+  }
+
+  if (isRegistered) {
+    return (
+      <AuthFormShell
+        error={null}
+        footer={
+          <Link
+            to="/login"
+            className="font-semibold text-blue-950 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-800"
+          >
+            Retour a la connexion
+          </Link>
+        }
+        isLoading={false}
+        subtitle="Votre compte MPM est cree. Il reste une derniere verification a effectuer."
+        title="Compte cree"
+      >
+        <div className="rounded-[1rem] border border-emerald-200 bg-emerald-50 px-3 py-3 text-sm font-medium leading-6 text-emerald-800">
+          Votre compte a ete cree. Verifiez votre boite mail pour confirmer
+          votre adresse email.
+        </div>
+        <Link
+          to="/login"
+          className="inline-flex justify-center rounded-[0.95rem] bg-blue-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800"
+        >
+          Retour a la connexion
+        </Link>
+      </AuthFormShell>
+    )
   }
 
   return (

@@ -272,6 +272,9 @@ export function AccountPage() {
                     value={profileFormData.lastName}
                   />
                   <ReadOnlyField label="Email" value={profile?.email ?? ''} />
+                  <EmailVerificationBadge
+                    isVerified={profile?.emailVerified ?? user?.emailVerified}
+                  />
                   <FormField
                     label="Telephone"
                     name="phone"
@@ -434,6 +437,31 @@ function ReadOnlyField({ label, value }: ReadOnlyFieldProps) {
       {label}
       <div className="rounded-[0.9rem] border border-stone-200 bg-stone-100 px-3 py-3 text-sm font-medium text-stone-600">
         {value}
+      </div>
+    </div>
+  )
+}
+
+type EmailVerificationBadgeProps = {
+  isVerified: boolean | undefined
+}
+
+function EmailVerificationBadge({ isVerified }: EmailVerificationBadgeProps) {
+  if (typeof isVerified !== 'boolean') {
+    return null
+  }
+
+  const className = isVerified
+    ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+    : 'border-amber-200 bg-amber-50 text-amber-800'
+
+  return (
+    <div className="grid gap-1.5 text-sm font-semibold text-blue-950">
+      Verification email
+      <div
+        className={`rounded-[0.9rem] border px-3 py-3 text-sm font-semibold ${className}`}
+      >
+        {isVerified ? 'Email verifie' : 'Non verifie'}
       </div>
     </div>
   )

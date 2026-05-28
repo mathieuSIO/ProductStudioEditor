@@ -21,6 +21,7 @@ import {
   LoginPage,
   RegisterPage,
   ResetPasswordPage,
+  VerifyEmailPage,
   useAuth,
 } from '../features/auth'
 import {
@@ -42,6 +43,7 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route
           path="/admin"
           element={

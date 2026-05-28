@@ -6,7 +6,9 @@ import type {
   AuthUser,
   ForgotPasswordPayload,
   LoginPayload,
+  RegisterApiResponse,
   RegisterPayload,
+  ResendVerificationEmailPayload,
   ResetPasswordPayload,
 } from '../types/auth.types'
 
@@ -16,8 +18,8 @@ export async function loginUser(payload: LoginPayload): Promise<AuthSession> {
 
 export async function registerUser(
   payload: RegisterPayload,
-): Promise<AuthSession> {
-  return postAuthResource('/api/auth/register', payload)
+): Promise<string> {
+  return postRegisterResource('/api/auth/register', payload)
 }
 
 export async function requestPasswordReset(
@@ -30,6 +32,36 @@ export async function resetPassword(
   payload: ResetPasswordPayload,
 ): Promise<string> {
   return postAuthMessageResource('/api/auth/reset-password', payload)
+}
+
+export async function verifyEmail(token: string): Promise<string> {
+  const response = await fetch(
+    `${env.apiBaseUrl}/api/auth/verify-email?token=${encodeURIComponent(token)}`,
+  )
+  const responseBody = await readJsonResponse(response)
+
+  if (!isAuthMessageApiResponse(responseBody)) {
+    throw new Error('La reponse serveur est invalide.')
+  }
+
+  if (!response.ok || !responseBody.success) {
+    throw new Error(
+      responseBody.success
+        ? 'La verification est momentanement indisponible.'
+        : responseBody.message,
+    )
+  }
+
+  return responseBody.message
+}
+
+export async function resendVerificationEmail(
+  payload: ResendVerificationEmailPayload,
+): Promise<string> {
+  return postAuthMessageResource(
+    '/api/auth/resend-verification-email',
+    payload,
+  )
 }
 
 async function postAuthResource<TPayload>(
@@ -53,11 +85,39 @@ async function postAuthResource<TPayload>(
     throw new Error(
       responseBody.success
         ? 'La connexion est momentanement indisponible.'
-        : responseBody.message,
+        : normalizeAuthErrorMessage(responseBody.message),
     )
   }
 
   return responseBody.data
+}
+
+async function postRegisterResource<TPayload>(
+  path: string,
+  payload: TPayload,
+): Promise<string> {
+  const response = await fetch(`${env.apiBaseUrl}${path}`, {
+    body: JSON.stringify(payload),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    method: 'POST',
+  })
+  const responseBody = await readJsonResponse(response)
+
+  if (!isRegisterApiResponse(responseBody)) {
+    throw new Error('La reponse serveur est invalide.')
+  }
+
+  if (!response.ok || !responseBody.success) {
+    throw new Error(
+      responseBody.success
+        ? "L'inscription est momentanement indisponible."
+        : normalizeAuthErrorMessage(responseBody.message),
+    )
+  }
+
+  return responseBody.data.message
 }
 
 async function postAuthMessageResource<TPayload>(
@@ -122,6 +182,22 @@ function isAuthMessageApiResponse(
   )
 }
 
+function isRegisterApiResponse(value: unknown): value is RegisterApiResponse {
+  if (!isRecord(value)) {
+    return false
+  }
+
+  if (value.success === false) {
+    return typeof value.message === 'string'
+  }
+
+  return (
+    value.success === true &&
+    isRecord(value.data) &&
+    typeof value.data.message === 'string'
+  )
+}
+
 function isAuthSession(value: unknown): value is AuthSession {
   if (!isRecord(value)) {
     return false
@@ -140,6 +216,7 @@ function isAuthUser(value: unknown): value is AuthUser {
     typeof value.email === 'string' &&
     typeof value.firstName === 'string' &&
     typeof value.lastName === 'string' &&
+    isOptionalBoolean(value.emailVerified) &&
     isOptionalString(value.role) &&
     isNullableString(value.phone) &&
     isNullableString(value.addressLine1) &&
@@ -148,6 +225,10 @@ function isAuthUser(value: unknown): value is AuthUser {
     isNullableString(value.city) &&
     typeof value.country === 'string'
   )
+}
+
+function isOptionalBoolean(value: unknown): value is boolean | undefined {
+  return typeof value === 'boolean' || value === undefined
 }
 
 function isOptionalString(value: unknown): value is string | undefined {
@@ -160,4 +241,12 @@ function isNullableString(value: unknown): value is string | null {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
+}
+
+function normalizeAuthErrorMessage(message: string): string {
+  if (message.toLowerCase().includes('verify your email before logging in')) {
+    return 'Veuillez verifier votre adresse email avant de vous connecter.'
+  }
+
+  return message
 }

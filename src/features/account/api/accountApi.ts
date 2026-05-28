@@ -170,6 +170,10 @@ function normalizeAccountProfile(value: unknown): AccountProfile | null {
     city: readString(value, 'city'),
     country,
     email,
+    emailVerified:
+      readBoolean(value, 'emailVerified') ??
+      readBoolean(value, 'email_verified') ??
+      undefined,
     firstName,
     id,
     lastName,
