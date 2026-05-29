@@ -5,6 +5,7 @@ import { OrderDetailsPanel } from '../../account/components/OrderDetailsPanel'
 import { OrderItemsList } from '../../account/components/OrderItemsList'
 import { formatOrderReference } from '../../account/utils/orderFormatters'
 import { useAuth } from '../../auth'
+import { AdminOrderFilesPanel } from '../components/AdminOrderFilesPanel'
 import { AdminOrderShippingControl } from '../components/AdminOrderShippingControl'
 import { AdminOrderStatusControl } from '../components/AdminOrderStatusControl'
 import { useAdminOrderDetails } from '../hooks/useAdminOrderDetails'
@@ -136,6 +137,13 @@ export function AdminOrderDetailsPage() {
             />
           </PanelCard>
           <OrderDetailsPanel order={order} />
+          <PanelCard
+            eyebrow="Uploads"
+            title="Fichiers clients"
+            description="Logos uploades et previews finales disponibles pour la production."
+          >
+            <AdminOrderFilesPanel items={order.items} />
+          </PanelCard>
           <OrderItemsList items={order.items} />
         </div>
       ) : (
