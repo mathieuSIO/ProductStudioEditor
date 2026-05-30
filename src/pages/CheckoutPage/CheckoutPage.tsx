@@ -12,6 +12,7 @@ import {
   pendingCheckoutOrderIdStorageKey,
   validatePromoCode,
   type CheckoutFormData,
+  type CreateOrderPayload,
   type PromoCodeValidation,
   type ProductionOption,
   type ShippingEstimate,
@@ -245,10 +246,10 @@ export function CheckoutPage({
     try {
       const checkoutDraft = createCheckoutDraft(cart, formData, productionOption)
       const orderPayload = createOrderPayloadFromCheckoutDraft(checkoutDraft)
-      const payloadWithPromoCode = {
-        ...orderPayload,
-        promoCode: appliedPromoCode?.code ?? null,
-      }
+      const payloadWithPromoCode = createOrderPayloadWithPromoCode(
+        orderPayload,
+        appliedPromoCode,
+      )
 
       const createdOrder = await createOrder(payloadWithPromoCode)
 
@@ -708,6 +709,18 @@ export function CheckoutPage({
       </aside>
     </section>
   )
+}
+
+function createOrderPayloadWithPromoCode(
+  payload: CreateOrderPayload,
+  appliedPromoCode: PromoCodeValidation | null,
+): CreateOrderPayload {
+  const promoCode = appliedPromoCode?.code.trim() || null
+
+  return {
+    ...payload,
+    promoCode,
+  }
 }
 
 function savePendingCheckoutOrderId(orderId: number): void {
