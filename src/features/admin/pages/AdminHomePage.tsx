@@ -19,6 +19,13 @@ const adminSections = [
     to: '/admin/custom-requests',
   },
   {
+    title: 'Codes promo',
+    description: 'Gerez les reductions',
+    helper: 'Creez les codes promo et activez ou desactivez leur utilisation.',
+    actionLabel: 'Ouvrir les codes promo',
+    to: '/admin/promo-codes',
+  },
+  {
     title: 'Suivi / expeditions',
     description: 'Ajoutez les numeros de suivi depuis les details commande',
     helper: 'Le tracking transport est gere dans chaque detail commande.',
@@ -75,7 +82,7 @@ export function AdminHomePage() {
         title="Fonctionnalites admin"
         description="Choisissez l'espace a ouvrir pour gerer les operations courantes."
       >
-        <div className="grid gap-3 md:grid-cols-3">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           {adminSections.map((section) => (
             <article
               key={section.title}

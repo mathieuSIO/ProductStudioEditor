@@ -30,6 +30,23 @@ export function OrderDetailsPanel({ order }: OrderDetailsPanelProps) {
         <DetailStat label="Total" value={formatOrderTotal(order)} />
       </div>
 
+      {hasPromoCodeDetails(order) ? (
+        <div className="mt-4 rounded-[1rem] border border-emerald-100 bg-emerald-50 px-4 py-4">
+          <p className="text-sm font-semibold text-emerald-800">Code promo</p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {order.promoCode ? (
+              <OptionStat label="Code promo" value={order.promoCode} />
+            ) : null}
+            {typeof order.discountCents === 'number' ? (
+              <OptionStat
+                label="Reduction"
+                value={`-${formatEuro(order.discountCents / 100)}`}
+              />
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
       <div className="mt-4 rounded-[1rem] border border-stone-200 bg-stone-50 px-4 py-4">
         <p className="text-sm font-semibold text-blue-950">
           Adresse de livraison
@@ -176,6 +193,12 @@ function OptionStat({ label, value }: DetailStatProps) {
         {value}
       </p>
     </div>
+  )
+}
+
+function hasPromoCodeDetails(order: OrderDetails): boolean {
+  return Boolean(
+    order.promoCode || typeof order.discountCents === 'number',
   )
 }
 

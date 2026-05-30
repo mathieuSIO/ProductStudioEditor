@@ -98,8 +98,10 @@ export type OrderSummary = {
   customerFirstName?: string | null
   customerLastName?: string | null
   customerName?: string | null
+  discountCents?: number | null
   id: string
   orderNumber?: string | null
+  promoCode?: string | null
   status: OrderStatus
   totalAmount?: number | null
   totalCents?: number | null

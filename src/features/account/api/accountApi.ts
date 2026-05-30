@@ -329,9 +329,12 @@ function normalizeOrderSummary(value: unknown): OrderSummary | null {
       readString(value, 'customerName') ??
       readString(value, 'customer_name') ??
       formatCustomerName(customerFirstName, customerLastName),
+    discountCents:
+      readNumber(value, 'discountCents') ?? readNumber(value, 'discount_cents'),
     id,
     orderNumber:
       readString(value, 'orderNumber') ?? readString(value, 'order_number'),
+    promoCode: readString(value, 'promoCode') ?? readString(value, 'promo_code'),
     status: status as OrderStatus,
     totalAmount:
       readNumber(value, 'totalAmount') ?? readNumber(value, 'total_amount'),

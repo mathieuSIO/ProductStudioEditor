@@ -1,6 +1,7 @@
 export { AdminHomePage } from './pages/AdminHomePage'
 export { AdminOrderDetailsPage } from './pages/AdminOrderDetailsPage'
 export { AdminOrdersPage } from './pages/AdminOrdersPage'
+export { AdminPromoCodesPage } from './pages/AdminPromoCodesPage'
 export type {
   AdminOrderDetails,
   AdminOrderStatus,
