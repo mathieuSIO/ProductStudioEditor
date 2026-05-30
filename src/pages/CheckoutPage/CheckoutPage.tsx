@@ -10,7 +10,9 @@ import {
   createOrderPayloadFromCheckoutDraft,
   createShippingEstimate,
   pendingCheckoutOrderIdStorageKey,
+  validatePromoCode,
   type CheckoutFormData,
+  type PromoCodeValidation,
   type ProductionOption,
   type ShippingEstimate,
   type ShippingEstimateItem,
@@ -31,6 +33,7 @@ type SubmitStatus =
   | 'redirecting-payment'
 
 type ShippingEstimateStatus = 'error' | 'idle' | 'loading' | 'success'
+type PromoCodeStatus = 'error' | 'idle' | 'loading' | 'success'
 
 const initialFormData: CheckoutFormData = {
   comment: '',
@@ -97,6 +100,12 @@ export function CheckoutPage({
   const [shippingEstimateError, setShippingEstimateError] = useState<
     string | null
   >(null)
+  const [promoCodeInput, setPromoCodeInput] = useState('')
+  const [appliedPromoCode, setAppliedPromoCode] =
+    useState<PromoCodeValidation | null>(null)
+  const [promoCodeStatus, setPromoCodeStatus] =
+    useState<PromoCodeStatus>('idle')
+  const [promoCodeError, setPromoCodeError] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const isCartEmpty = cart.items.length === 0
   const isSubmitting =
@@ -112,9 +121,16 @@ export function CheckoutPage({
     totals.subtotal * 100 * selectedProductionOption.percentage,
   )
   const productionSupplement = productionSupplementCents / 100
+  const discount = (appliedPromoCode?.discountCents ?? 0) / 100
   const estimatedTotal = totals.total + productionSupplement
   const estimatedTotalWithShipping =
-    estimatedTotal + (shippingEstimate?.shippingPriceCents ?? 0) / 100
+    Math.max(
+      0,
+      estimatedTotal -
+        discount +
+        (shippingEstimate?.shippingPriceCents ?? 0) / 100,
+    )
+  const estimatedTotalWithoutShipping = Math.max(0, estimatedTotal - discount)
 
   useEffect(() => {
     let isCurrentRequest = true
@@ -171,6 +187,43 @@ export function CheckoutPage({
     }))
   }
 
+  async function handleApplyPromoCode() {
+    const formattedCode = promoCodeInput.trim()
+
+    if (!formattedCode || promoCodeStatus === 'loading') {
+      return
+    }
+
+    setPromoCodeStatus('loading')
+    setPromoCodeError(null)
+
+    try {
+      const promoCode = await validatePromoCode({
+        code: formattedCode,
+        orderSubtotalCents: Math.round(totals.subtotal * 100),
+      })
+
+      setAppliedPromoCode(promoCode)
+      setPromoCodeInput(promoCode.code)
+      setPromoCodeStatus('success')
+    } catch (error) {
+      setAppliedPromoCode(null)
+      setPromoCodeStatus('error')
+      setPromoCodeError(
+        error instanceof Error
+          ? error.message
+          : "Le code promo n'a pas pu etre applique.",
+      )
+    }
+  }
+
+  function handleRemovePromoCode() {
+    setAppliedPromoCode(null)
+    setPromoCodeInput('')
+    setPromoCodeStatus('idle')
+    setPromoCodeError(null)
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
@@ -192,8 +245,12 @@ export function CheckoutPage({
     try {
       const checkoutDraft = createCheckoutDraft(cart, formData, productionOption)
       const orderPayload = createOrderPayloadFromCheckoutDraft(checkoutDraft)
+      const payloadWithPromoCode = {
+        ...orderPayload,
+        promoCode: appliedPromoCode?.code ?? null,
+      }
 
-      const createdOrder = await createOrder(orderPayload)
+      const createdOrder = await createOrder(payloadWithPromoCode)
 
       setCreatedOrderId(createdOrder.orderId)
       setBackendTotalPriceCents(createdOrder.totalPriceCents ?? null)
@@ -506,9 +563,71 @@ export function CheckoutPage({
           ))}
         </div>
 
+        <div className="mt-4 rounded-[1rem] border border-blue-100 bg-blue-50 px-3 py-3">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-red-600">
+            Code promo
+          </p>
+          <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+            <input
+              className="min-w-0 flex-1 rounded-[0.9rem] border border-blue-100 bg-white px-3 py-2.5 text-sm font-semibold uppercase text-blue-950 outline-none transition placeholder:normal-case placeholder:text-blue-400 focus:border-red-400 disabled:cursor-not-allowed disabled:bg-blue-50/60"
+              disabled={
+                isSubmitting ||
+                createdOrderId !== null ||
+                promoCodeStatus === 'loading' ||
+                appliedPromoCode !== null
+              }
+              name="promoCode"
+              placeholder="Votre code"
+              value={promoCodeInput}
+              onChange={(event) => {
+                setPromoCodeInput(event.currentTarget.value.toUpperCase())
+                setPromoCodeError(null)
+                if (promoCodeStatus === 'error') {
+                  setPromoCodeStatus('idle')
+                }
+              }}
+            />
+            {appliedPromoCode ? (
+              <button
+                type="button"
+                className="rounded-[0.9rem] border border-blue-100 bg-white px-3 py-2.5 text-sm font-semibold text-blue-950 transition hover:border-red-200 hover:text-red-600"
+                disabled={isSubmitting || createdOrderId !== null}
+                onClick={handleRemovePromoCode}
+              >
+                Retirer
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="rounded-[0.9rem] bg-blue-950 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-blue-200"
+                disabled={
+                  isSubmitting ||
+                  createdOrderId !== null ||
+                  promoCodeStatus === 'loading' ||
+                  promoCodeInput.trim().length === 0
+                }
+                onClick={handleApplyPromoCode}
+              >
+                {promoCodeStatus === 'loading' ? 'Application...' : 'Appliquer'}
+              </button>
+            )}
+          </div>
+          {appliedPromoCode ? (
+            <p className="mt-2 rounded-[0.85rem] border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800">
+              Code {appliedPromoCode.code} applique : -
+              {formatEuro(appliedPromoCode.discountCents / 100)}
+            </p>
+          ) : null}
+          {promoCodeStatus === 'error' && promoCodeError ? (
+            <p className="mt-2 rounded-[0.85rem] border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">
+              {promoCodeError}
+            </p>
+          ) : null}
+        </div>
+
         <div className="mt-4 grid gap-2">
           <SummaryRow
-            label="Sous-total articles"
+            label="Sous-total"
             value={formatEuro(totals.subtotal)}
           />
           <SummaryRow label="Options" value={formatEuro(totals.optionsTotal)} />
@@ -516,6 +635,7 @@ export function CheckoutPage({
             label={`Production ${selectedProductionOption.label}`}
             value={formatEuro(productionSupplement)}
           />
+          <SummaryRow label="Reduction" value={`-${formatEuro(discount)}`} />
         </div>
 
         <div className="mt-4 rounded-[1rem] border border-blue-100 bg-blue-50 px-3 py-3">
@@ -565,7 +685,9 @@ export function CheckoutPage({
           </p>
           <p className="mt-1 text-3xl font-semibold tracking-tight">
             {formatEuro(
-              shippingEstimate ? estimatedTotalWithShipping : estimatedTotal,
+              shippingEstimate
+                ? estimatedTotalWithShipping
+                : estimatedTotalWithoutShipping,
             )}
           </p>
           <p className="mt-2 text-xs leading-5 text-blue-100">

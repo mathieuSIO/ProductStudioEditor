@@ -4,6 +4,7 @@ export {
 } from './api/createCheckoutSession'
 export { createOrder } from './api/createOrder'
 export { createShippingEstimate } from './api/createShippingEstimate'
+export { validatePromoCode } from './api/validatePromoCode'
 export {
   createCheckoutDraft,
   createOrderPayloadFromCheckoutDraft,
@@ -15,6 +16,10 @@ export type {
   ShippingEstimateItem,
   ShippingEstimatePayload,
 } from './api/createShippingEstimate'
+export type {
+  PromoCodeValidation,
+  ValidatePromoCodePayload,
+} from './api/validatePromoCode'
 export type {
   CheckoutDraft,
   CheckoutFormData,

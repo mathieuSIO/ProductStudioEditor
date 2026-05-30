@@ -33,6 +33,7 @@ export type CheckoutDraft = {
 export type CreateOrderPayload = {
   order: CreateOrderPayloadOrder
   items: CreateOrderPayloadItem[]
+  promoCode?: string | null
 }
 
 export type CreateOrderPayloadOrder = {
