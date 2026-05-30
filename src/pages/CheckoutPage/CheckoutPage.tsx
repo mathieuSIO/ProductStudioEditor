@@ -303,7 +303,7 @@ export function CheckoutPage({
               Finaliser votre commande
             </h1>
             <p className="mt-1 max-w-2xl text-sm leading-6 text-blue-800">
-              Renseignez vos informations, nous vous recontactons rapidement
+              Renseignez vos informations pour la livraison et la facturation, nous vous recontactons rapidement
               pour valider les détails.
             </p>
           </div>
