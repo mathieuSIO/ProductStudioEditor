@@ -5,4 +5,4 @@ export const acceptedLogoMimeTypes = [
   'image/svg+xml',
 ] as const
 
-export const maxLogoFileSizeInBytes = 5 * 1024 * 1024
+export const maxLogoFileSizeInBytes = 50 * 1024 * 1024

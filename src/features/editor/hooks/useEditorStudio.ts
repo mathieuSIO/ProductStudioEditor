@@ -488,7 +488,7 @@ function validateLogoFile(file: File) {
   }
 
   if (file.size > maxLogoFileSizeInBytes) {
-    return 'Fichier trop lourd. Utilise un logo de 5 Mo maximum.'
+    return 'Fichier trop lourd. Utilise un logo de 50 Mo maximum.'
   }
 
   return null
