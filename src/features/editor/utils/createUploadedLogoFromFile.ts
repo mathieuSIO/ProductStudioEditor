@@ -1,11 +1,9 @@
 import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist/legacy/build/pdf.mjs'
+import pdfWorkerUrl from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs?url'
 
 import type { UploadedLogo } from '../types'
 
-GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/legacy/build/pdf.worker.mjs',
-  import.meta.url,
-).toString()
+GlobalWorkerOptions.workerSrc = pdfWorkerUrl
 
 export async function createUploadedLogoFromFile(
   file: File,
