@@ -19,6 +19,13 @@ const adminSections = [
     to: '/admin/custom-requests',
   },
   {
+    title: 'Produits Boutique',
+    description: 'Gerez les produits prets a vendre dans la boutique.',
+    helper: 'Ajoutez les fiches produit, leurs prix, images et statuts de publication.',
+    actionLabel: 'Ouvrir les produits',
+    to: '/admin/shop-products',
+  },
+  {
     title: 'Codes promo',
     description: 'Gerez les reductions',
     helper: 'Creez les codes promo et activez ou desactivez leur utilisation.',
@@ -82,7 +89,7 @@ export function AdminHomePage() {
         title="Fonctionnalites admin"
         description="Choisissez l'espace a ouvrir pour gerer les operations courantes."
       >
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
           {adminSections.map((section) => (
             <article
               key={section.title}

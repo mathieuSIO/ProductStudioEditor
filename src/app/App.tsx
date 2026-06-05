@@ -11,6 +11,7 @@ import {
   AdminOrderDetailsPage,
   AdminOrdersPage,
   AdminPromoCodesPage,
+  AdminShopProductsPage,
 } from '../features/admin'
 import {
   AccountDashboardPage,
@@ -66,6 +67,14 @@ function App() {
           element={
             <RequireAdmin>
               <AdminOrderDetailsPage />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/admin/shop-products"
+          element={
+            <RequireAdmin>
+              <AdminShopProductsPage />
             </RequireAdmin>
           }
         />
