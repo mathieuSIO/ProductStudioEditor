@@ -33,12 +33,16 @@ import {
 import { CheckoutCancelPage } from '../pages/CheckoutCancelPage'
 import { CheckoutSuccessPage } from '../pages/CheckoutSuccessPage'
 import { HomePage } from '../pages/HomePage'
+import { ShopPage } from '../pages/ShopPage'
+import { ShopProductPage } from '../pages/ShopProductPage'
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/boutique" element={<ShopPage />} />
+        <Route path="/boutique/:slug" element={<ShopProductPage />} />
         <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
         <Route path="/checkout/cancel" element={<CheckoutCancelPage />} />
         <Route path="/login" element={<LoginPage />} />

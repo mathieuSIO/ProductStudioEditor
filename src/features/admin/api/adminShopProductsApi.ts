@@ -209,6 +209,9 @@ function normalizeShopProduct(value: unknown): AdminShopProduct | null {
     createdAt,
     description: readNullableString(value, 'description'),
     id,
+    imageStorageKey:
+      readNullableString(value, 'imageStorageKey') ??
+      readNullableString(value, 'image_storage_key'),
     imageUrl:
       readNullableString(value, 'imageUrl') ??
       readNullableString(value, 'image_url'),

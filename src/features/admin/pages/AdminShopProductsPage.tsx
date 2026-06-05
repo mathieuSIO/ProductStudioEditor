@@ -84,6 +84,7 @@ export function AdminShopProductsPage() {
     try {
       await createAdminShopProduct({
         description: payload.description,
+        imageStorageKey: payload.imageStorageKey,
         imageUrl: payload.imageUrl,
         isActive: payload.isActive,
         name: requireString(payload.name),

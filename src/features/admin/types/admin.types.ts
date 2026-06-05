@@ -31,6 +31,7 @@ export type AdminShopProduct = {
   createdAt: string
   description: string | null
   id: number
+  imageStorageKey: string | null
   imageUrl: string | null
   isActive: boolean
   name: string
@@ -43,6 +44,7 @@ export type AdminShopProductApiResponse = {
   created_at: string
   description: string | null
   id: number
+  image_storage_key: string | null
   image_url: string | null
   is_active: boolean
   name: string
@@ -53,6 +55,7 @@ export type AdminShopProductApiResponse = {
 
 export type CreateAdminShopProductPayload = {
   description?: string | null
+  imageStorageKey?: string | null
   imageUrl?: string | null
   isActive?: boolean
   name: string
@@ -62,6 +65,7 @@ export type CreateAdminShopProductPayload = {
 
 export type UpdateAdminShopProductPayload = {
   description?: string | null
+  imageStorageKey?: string | null
   imageUrl?: string | null
   isActive?: boolean
   name?: string

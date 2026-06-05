@@ -16,7 +16,9 @@ export type AdminShopProductFormPayload =
 
 type ShopProductFormData = {
   description: string
+  imageStorageKey: string | null
   imageUrl: string | null
+  isImageChanged: boolean
   isActive: boolean
   name: string
   priceEuros: string
@@ -33,7 +35,9 @@ type AdminShopProductFormProps = {
 
 const emptyFormData: ShopProductFormData = {
   description: '',
+  imageStorageKey: null,
   imageUrl: null,
+  isImageChanged: false,
   isActive: true,
   name: '',
   priceEuros: '',
@@ -98,7 +102,12 @@ export function AdminShopProductForm({
 
     try {
       const uploadedImage = await uploadAdminShopProductImage(file)
-      updateField('imageUrl', uploadedImage.url)
+      setFormData((currentFormData) => ({
+        ...currentFormData,
+        imageStorageKey: uploadedImage.storageKey,
+        imageUrl: uploadedImage.url,
+        isImageChanged: true,
+      }))
     } catch (error) {
       setUploadError(
         error instanceof Error
@@ -296,7 +305,9 @@ function createInitialFormData(
 
   return {
     description: product.description ?? '',
+    imageStorageKey: product.imageStorageKey,
     imageUrl: product.imageUrl,
+    isImageChanged: false,
     isActive: product.isActive,
     name: product.name,
     priceEuros: (product.priceCents / 100).toFixed(2),
@@ -316,16 +327,29 @@ function createPayload(
     return null
   }
 
-  const payload = {
+  const basePayload = {
     description: normalizeOptionalText(formData.description),
-    imageUrl: formData.imageUrl,
     isActive: formData.isActive,
     name,
     priceCents,
     slug,
   }
 
-  return mode === 'create' ? payload : payload
+  if (mode === 'create') {
+    return {
+      ...basePayload,
+      imageStorageKey: formData.imageStorageKey,
+      imageUrl: formData.imageUrl,
+    }
+  }
+
+  return formData.isImageChanged
+    ? {
+        ...basePayload,
+        imageStorageKey: formData.imageStorageKey,
+        imageUrl: formData.imageUrl,
+      }
+    : basePayload
 }
 
 function eurosToCents(value: string): number | null {
