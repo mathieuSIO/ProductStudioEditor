@@ -43,6 +43,7 @@ export function ShopProductPage() {
     activeVariants.find((variant) => variant.id === selectedVariantId) ?? null
   const displayedPriceCents =
     selectedVariant?.priceCents ?? product?.priceCents ?? 0
+  const displayedImageUrl = selectedVariant?.imageUrl ?? product?.imageUrl ?? null
   const maxQuantity = selectedVariant?.stockQuantity ?? 1
   const canAddToCart =
     Boolean(product?.isActive) &&
@@ -176,7 +177,7 @@ export function ShopProductPage() {
         ) : (
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(22rem,0.95fr)] lg:items-start">
             <ShopProductImage
-              imageUrl={product.imageUrl}
+              imageUrl={displayedImageUrl}
               name={product.name}
               variant="detail"
             />

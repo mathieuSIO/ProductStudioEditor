@@ -16,6 +16,8 @@ export type ShopProductVariantApiRow = {
   colorHex: string | null
   colorName: string
   id: number
+  imageStorageKey: string | null
+  imageUrl: string | null
   isActive: boolean
   priceCents: number | null
   sizeLabel: string
@@ -40,6 +42,8 @@ export type ShopProductVariant = {
   colorHex: string | null
   colorName: string
   id: number
+  imageStorageKey: string | null
+  imageUrl: string | null
   isActive: boolean
   priceCents: number | null
   sizeLabel: string

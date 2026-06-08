@@ -33,6 +33,8 @@ type TemporaryVariant = CreateAdminShopProductVariantPayload & {
 type VariantFormData = {
   colorHex: string
   colorName: string
+  imageStorageKey: string | null
+  imageUrl: string | null
   isActive: boolean
   priceEuros: string
   sizeLabel: string
@@ -65,6 +67,8 @@ const emptyFormData: ShopProductFormData = {
 const emptyVariantFormData: VariantFormData = {
   colorHex: '',
   colorName: '',
+  imageStorageKey: null,
+  imageUrl: null,
   isActive: true,
   priceEuros: '',
   sizeLabel: '',
@@ -86,6 +90,13 @@ export function AdminShopProductForm({
   const [isUploadingImage, setIsUploadingImage] = useState(false)
   const [variantFormData, setVariantFormData] =
     useState<VariantFormData>(emptyVariantFormData)
+  const [isUploadingVariantFormImage, setIsUploadingVariantFormImage] =
+    useState(false)
+  const [uploadingVariantImageClientId, setUploadingVariantImageClientId] =
+    useState<string | null>(null)
+  const [variantImageUploadErrors, setVariantImageUploadErrors] = useState<
+    Record<string, string>
+  >({})
   const [temporaryVariants, setTemporaryVariants] = useState<TemporaryVariant[]>(
     [],
   )
@@ -102,6 +113,9 @@ export function AdminShopProductForm({
     setVariantFormData(emptyVariantFormData)
     setTemporaryVariants([])
     setEditingVariantClientId(null)
+    setIsUploadingVariantFormImage(false)
+    setUploadingVariantImageClientId(null)
+    setVariantImageUploadErrors({})
     setUploadError(null)
     setValidationError(null)
     setVariantError(null)
@@ -173,6 +187,80 @@ export function AdminShopProductForm({
 
     setEditingVariantClientId(null)
     setVariantFormData(emptyVariantFormData)
+  }
+
+  async function handleVariantFormImageChange(
+    event: ChangeEvent<HTMLInputElement>,
+  ) {
+    const file = event.currentTarget.files?.[0]
+
+    if (!file) {
+      return
+    }
+
+    setVariantError(null)
+    setIsUploadingVariantFormImage(true)
+
+    try {
+      const uploadedImage = await uploadAdminShopProductImage(file)
+
+      setVariantFormData((currentFormData) => ({
+        ...currentFormData,
+        imageStorageKey: uploadedImage.storageKey,
+        imageUrl: uploadedImage.url,
+      }))
+    } catch (error) {
+      setVariantError(
+        error instanceof Error
+          ? error.message
+          : "L'image de variante n'a pas pu etre envoyee.",
+      )
+    } finally {
+      setIsUploadingVariantFormImage(false)
+      event.currentTarget.value = ''
+    }
+  }
+
+  async function handleTemporaryVariantImageChange(
+    clientId: string,
+    file: File | null,
+  ) {
+    if (!file || uploadingVariantImageClientId !== null) {
+      return
+    }
+
+    setVariantImageUploadErrors((currentErrors) => {
+      const nextErrors = { ...currentErrors }
+      delete nextErrors[clientId]
+      return nextErrors
+    })
+    setUploadingVariantImageClientId(clientId)
+
+    try {
+      const uploadedImage = await uploadAdminShopProductImage(file)
+
+      setTemporaryVariants((currentVariants) =>
+        currentVariants.map((variant) =>
+          variant.clientId === clientId
+            ? {
+                ...variant,
+                imageStorageKey: uploadedImage.storageKey,
+                imageUrl: uploadedImage.url,
+              }
+            : variant,
+        ),
+      )
+    } catch (error) {
+      setVariantImageUploadErrors((currentErrors) => ({
+        ...currentErrors,
+        [clientId]:
+          error instanceof Error
+            ? error.message
+            : "L'image de variante n'a pas pu etre envoyee.",
+      }))
+    } finally {
+      setUploadingVariantImageClientId(null)
+    }
   }
 
   function handleEditTemporaryVariant(variant: TemporaryVariant) {
@@ -247,10 +335,16 @@ export function AdminShopProductForm({
       setVariantFormData(emptyVariantFormData)
       setTemporaryVariants([])
       setEditingVariantClientId(null)
+      setVariantImageUploadErrors({})
     }
   }
 
   const previewImageUrl = resolveShopProductImageUrl(formData.imageUrl)
+  const isUploadingVariantImage =
+    isUploadingVariantFormImage || uploadingVariantImageClientId !== null
+  const variantFormPreviewImageUrl = resolveShopProductImageUrl(
+    variantFormData.imageUrl,
+  )
 
   return (
     <form className="grid gap-4" onSubmit={handleSubmit}>
@@ -403,6 +497,25 @@ export function AdminShopProductForm({
             </label>
           </div>
 
+          <div className="grid gap-3 rounded-[0.95rem] border border-stone-200 bg-white p-3 sm:grid-cols-[6rem_minmax(0,1fr)] sm:items-center">
+            <VariantImagePreview imageUrl={variantFormPreviewImageUrl} />
+            <label className="grid gap-1.5 text-sm font-semibold text-blue-950">
+              Image variante
+              <input
+                accept="image/*"
+                className="rounded-[0.9rem] border border-stone-200 bg-white px-3 py-2 text-sm font-medium text-stone-900 file:mr-3 file:rounded-[0.75rem] file:border-0 file:bg-blue-950 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white disabled:cursor-not-allowed disabled:bg-stone-100"
+                disabled={isUploadingVariantFormImage || isSaving}
+                type="file"
+                onChange={handleVariantFormImageChange}
+              />
+              <span className="text-xs font-medium text-stone-500">
+                {isUploadingVariantFormImage
+                  ? 'Upload image variante en cours...'
+                  : "Optionnelle. Elle sera envoyee avec cette variante."}
+              </span>
+            </label>
+          </div>
+
           {variantError ? (
             <div className="rounded-[1rem] border border-red-200 bg-red-50 px-3 py-2.5 text-sm font-medium text-red-700">
               {variantError}
@@ -413,6 +526,7 @@ export function AdminShopProductForm({
             <button
               type="button"
               className="rounded-[0.95rem] bg-blue-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-800"
+              disabled={isUploadingVariantFormImage}
               onClick={handleSaveTemporaryVariant}
             >
               {editingVariantClientId
@@ -423,6 +537,7 @@ export function AdminShopProductForm({
               <button
                 type="button"
                 className="rounded-[0.95rem] border border-blue-100 bg-white px-4 py-2.5 text-sm font-semibold text-blue-950 transition hover:border-emerald-200 hover:text-emerald-800"
+                disabled={isUploadingVariantFormImage}
                 onClick={() => {
                   setEditingVariantClientId(null)
                   setVariantFormData(emptyVariantFormData)
@@ -437,7 +552,10 @@ export function AdminShopProductForm({
           {temporaryVariants.length > 0 ? (
             <TemporaryVariantsTable
               variants={temporaryVariants}
+              uploadingVariantImageClientId={uploadingVariantImageClientId}
+              variantImageUploadErrors={variantImageUploadErrors}
               onEdit={handleEditTemporaryVariant}
+              onUploadImage={handleTemporaryVariantImageChange}
               onRemove={handleRemoveTemporaryVariant}
             />
           ) : (
@@ -458,7 +576,7 @@ export function AdminShopProductForm({
         <button
           type="submit"
           className="rounded-[0.95rem] bg-blue-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-400"
-          disabled={isSaving || isUploadingImage}
+          disabled={isSaving || isUploadingImage || isUploadingVariantImage}
         >
           {isSaving
             ? 'Enregistrement...'
@@ -470,7 +588,7 @@ export function AdminShopProductForm({
           <button
             type="button"
             className="rounded-[0.95rem] border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-950 transition hover:border-emerald-200 hover:bg-white hover:text-emerald-800"
-            disabled={isSaving || isUploadingImage}
+            disabled={isSaving || isUploadingImage || isUploadingVariantImage}
             onClick={onCancel}
           >
             Annuler
@@ -484,31 +602,46 @@ export function AdminShopProductForm({
 type TemporaryVariantsTableProps = {
   onEdit: (variant: TemporaryVariant) => void
   onRemove: (clientId: string) => void
+  onUploadImage: (clientId: string, file: File | null) => void
+  uploadingVariantImageClientId: string | null
+  variantImageUploadErrors: Record<string, string>
   variants: TemporaryVariant[]
 }
 
 function TemporaryVariantsTable({
   onEdit,
   onRemove,
+  onUploadImage,
+  uploadingVariantImageClientId,
+  variantImageUploadErrors,
   variants,
 }: TemporaryVariantsTableProps) {
   return (
     <div className="overflow-hidden rounded-[1rem] border border-stone-200 bg-white">
-      <table className="w-full min-w-[780px] table-fixed border-collapse text-left text-sm">
+      <table className="w-full min-w-[960px] table-fixed border-collapse text-left text-sm">
         <thead className="bg-stone-50 text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">
           <tr>
-            <th className="w-[13%] px-3 py-3">Taille</th>
-            <th className="w-[18%] px-3 py-3">Couleur</th>
-            <th className="w-[16%] px-3 py-3">SKU</th>
-            <th className="w-[15%] px-3 py-3">Prix</th>
-            <th className="w-[12%] px-3 py-3">Stock</th>
-            <th className="w-[10%] px-3 py-3">Statut</th>
-            <th className="w-[16%] px-3 py-3 text-right">Actions</th>
+            <th className="w-[15%] px-3 py-3">Image</th>
+            <th className="w-[10%] px-3 py-3">Taille</th>
+            <th className="w-[16%] px-3 py-3">Couleur</th>
+            <th className="w-[13%] px-3 py-3">SKU</th>
+            <th className="w-[13%] px-3 py-3">Prix</th>
+            <th className="w-[9%] px-3 py-3">Stock</th>
+            <th className="w-[9%] px-3 py-3">Statut</th>
+            <th className="w-[15%] px-3 py-3 text-right">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-stone-100">
           {variants.map((variant) => (
             <tr key={variant.clientId}>
+              <td className="px-3 py-3">
+                <TemporaryVariantImageUploader
+                  error={variantImageUploadErrors[variant.clientId] ?? null}
+                  imageUrl={variant.imageUrl ?? null}
+                  isUploading={uploadingVariantImageClientId === variant.clientId}
+                  onUpload={(file) => onUploadImage(variant.clientId, file)}
+                />
+              </td>
               <td className="px-3 py-3 font-semibold text-blue-950">
                 {variant.sizeLabel}
               </td>
@@ -560,6 +693,79 @@ function TemporaryVariantsTable({
         </tbody>
       </table>
     </div>
+  )
+}
+
+type TemporaryVariantImageUploaderProps = {
+  error: string | null
+  imageUrl: string | null
+  isUploading: boolean
+  onUpload: (file: File | null) => void
+}
+
+function TemporaryVariantImageUploader({
+  error,
+  imageUrl,
+  isUploading,
+  onUpload,
+}: TemporaryVariantImageUploaderProps) {
+  const resolvedImageUrl = resolveShopProductImageUrl(imageUrl)
+
+  return (
+    <div className="grid gap-2">
+      <VariantImagePreview imageUrl={resolvedImageUrl} size="small" />
+      <label className="inline-flex cursor-pointer items-center justify-center rounded-[0.75rem] border border-blue-100 bg-blue-50 px-2 py-1.5 text-xs font-semibold text-blue-950 transition hover:bg-white hover:text-emerald-800">
+        {isUploading ? 'Upload...' : 'Image'}
+        <input
+          accept="image/*"
+          className="sr-only"
+          disabled={isUploading}
+          type="file"
+          onChange={(event) => {
+            onUpload(event.currentTarget.files?.[0] ?? null)
+            event.currentTarget.value = ''
+          }}
+        />
+      </label>
+      {error ? (
+        <p className="text-[10px] font-semibold leading-3 text-red-700">
+          {error}
+        </p>
+      ) : null}
+    </div>
+  )
+}
+
+type VariantImagePreviewProps = {
+  imageUrl: string | null
+  size?: 'default' | 'small'
+}
+
+function VariantImagePreview({
+  imageUrl,
+  size = 'default',
+}: VariantImagePreviewProps) {
+  const className =
+    size === 'small'
+      ? 'h-14 w-14 rounded-[0.75rem]'
+      : 'h-24 w-24 rounded-[0.9rem]'
+
+  if (!imageUrl) {
+    return (
+      <div
+        className={`flex shrink-0 items-center justify-center border border-dashed border-stone-200 bg-stone-50 px-2 text-center text-[11px] font-semibold leading-4 text-stone-400 ${className}`}
+      >
+        Image produit
+      </div>
+    )
+  }
+
+  return (
+    <img
+      alt="Variante"
+      className={`shrink-0 border border-stone-200 object-cover ${className}`}
+      src={imageUrl}
+    />
   )
 }
 
@@ -705,6 +911,8 @@ function createVariantPayload(
   return {
     colorHex: normalizeOptionalText(formData.colorHex),
     colorName,
+    imageStorageKey: formData.imageStorageKey,
+    imageUrl: formData.imageUrl,
     isActive: formData.isActive,
     priceCents,
     sizeLabel,
@@ -717,6 +925,8 @@ function createVariantFormData(variant: TemporaryVariant): VariantFormData {
   return {
     colorHex: variant.colorHex ?? '',
     colorName: variant.colorName,
+    imageStorageKey: variant.imageStorageKey ?? null,
+    imageUrl: variant.imageUrl ?? null,
     isActive: variant.isActive ?? true,
     priceEuros:
       variant.priceCents === null || variant.priceCents === undefined
@@ -734,6 +944,8 @@ function createVariantPayloadFromTemporaryVariant(
   return {
     colorHex: variant.colorHex,
     colorName: variant.colorName,
+    imageStorageKey: variant.imageStorageKey ?? null,
+    imageUrl: variant.imageUrl ?? null,
     isActive: variant.isActive,
     priceCents: variant.priceCents,
     sizeLabel: variant.sizeLabel,

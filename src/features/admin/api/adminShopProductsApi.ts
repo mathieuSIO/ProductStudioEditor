@@ -369,6 +369,12 @@ function normalizeShopProductVariant(
     colorName,
     createdAt,
     id,
+    imageStorageKey:
+      readNullableString(value, 'imageStorageKey') ??
+      readNullableString(value, 'image_storage_key'),
+    imageUrl:
+      readNullableString(value, 'imageUrl') ??
+      readNullableString(value, 'image_url'),
     isActive,
     priceCents:
       readNumber(value, 'priceCents') ?? readNumber(value, 'price_cents'),

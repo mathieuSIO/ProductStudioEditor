@@ -83,6 +83,8 @@ export type AdminShopProductVariant = {
   colorName: string
   createdAt: string
   id: number
+  imageStorageKey: string | null
+  imageUrl: string | null
   isActive: boolean
   priceCents: number | null
   shopProductId: number
@@ -95,6 +97,8 @@ export type AdminShopProductVariant = {
 export type CreateAdminShopProductVariantPayload = {
   colorHex?: string | null
   colorName: string
+  imageStorageKey?: string | null
+  imageUrl?: string | null
   isActive?: boolean
   priceCents?: number | null
   sizeLabel: string
@@ -105,6 +109,8 @@ export type CreateAdminShopProductVariantPayload = {
 export type UpdateAdminShopProductVariantPayload = {
   colorHex?: string | null
   colorName?: string
+  imageStorageKey?: string | null
+  imageUrl?: string | null
   isActive?: boolean
   priceCents?: number | null
   sizeLabel?: string

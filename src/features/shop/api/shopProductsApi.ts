@@ -189,6 +189,12 @@ function normalizeShopProductVariant(value: unknown): ShopProductVariant | null 
       readNullableString(value, 'color_hex'),
     colorName,
     id,
+    imageStorageKey:
+      readNullableString(value, 'imageStorageKey') ??
+      readNullableString(value, 'image_storage_key'),
+    imageUrl:
+      readNullableString(value, 'imageUrl') ??
+      readNullableString(value, 'image_url'),
     isActive,
     priceCents,
     sizeLabel,

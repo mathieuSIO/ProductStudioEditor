@@ -9,8 +9,10 @@ import {
   createAdminShopProductVariant,
   fetchAdminShopProductVariants,
   fetchAdminShopProducts,
+  resolveShopProductImageUrl,
   updateAdminShopProductVariant,
   updateAdminShopProductVariantStatus,
+  uploadAdminShopProductImage,
 } from '../api/adminShopProductsApi'
 import type {
   AdminShopProduct,
@@ -21,6 +23,8 @@ import type {
 type VariantFormData = {
   colorHex: string
   colorName: string
+  imageStorageKey: string | null
+  imageUrl: string | null
   isActive: boolean
   priceEuros: string
   sizeLabel: string
@@ -31,6 +35,8 @@ type VariantFormData = {
 const emptyFormData: VariantFormData = {
   colorHex: '',
   colorName: '',
+  imageStorageKey: null,
+  imageUrl: null,
   isActive: true,
   priceEuros: '',
   sizeLabel: '',
@@ -50,6 +56,7 @@ export function AdminShopProductVariantsPage() {
     useState<AdminShopProductVariant | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
   const [updatingVariantId, setUpdatingVariantId] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
@@ -171,6 +178,35 @@ export function AdminShopProductVariantsPage() {
     }
   }
 
+  async function handleImageUpload(file: File | null) {
+    if (!file) {
+      return
+    }
+
+    setFormError(null)
+    setSuccess(null)
+    setIsUploadingImage(true)
+
+    try {
+      const uploadedImage = await uploadAdminShopProductImage(file)
+
+      setFormData((currentFormData) => ({
+        ...currentFormData,
+        imageStorageKey: uploadedImage.storageKey,
+        imageUrl: uploadedImage.url,
+      }))
+      setSuccess('Image variante uploadee.')
+    } catch (uploadError) {
+      setFormError(
+        uploadError instanceof Error
+          ? uploadError.message
+          : "L'image de variante n'a pas pu etre uploadee.",
+      )
+    } finally {
+      setIsUploadingImage(false)
+    }
+  }
+
   async function handleToggleStatus(variant: AdminShopProductVariant) {
     if (parsedProductId === null) {
       return
@@ -244,6 +280,12 @@ export function AdminShopProductVariantsPage() {
         description="Le prix specifique est optionnel. Laissez le champ vide pour utiliser le prix du produit."
       >
         <form className="grid gap-4" onSubmit={handleSubmit}>
+          <VariantImageField
+            imageUrl={formData.imageUrl}
+            isUploading={isUploadingImage}
+            onUpload={handleImageUpload}
+          />
+
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <FormField
               label="Taille"
@@ -309,9 +351,11 @@ export function AdminShopProductVariantsPage() {
             <button
               type="submit"
               className="rounded-[0.95rem] bg-blue-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-400"
-              disabled={isSaving}
+              disabled={isSaving || isUploadingImage}
             >
-              {isSaving
+              {isUploadingImage
+                ? 'Upload image...'
+                : isSaving
                 ? 'Enregistrement...'
                 : editingVariant
                   ? 'Enregistrer les modifications'
@@ -321,7 +365,7 @@ export function AdminShopProductVariantsPage() {
               <button
                 type="button"
                 className="rounded-[0.95rem] border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-950 transition hover:border-emerald-200 hover:bg-white hover:text-emerald-800"
-                disabled={isSaving}
+                disabled={isSaving || isUploadingImage}
                 onClick={handleCancelEdit}
               >
                 Annuler
@@ -393,18 +437,22 @@ function VariantsTable({
       <table className="w-full min-w-[980px] table-fixed border-collapse text-left text-sm">
         <thead className="bg-stone-50 text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">
           <tr>
-            <th className="w-[10%] px-4 py-3">Taille</th>
-            <th className="w-[19%] px-4 py-3">Couleur</th>
-            <th className="w-[15%] px-4 py-3">SKU</th>
-            <th className="w-[14%] px-4 py-3">Prix</th>
-            <th className="w-[10%] px-4 py-3">Stock</th>
-            <th className="w-[12%] px-4 py-3">Statut</th>
-            <th className="w-[20%] px-4 py-3 text-right">Actions</th>
+            <th className="w-[10%] px-4 py-3">Image</th>
+            <th className="w-[9%] px-4 py-3">Taille</th>
+            <th className="w-[17%] px-4 py-3">Couleur</th>
+            <th className="w-[14%] px-4 py-3">SKU</th>
+            <th className="w-[13%] px-4 py-3">Prix</th>
+            <th className="w-[9%] px-4 py-3">Stock</th>
+            <th className="w-[11%] px-4 py-3">Statut</th>
+            <th className="w-[17%] px-4 py-3 text-right">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-stone-100">
           {variants.map((variant) => (
             <tr key={variant.id} className="transition hover:bg-blue-50/60">
+              <td className="px-4 py-3">
+                <VariantImage imageUrl={variant.imageUrl} />
+              </td>
               <td className="px-4 py-3 font-semibold text-blue-950">
                 {variant.sizeLabel}
               </td>
@@ -459,6 +507,80 @@ function VariantsTable({
         </tbody>
       </table>
     </div>
+  )
+}
+
+type VariantImageFieldProps = {
+  imageUrl: string | null
+  isUploading: boolean
+  onUpload: (file: File | null) => void
+}
+
+function VariantImageField({
+  imageUrl,
+  isUploading,
+  onUpload,
+}: VariantImageFieldProps) {
+  const resolvedImageUrl = resolveShopProductImageUrl(imageUrl)
+
+  return (
+    <div className="grid gap-3 rounded-[1rem] border border-stone-200 bg-stone-50 px-3 py-3 sm:grid-cols-[7rem_minmax(0,1fr)] sm:items-center">
+      <div className="h-24 w-24 overflow-hidden rounded-[0.95rem] border border-stone-200 bg-white">
+        {resolvedImageUrl ? (
+          <img
+            alt="Apercu variante"
+            className="h-full w-full object-cover"
+            src={resolvedImageUrl}
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center px-2 text-center text-xs font-semibold text-stone-400">
+            Image produit
+          </div>
+        )}
+      </div>
+      <label className="grid gap-1.5 text-sm font-semibold text-blue-950">
+        Image variante
+        <input
+          accept="image/*"
+          className="rounded-[0.9rem] border border-stone-200 bg-white px-3 py-3 text-sm font-medium text-stone-900 outline-none transition file:mr-3 file:rounded-[0.75rem] file:border-0 file:bg-blue-950 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-stone-100"
+          disabled={isUploading}
+          type="file"
+          onChange={(event) => {
+            onUpload(event.currentTarget.files?.[0] ?? null)
+            event.currentTarget.value = ''
+          }}
+        />
+        <span className="text-xs font-medium text-stone-500">
+          {isUploading
+            ? 'Upload image en cours...'
+            : "L'image est optionnelle et remplace l'image produit pour cette variante."}
+        </span>
+      </label>
+    </div>
+  )
+}
+
+type VariantImageProps = {
+  imageUrl: string | null
+}
+
+function VariantImage({ imageUrl }: VariantImageProps) {
+  const resolvedImageUrl = resolveShopProductImageUrl(imageUrl)
+
+  if (!resolvedImageUrl) {
+    return (
+      <div className="flex h-14 w-14 items-center justify-center rounded-[0.8rem] border border-dashed border-stone-200 bg-stone-50 px-1 text-center text-[10px] font-semibold leading-3 text-stone-400">
+        Image produit
+      </div>
+    )
+  }
+
+  return (
+    <img
+      alt="Variante"
+      className="h-14 w-14 rounded-[0.8rem] border border-stone-200 object-cover"
+      src={resolvedImageUrl}
+    />
   )
 }
 
@@ -582,6 +704,8 @@ function createFormDataFromVariant(
   return {
     colorHex: variant.colorHex ?? '',
     colorName: variant.colorName,
+    imageStorageKey: variant.imageStorageKey,
+    imageUrl: variant.imageUrl,
     isActive: variant.isActive,
     priceEuros:
       variant.priceCents === null ? '' : (variant.priceCents / 100).toFixed(2),
@@ -612,6 +736,8 @@ function createVariantPayload(
   return {
     colorHex: normalizeOptionalText(formData.colorHex),
     colorName,
+    imageStorageKey: formData.imageStorageKey,
+    imageUrl: formData.imageUrl,
     isActive: formData.isActive,
     priceCents,
     sizeLabel,
