@@ -1,8 +1,17 @@
-import { calculateCartTotals, type Cart, type CartItem } from '../../cart'
+import {
+  calculateCartTotals,
+  isShopCartItem,
+  isStudioCartItem,
+  type Cart,
+  type CartItem,
+  type ShopCartItem,
+  type StudioCartItem,
+} from '../../cart'
 import type {
   CheckoutDraft,
   CheckoutFormData,
   CreateOrderCustomizationProduct,
+  CreateOrderPayloadItem,
   CreateOrderPayload,
   ProductionOption,
 } from '../types'
@@ -34,7 +43,8 @@ export function createOrderPayloadFromCheckoutDraft(
       customerFirstName: formatNullableValue(customerInfo.firstName),
       customerLastName: formatNullableValue(customerInfo.lastName),
       customerPhone: formatNullableValue(customerInfo.phone),
-      professionalLogoReviewEnabled: cart.options.professionalLogoReview,
+      professionalLogoReviewEnabled:
+        cart.options.professionalLogoReview && cart.items.some(isStudioCartItem),
       productionOption,
       shippingAddressLine1: formatNullableValue(customerInfo.adresse),
       shippingAddressLine2: null,
@@ -42,39 +52,24 @@ export function createOrderPayloadFromCheckoutDraft(
       shippingCity: formatNullableValue(customerInfo.ville),
       shippingCountry: formatNullableValue(customerInfo.pays) ?? 'France',
     },
-    items: cart.items.map((cartItem) => {
-      const productId = getOrderProductId(cartItem)
-      const quantity = cartItem.pricing.totalQuantity
-      const itemTotalCents = Math.round(cartItem.pricing.grandTotal * 100)
-      const unitPriceCents =
-        quantity > 0 ? Math.round(itemTotalCents / quantity) : 0
-
-      return {
-        productId,
-        productName: cartItem.product.name,
-        quantity,
-        unitPriceCents,
-        customization: {
-          product: createCustomizationProduct(cartItem, productId),
-          design: cartItem.design,
-          pricing: cartItem.pricing,
-        },
-        finalPreviewUrl: getPersistentFinalPreviewUrl(cartItem.finalPreviewUrl),
-      }
-    }),
+    items: cart.items.map(createOrderPayloadItem),
   }
 }
 
 function validatePersistentLogoPreviews(cart: Cart): void {
-  const hasTemporaryLogoPreview = cart.items.some((item) =>
-    item.design.views.some((view) =>
+  const hasTemporaryLogoPreview = cart.items.some((item) => {
+    if (!isStudioCartItem(item)) {
+      return false
+    }
+
+    return item.design.views.some((view) =>
       view.logos.some(
         (logo) =>
           logo.previewPersistence === 'temporary-object-url' ||
           Boolean(logo.previewUrl?.startsWith('blob:')),
       ),
-    ),
-  )
+    )
+  })
 
   if (hasTemporaryLogoPreview) {
     throw new Error(
@@ -83,7 +78,54 @@ function validatePersistentLogoPreviews(cart: Cart): void {
   }
 }
 
-function getOrderProductId(cartItem: CartItem): number {
+function createOrderPayloadItem(cartItem: CartItem): CreateOrderPayloadItem {
+  if (isShopCartItem(cartItem)) {
+    return createShopOrderPayloadItem(cartItem)
+  }
+
+  return createStudioOrderPayloadItem(cartItem)
+}
+
+function createStudioOrderPayloadItem(
+  cartItem: StudioCartItem,
+): CreateOrderPayloadItem {
+  const productId = getOrderProductId(cartItem)
+  const quantity = cartItem.pricing.totalQuantity
+  const itemTotalCents = Math.round(cartItem.pricing.grandTotal * 100)
+  const unitPriceCents =
+    quantity > 0 ? Math.round(itemTotalCents / quantity) : 0
+
+  return {
+    customization: {
+      product: createCustomizationProduct(cartItem, productId),
+      design: cartItem.design,
+      pricing: cartItem.pricing,
+    },
+    finalPreviewUrl: getPersistentFinalPreviewUrl(cartItem.finalPreviewUrl),
+    itemType: 'studio',
+    productId,
+    productName: cartItem.product.name,
+    quantity,
+    unitPriceCents,
+  }
+}
+
+function createShopOrderPayloadItem(
+  cartItem: ShopCartItem,
+): CreateOrderPayloadItem {
+  return {
+    customization: null,
+    finalPreviewUrl: null,
+    itemType: 'shop',
+    productName: cartItem.name,
+    quantity: cartItem.quantity,
+    shopProductId: cartItem.shopProductId,
+    shopProductVariantId: cartItem.shopProductVariantId,
+    unitPriceCents: cartItem.unitPriceCents,
+  }
+}
+
+function getOrderProductId(cartItem: StudioCartItem): number {
   if (cartItem.product.catalogProductId === undefined) {
     throw new Error(
       "Impossible de creer la commande : un produit du panier n'est pas correctement relie au catalogue. Veuillez le retirer du panier puis l'ajouter a nouveau depuis le studio.",
@@ -94,7 +136,7 @@ function getOrderProductId(cartItem: CartItem): number {
 }
 
 function createCustomizationProduct(
-  cartItem: CartItem,
+  cartItem: StudioCartItem,
   catalogProductId: number,
 ): CreateOrderCustomizationProduct {
   return {

@@ -50,13 +50,29 @@ export type CreateOrderPayloadOrder = {
   shippingCountry?: string | null
 }
 
-export type CreateOrderPayloadItem = {
+export type CreateOrderPayloadItem =
+  | CreateOrderShopPayloadItem
+  | CreateOrderStudioPayloadItem
+
+export type CreateOrderStudioPayloadItem = {
+  customization: CreateOrderCustomization
+  finalPreviewUrl?: string | null
+  itemType: 'studio'
   productId: number
   productName: string
   quantity: number
   unitPriceCents: number
-  customization?: CreateOrderCustomization | null
-  finalPreviewUrl?: string | null
+}
+
+export type CreateOrderShopPayloadItem = {
+  customization: null
+  finalPreviewUrl: null
+  itemType: 'shop'
+  productName: string
+  quantity: number
+  shopProductId: number
+  shopProductVariantId: number
+  unitPriceCents: number
 }
 
 export type CreateOrderCustomization = {

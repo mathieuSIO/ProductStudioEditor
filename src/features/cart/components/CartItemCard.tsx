@@ -3,7 +3,9 @@ import {
   getPreviewImages,
   type PreviewImage,
 } from '../../../shared/utils/previewImages'
-import type { CartItem, CartItemId } from '../types'
+import { resolveShopProductImageUrl } from '../../shop/api/shopProductsApi'
+import { isShopCartItem } from '../types'
+import type { CartItem, CartItemId, ShopCartItem, StudioCartItem } from '../types'
 
 type CartItemCardProps = {
   item: CartItem
@@ -11,6 +13,19 @@ type CartItemCardProps = {
 }
 
 export function CartItemCard({ item, onRemove }: CartItemCardProps) {
+  if (isShopCartItem(item)) {
+    return <ShopCartItemCard item={item} onRemove={onRemove} />
+  }
+
+  return <StudioCartItemCard item={item} onRemove={onRemove} />
+}
+
+type StudioCartItemCardProps = {
+  item: StudioCartItem
+  onRemove: (itemId: CartItemId) => void
+}
+
+function StudioCartItemCard({ item, onRemove }: StudioCartItemCardProps) {
   const quantityEntries = Object.entries(item.quantities).filter(
     ([, quantity]) => typeof quantity === 'number' && quantity > 0,
   )
@@ -92,6 +107,83 @@ export function CartItemCard({ item, onRemove }: CartItemCardProps) {
             Aperçu disponible pendant cette session uniquement.
           </p>
         ) : null}
+      </div>
+    </article>
+  )
+}
+
+type ShopCartItemCardProps = {
+  item: ShopCartItem
+  onRemove: (itemId: CartItemId) => void
+}
+
+function ShopCartItemCard({ item, onRemove }: ShopCartItemCardProps) {
+  const resolvedImageUrl = resolveShopProductImageUrl(item.imageUrl)
+  const lineTotal = (item.unitPriceCents * item.quantity) / 100
+
+  return (
+    <article className="overflow-hidden rounded-[1.25rem] border border-blue-100 bg-white shadow-[0_16px_38px_-34px_rgba(15,23,42,0.3)]">
+      <div className="flex flex-col gap-3 border-b border-blue-100 bg-blue-50/70 px-4 py-3.5 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex min-w-0 gap-3">
+          <div className="h-20 w-20 shrink-0 overflow-hidden rounded-[0.95rem] border border-blue-100 bg-white">
+            {resolvedImageUrl ? (
+              <img
+                alt={item.name}
+                className="h-full w-full object-cover"
+                src={resolvedImageUrl}
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center px-2 text-center text-[11px] font-semibold text-blue-300">
+                Image
+              </div>
+            )}
+          </div>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-lg font-semibold tracking-tight text-blue-950">
+                {item.name}
+              </h2>
+              <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-emerald-700 ring-1 ring-emerald-100">
+                Boutique
+              </span>
+            </div>
+            <p className="mt-2 text-sm font-medium text-blue-800">
+              Quantite : {item.quantity}
+            </p>
+            <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-blue-700">
+              <span>Taille : {item.sizeLabel}</span>
+              <span aria-hidden="true">-</span>
+              <span className="inline-flex items-center gap-1.5">
+                <span
+                  className="h-3.5 w-3.5 rounded-full border border-blue-100"
+                  style={{ backgroundColor: item.colorHex ?? '#ffffff' }}
+                />
+                {item.colorName}
+              </span>
+            </div>
+            <p className="mt-1 text-sm text-blue-700">
+              Prix unitaire : {formatEuro(item.unitPriceCents / 100)}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-end justify-between gap-3 sm:flex-col sm:items-end">
+          <div className="text-left sm:text-right">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-700">
+              Total ligne
+            </p>
+            <p className="mt-1 text-xl font-semibold tracking-tight text-blue-950">
+              {formatEuro(lineTotal)}
+            </p>
+          </div>
+          <button
+            type="button"
+            className="text-sm font-semibold text-blue-500 underline-offset-4 transition hover:text-red-600 hover:underline"
+            onClick={() => onRemove(item.id)}
+          >
+            Supprimer
+          </button>
+        </div>
       </div>
     </article>
   )

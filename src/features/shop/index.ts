@@ -5,5 +5,7 @@ export type {
   ShopProduct,
   ShopProductApiRow,
   ShopProductResponse,
+  ShopProductVariant,
+  ShopProductVariantApiRow,
   ShopProductsResponse,
 } from './types/shop.types'

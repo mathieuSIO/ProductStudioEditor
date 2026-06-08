@@ -1,9 +1,20 @@
 import { env } from '../../../shared/config/env'
 import { createAuthHeaders } from '../../auth'
 
-export type ShippingEstimateItem = {
+export type ShippingEstimateItem =
+  | ShopShippingEstimateItem
+  | StudioShippingEstimateItem
+
+export type StudioShippingEstimateItem = {
+  itemType: 'studio'
   productId: number
   quantity: number
+}
+
+export type ShopShippingEstimateItem = {
+  itemType: 'shop'
+  quantity: number
+  shopProductId: number
 }
 
 export type ShippingEstimatePayload = {

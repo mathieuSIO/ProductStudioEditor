@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import { calculateCartTotals } from '../pricing/calculateCartTotals'
 import { createEmptyCart, loadCart, saveCart } from '../storage/cartStorage'
+import { isShopCartItem } from '../types'
 import type { Cart, CartItem, CartItemId } from '../types'
 
 export function useCart() {
@@ -15,7 +16,7 @@ export function useCart() {
   function addItem(item: CartItem) {
     setCart((currentCart) => ({
       ...currentCart,
-      items: [...currentCart.items, item],
+      items: mergeCartItem(currentCart.items, item),
     }))
   }
 
@@ -52,4 +53,31 @@ export function useCart() {
     setProfessionalLogoReview,
     totals,
   }
+}
+
+function mergeCartItem(items: CartItem[], item: CartItem): CartItem[] {
+  if (!isShopCartItem(item)) {
+    return [...items, item]
+  }
+
+  const existingItem = items.find(
+    (currentItem) =>
+      isShopCartItem(currentItem) &&
+      currentItem.shopProductVariantId === item.shopProductVariantId,
+  )
+
+  if (!existingItem) {
+    return [...items, item]
+  }
+
+  return items.map((currentItem) =>
+    isShopCartItem(currentItem) &&
+    currentItem.shopProductVariantId === item.shopProductVariantId
+      ? {
+          ...currentItem,
+          quantity: currentItem.quantity + item.quantity,
+          updatedAt: new Date().toISOString(),
+        }
+      : currentItem,
+  )
 }

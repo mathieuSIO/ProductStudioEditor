@@ -3,8 +3,11 @@ import type { ApiResponse } from '../../account'
 import { createAuthHeaders } from '../../auth'
 import type {
   AdminShopProduct,
+  AdminShopProductVariant,
   CreateAdminShopProductPayload,
+  CreateAdminShopProductVariantPayload,
   UpdateAdminShopProductPayload,
+  UpdateAdminShopProductVariantPayload,
   UploadShopProductImageResponse,
 } from '../types/admin.types'
 
@@ -98,6 +101,76 @@ export async function uploadAdminShopProductImage(
   )
 
   return normalizeUploadResponseOrThrow(uploadedImage)
+}
+
+export async function fetchAdminShopProductVariants(
+  productId: number,
+): Promise<AdminShopProductVariant[]> {
+  const variants = await fetchAdminShopProductsResource<unknown>(
+    `/api/admin/shop/products/${encodeURIComponent(String(productId))}/variants`,
+  )
+
+  if (!Array.isArray(variants)) {
+    throw new Error('La liste des variantes boutique est invalide.')
+  }
+
+  return variants.map(normalizeShopProductVariant).filter(isAdminShopProductVariant)
+}
+
+export async function createAdminShopProductVariant(
+  productId: number,
+  payload: CreateAdminShopProductVariantPayload,
+): Promise<AdminShopProductVariant> {
+  const variant = await fetchAdminShopProductsResource<unknown>(
+    `/api/admin/shop/products/${encodeURIComponent(String(productId))}/variants`,
+    {
+      body: JSON.stringify(payload),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+    },
+  )
+
+  return normalizeShopProductVariantOrThrow(variant)
+}
+
+export async function updateAdminShopProductVariant(
+  productId: number,
+  variantId: number,
+  payload: UpdateAdminShopProductVariantPayload,
+): Promise<AdminShopProductVariant> {
+  const variant = await fetchAdminShopProductsResource<unknown>(
+    `/api/admin/shop/products/${encodeURIComponent(String(productId))}/variants/${encodeURIComponent(String(variantId))}`,
+    {
+      body: JSON.stringify(payload),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      method: 'PATCH',
+    },
+  )
+
+  return normalizeShopProductVariantOrThrow(variant)
+}
+
+export async function updateAdminShopProductVariantStatus(
+  productId: number,
+  variantId: number,
+  isActive: boolean,
+): Promise<AdminShopProductVariant> {
+  const variant = await fetchAdminShopProductsResource<unknown>(
+    `/api/admin/shop/products/${encodeURIComponent(String(productId))}/variants/${encodeURIComponent(String(variantId))}/status`,
+    {
+      body: JSON.stringify({ isActive }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      method: 'PATCH',
+    },
+  )
+
+  return normalizeShopProductVariantOrThrow(variant)
 }
 
 export function resolveShopProductImageUrl(imageUrl: string | null): string | null {
@@ -241,9 +314,81 @@ function normalizeUploadResponseOrThrow(
   return { storageKey, url }
 }
 
+function normalizeShopProductVariantOrThrow(
+  value: unknown,
+): AdminShopProductVariant {
+  const variant = normalizeShopProductVariant(value)
+
+  if (!variant) {
+    throw new Error('La variante boutique est invalide.')
+  }
+
+  return variant
+}
+
+function normalizeShopProductVariant(
+  value: unknown,
+): AdminShopProductVariant | null {
+  if (!isRecord(value)) {
+    return null
+  }
+
+  const id = readNumber(value, 'id')
+  const shopProductId =
+    readNumber(value, 'shopProductId') ?? readNumber(value, 'shop_product_id')
+  const sizeLabel =
+    readString(value, 'sizeLabel') ?? readString(value, 'size_label')
+  const colorName =
+    readString(value, 'colorName') ?? readString(value, 'color_name')
+  const stockQuantity =
+    readNumber(value, 'stockQuantity') ?? readNumber(value, 'stock_quantity')
+  const isActive =
+    readBoolean(value, 'isActive') ?? readBoolean(value, 'is_active')
+  const createdAt =
+    readString(value, 'createdAt') ?? readString(value, 'created_at')
+  const updatedAt =
+    readString(value, 'updatedAt') ?? readString(value, 'updated_at')
+
+  if (
+    id === null ||
+    shopProductId === null ||
+    sizeLabel === null ||
+    colorName === null ||
+    stockQuantity === null ||
+    isActive === null ||
+    createdAt === null ||
+    updatedAt === null
+  ) {
+    return null
+  }
+
+  return {
+    colorHex:
+      readNullableString(value, 'colorHex') ??
+      readNullableString(value, 'color_hex'),
+    colorName,
+    createdAt,
+    id,
+    isActive,
+    priceCents:
+      readNumber(value, 'priceCents') ?? readNumber(value, 'price_cents'),
+    shopProductId,
+    sizeLabel,
+    sku: readNullableString(value, 'sku'),
+    stockQuantity,
+    updatedAt,
+  }
+}
+
 function isAdminShopProduct(
   value: AdminShopProduct | null,
 ): value is AdminShopProduct {
+  return value !== null
+}
+
+function isAdminShopProductVariant(
+  value: AdminShopProductVariant | null,
+): value is AdminShopProductVariant {
   return value !== null
 }
 

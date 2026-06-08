@@ -32,6 +32,7 @@ export function createCartItemFromEditor(
     },
     finalPreviewUrl: input.finalPreviewUrl,
     id: createCartItemId(),
+    kind: 'studio',
     pricing: {
       grandTotal: input.pricing.grandTotal,
       logoLines: input.pricing.logoLines,

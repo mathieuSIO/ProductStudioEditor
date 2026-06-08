@@ -1,6 +1,7 @@
 import {
   CartItemCard,
   CartSummaryPanel,
+  isStudioCartItem,
   type Cart,
   type CartItemId,
   type CartTotals,
@@ -24,6 +25,7 @@ export function CartPage({
   totals,
 }: CartPageProps) {
   const isCartEmpty = cart.items.length === 0
+  const hasStudioItems = cart.items.some(isStudioCartItem)
 
   return (
     <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem]">
@@ -73,6 +75,7 @@ export function CartPage({
       </div>
 
       <CartSummaryPanel
+        hasStudioItems={hasStudioItems}
         isCheckoutDisabled={isCartEmpty}
         onContinueToCheckout={onContinueToCheckout}
         onProfessionalLogoReviewChange={onProfessionalLogoReviewChange}

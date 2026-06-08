@@ -5,6 +5,7 @@ import type { AdminShopProduct } from '../types/admin.types'
 type AdminShopProductsTableProps = {
   editingProductId: number | null
   onEdit: (product: AdminShopProduct) => void
+  onOpenVariants: (product: AdminShopProduct) => void
   onToggleStatus: (product: AdminShopProduct) => void
   products: AdminShopProduct[]
   updatingProductId: number | null
@@ -13,6 +14,7 @@ type AdminShopProductsTableProps = {
 export function AdminShopProductsTable({
   editingProductId,
   onEdit,
+  onOpenVariants,
   onToggleStatus,
   products,
   updatingProductId,
@@ -66,6 +68,13 @@ export function AdminShopProductsTable({
                     onClick={() => onEdit(product)}
                   >
                     Modifier
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded-[0.85rem] border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800 transition hover:border-blue-100 hover:bg-white hover:text-blue-950"
+                    onClick={() => onOpenVariants(product)}
+                  >
+                    Variantes
                   </button>
                   <button
                     type="button"

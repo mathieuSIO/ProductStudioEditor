@@ -7,6 +7,7 @@ import {
 import type {
   AdminShopProduct,
   CreateAdminShopProductPayload,
+  CreateAdminShopProductVariantPayload,
   UpdateAdminShopProductPayload,
 } from '../types/admin.types'
 
@@ -25,11 +26,28 @@ type ShopProductFormData = {
   slug: string
 }
 
+type TemporaryVariant = CreateAdminShopProductVariantPayload & {
+  clientId: string
+}
+
+type VariantFormData = {
+  colorHex: string
+  colorName: string
+  isActive: boolean
+  priceEuros: string
+  sizeLabel: string
+  sku: string
+  stockQuantity: string
+}
+
 type AdminShopProductFormProps = {
   isSaving: boolean
   mode: 'create' | 'edit'
   onCancel?: () => void
-  onSubmit: (payload: AdminShopProductFormPayload) => Promise<boolean>
+  onSubmit: (
+    payload: AdminShopProductFormPayload,
+    variants: CreateAdminShopProductVariantPayload[],
+  ) => Promise<boolean>
   product?: AdminShopProduct | null
 }
 
@@ -44,6 +62,16 @@ const emptyFormData: ShopProductFormData = {
   slug: '',
 }
 
+const emptyVariantFormData: VariantFormData = {
+  colorHex: '',
+  colorName: '',
+  isActive: true,
+  priceEuros: '',
+  sizeLabel: '',
+  sku: '',
+  stockQuantity: '0',
+}
+
 export function AdminShopProductForm({
   isSaving,
   mode,
@@ -56,14 +84,27 @@ export function AdminShopProductForm({
   )
   const [isSlugTouched, setIsSlugTouched] = useState(Boolean(product))
   const [isUploadingImage, setIsUploadingImage] = useState(false)
+  const [variantFormData, setVariantFormData] =
+    useState<VariantFormData>(emptyVariantFormData)
+  const [temporaryVariants, setTemporaryVariants] = useState<TemporaryVariant[]>(
+    [],
+  )
+  const [editingVariantClientId, setEditingVariantClientId] = useState<
+    string | null
+  >(null)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [validationError, setValidationError] = useState<string | null>(null)
+  const [variantError, setVariantError] = useState<string | null>(null)
 
   useEffect(() => {
     setFormData(createInitialFormData(product))
     setIsSlugTouched(Boolean(product))
+    setVariantFormData(emptyVariantFormData)
+    setTemporaryVariants([])
+    setEditingVariantClientId(null)
     setUploadError(null)
     setValidationError(null)
+    setVariantError(null)
   }, [product])
 
   function updateField<Field extends keyof ShopProductFormData>(
@@ -87,6 +128,68 @@ export function AdminShopProductForm({
   function handleSlugChange(value: string) {
     setIsSlugTouched(true)
     updateField('slug', createSlug(value))
+  }
+
+  function updateVariantField<Field extends keyof VariantFormData>(
+    field: Field,
+    value: VariantFormData[Field],
+  ) {
+    setVariantFormData((currentFormData) => ({
+      ...currentFormData,
+      [field]: value,
+    }))
+  }
+
+  function handleSaveTemporaryVariant() {
+    setVariantError(null)
+
+    const variantPayload = createVariantPayload(variantFormData)
+
+    if (!variantPayload) {
+      setVariantError('Taille, couleur et stock positif ou nul sont obligatoires.')
+      return
+    }
+
+    if (editingVariantClientId) {
+      setTemporaryVariants((currentVariants) =>
+        currentVariants.map((variant) =>
+          variant.clientId === editingVariantClientId
+            ? {
+                ...variantPayload,
+                clientId: editingVariantClientId,
+              }
+            : variant,
+        ),
+      )
+    } else {
+      setTemporaryVariants((currentVariants) => [
+        ...currentVariants,
+        {
+          ...variantPayload,
+          clientId: createTemporaryVariantId(),
+        },
+      ])
+    }
+
+    setEditingVariantClientId(null)
+    setVariantFormData(emptyVariantFormData)
+  }
+
+  function handleEditTemporaryVariant(variant: TemporaryVariant) {
+    setVariantError(null)
+    setEditingVariantClientId(variant.clientId)
+    setVariantFormData(createVariantFormData(variant))
+  }
+
+  function handleRemoveTemporaryVariant(clientId: string) {
+    setTemporaryVariants((currentVariants) =>
+      currentVariants.filter((variant) => variant.clientId !== clientId),
+    )
+
+    if (editingVariantClientId === clientId) {
+      setEditingVariantClientId(null)
+      setVariantFormData(emptyVariantFormData)
+    }
   }
 
   async function handleImageChange(event: ChangeEvent<HTMLInputElement>) {
@@ -131,11 +234,19 @@ export function AdminShopProductForm({
       return
     }
 
-    const didSave = await onSubmit(payload)
+    const didSave = await onSubmit(
+      payload,
+      mode === 'create'
+        ? temporaryVariants.map(createVariantPayloadFromTemporaryVariant)
+        : [],
+    )
 
     if (mode === 'create' && didSave) {
       setFormData(emptyFormData)
       setIsSlugTouched(false)
+      setVariantFormData(emptyVariantFormData)
+      setTemporaryVariants([])
+      setEditingVariantClientId(null)
     }
   }
 
@@ -225,6 +336,118 @@ export function AdminShopProductForm({
         </div>
       </div>
 
+      {mode === 'create' ? (
+        <div className="grid gap-4 rounded-[1rem] border border-stone-200 bg-stone-50 p-3">
+          <div className="min-w-0">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-700">
+              Variantes
+            </p>
+            <p className="mt-1 text-sm leading-6 text-stone-600">
+              Ajoutez les tailles, couleurs, stocks et SKU a creer juste apres le produit.
+            </p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <FormField
+              label="Taille"
+              name="variantSizeLabel"
+              onChange={(value) => updateVariantField('sizeLabel', value)}
+              value={variantFormData.sizeLabel}
+            />
+            <FormField
+              label="Couleur"
+              name="variantColorName"
+              onChange={(value) => updateVariantField('colorName', value)}
+              value={variantFormData.colorName}
+            />
+            <FormField
+              label="Hex couleur"
+              name="variantColorHex"
+              onChange={(value) => updateVariantField('colorHex', value)}
+              value={variantFormData.colorHex}
+            />
+            <FormField
+              label="SKU"
+              name="variantSku"
+              onChange={(value) => updateVariantField('sku', value)}
+              value={variantFormData.sku}
+            />
+            <FormField
+              label="Prix specifique (EUR)"
+              min="0"
+              name="variantPrice"
+              onChange={(value) => updateVariantField('priceEuros', value)}
+              step="0.01"
+              type="number"
+              value={variantFormData.priceEuros}
+            />
+            <FormField
+              label="Stock"
+              min="0"
+              name="variantStock"
+              onChange={(value) => updateVariantField('stockQuantity', value)}
+              step="1"
+              type="number"
+              value={variantFormData.stockQuantity}
+            />
+            <label className="flex items-center gap-2 rounded-[0.9rem] border border-stone-200 bg-white px-3 py-3 text-sm font-semibold text-blue-950">
+              <input
+                checked={variantFormData.isActive}
+                className="h-4 w-4 accent-emerald-700"
+                type="checkbox"
+                onChange={(event) =>
+                  updateVariantField('isActive', event.currentTarget.checked)
+                }
+              />
+              Variante active
+            </label>
+          </div>
+
+          {variantError ? (
+            <div className="rounded-[1rem] border border-red-200 bg-red-50 px-3 py-2.5 text-sm font-medium text-red-700">
+              {variantError}
+            </div>
+          ) : null}
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="rounded-[0.95rem] bg-blue-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-800"
+              onClick={handleSaveTemporaryVariant}
+            >
+              {editingVariantClientId
+                ? 'Mettre a jour la variante'
+                : 'Ajouter la variante'}
+            </button>
+            {editingVariantClientId ? (
+              <button
+                type="button"
+                className="rounded-[0.95rem] border border-blue-100 bg-white px-4 py-2.5 text-sm font-semibold text-blue-950 transition hover:border-emerald-200 hover:text-emerald-800"
+                onClick={() => {
+                  setEditingVariantClientId(null)
+                  setVariantFormData(emptyVariantFormData)
+                  setVariantError(null)
+                }}
+              >
+                Annuler variante
+              </button>
+            ) : null}
+          </div>
+
+          {temporaryVariants.length > 0 ? (
+            <TemporaryVariantsTable
+              variants={temporaryVariants}
+              onEdit={handleEditTemporaryVariant}
+              onRemove={handleRemoveTemporaryVariant}
+            />
+          ) : (
+            <div className="rounded-[0.95rem] border border-dashed border-stone-200 bg-white px-3 py-4 text-center text-sm font-semibold text-stone-400">
+              Aucune variante temporaire.
+            </div>
+          )}
+        </div>
+      ) : null}
+
       {validationError || uploadError ? (
         <div className="rounded-[1rem] border border-red-200 bg-red-50 px-3 py-2.5 text-sm font-medium text-red-700">
           {validationError ?? uploadError}
@@ -255,6 +478,88 @@ export function AdminShopProductForm({
         ) : null}
       </div>
     </form>
+  )
+}
+
+type TemporaryVariantsTableProps = {
+  onEdit: (variant: TemporaryVariant) => void
+  onRemove: (clientId: string) => void
+  variants: TemporaryVariant[]
+}
+
+function TemporaryVariantsTable({
+  onEdit,
+  onRemove,
+  variants,
+}: TemporaryVariantsTableProps) {
+  return (
+    <div className="overflow-hidden rounded-[1rem] border border-stone-200 bg-white">
+      <table className="w-full min-w-[780px] table-fixed border-collapse text-left text-sm">
+        <thead className="bg-stone-50 text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">
+          <tr>
+            <th className="w-[13%] px-3 py-3">Taille</th>
+            <th className="w-[18%] px-3 py-3">Couleur</th>
+            <th className="w-[16%] px-3 py-3">SKU</th>
+            <th className="w-[15%] px-3 py-3">Prix</th>
+            <th className="w-[12%] px-3 py-3">Stock</th>
+            <th className="w-[10%] px-3 py-3">Statut</th>
+            <th className="w-[16%] px-3 py-3 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-stone-100">
+          {variants.map((variant) => (
+            <tr key={variant.clientId}>
+              <td className="px-3 py-3 font-semibold text-blue-950">
+                {variant.sizeLabel}
+              </td>
+              <td className="px-3 py-3">
+                <div className="flex items-center gap-2">
+                  <span
+                    className="h-4 w-4 rounded-full border border-stone-200"
+                    style={{
+                      backgroundColor: variant.colorHex ?? '#f5f5f4',
+                    }}
+                  />
+                  <span className="font-medium text-stone-700">
+                    {variant.colorName}
+                  </span>
+                </div>
+              </td>
+              <td className="px-3 py-3 text-stone-600">{variant.sku ?? '-'}</td>
+              <td className="px-3 py-3 font-semibold text-blue-950">
+                {variant.priceCents === null || variant.priceCents === undefined
+                  ? 'Prix produit'
+                  : `${(variant.priceCents / 100).toFixed(2)} EUR`}
+              </td>
+              <td className="px-3 py-3 text-stone-600">
+                {variant.stockQuantity}
+              </td>
+              <td className="px-3 py-3 text-stone-600">
+                {variant.isActive === false ? 'Inactif' : 'Actif'}
+              </td>
+              <td className="px-3 py-3">
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    className="rounded-[0.8rem] border border-blue-100 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-950 transition hover:bg-white hover:text-emerald-800"
+                    onClick={() => onEdit(variant)}
+                  >
+                    Modifier
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded-[0.8rem] border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 transition hover:bg-white"
+                    onClick={() => onRemove(variant.clientId)}
+                  >
+                    Supprimer
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   )
 }
 
@@ -361,6 +666,88 @@ function eurosToCents(value: string): number | null {
   }
 
   return Math.round(euros * 100)
+}
+
+function optionalEurosToCents(value: string): number | null | undefined {
+  const normalizedValue = value.trim().replace(',', '.')
+
+  if (!normalizedValue) {
+    return null
+  }
+
+  const euros = Number(normalizedValue)
+
+  if (!Number.isFinite(euros) || euros < 0) {
+    return undefined
+  }
+
+  return Math.round(euros * 100)
+}
+
+function createVariantPayload(
+  formData: VariantFormData,
+): CreateAdminShopProductVariantPayload | null {
+  const sizeLabel = formData.sizeLabel.trim()
+  const colorName = formData.colorName.trim()
+  const stockQuantity = Number(formData.stockQuantity)
+  const priceCents = optionalEurosToCents(formData.priceEuros)
+
+  if (
+    !sizeLabel ||
+    !colorName ||
+    !Number.isInteger(stockQuantity) ||
+    stockQuantity < 0 ||
+    priceCents === undefined
+  ) {
+    return null
+  }
+
+  return {
+    colorHex: normalizeOptionalText(formData.colorHex),
+    colorName,
+    isActive: formData.isActive,
+    priceCents,
+    sizeLabel,
+    sku: normalizeOptionalText(formData.sku),
+    stockQuantity,
+  }
+}
+
+function createVariantFormData(variant: TemporaryVariant): VariantFormData {
+  return {
+    colorHex: variant.colorHex ?? '',
+    colorName: variant.colorName,
+    isActive: variant.isActive ?? true,
+    priceEuros:
+      variant.priceCents === null || variant.priceCents === undefined
+        ? ''
+        : (variant.priceCents / 100).toFixed(2),
+    sizeLabel: variant.sizeLabel,
+    sku: variant.sku ?? '',
+    stockQuantity: String(variant.stockQuantity),
+  }
+}
+
+function createVariantPayloadFromTemporaryVariant(
+  variant: TemporaryVariant,
+): CreateAdminShopProductVariantPayload {
+  return {
+    colorHex: variant.colorHex,
+    colorName: variant.colorName,
+    isActive: variant.isActive,
+    priceCents: variant.priceCents,
+    sizeLabel: variant.sizeLabel,
+    sku: variant.sku,
+    stockQuantity: variant.stockQuantity,
+  }
+}
+
+function createTemporaryVariantId(): string {
+  if (typeof globalThis.crypto?.randomUUID === 'function') {
+    return globalThis.crypto.randomUUID()
+  }
+
+  return `variant-${Date.now()}-${Math.random().toString(36).slice(2)}`
 }
 
 function normalizeOptionalText(value: string): string | null {

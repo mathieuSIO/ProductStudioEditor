@@ -77,3 +77,37 @@ export type UploadShopProductImageResponse = {
   storageKey: string
   url: string
 }
+
+export type AdminShopProductVariant = {
+  colorHex: string | null
+  colorName: string
+  createdAt: string
+  id: number
+  isActive: boolean
+  priceCents: number | null
+  shopProductId: number
+  sizeLabel: string
+  sku: string | null
+  stockQuantity: number
+  updatedAt: string
+}
+
+export type CreateAdminShopProductVariantPayload = {
+  colorHex?: string | null
+  colorName: string
+  isActive?: boolean
+  priceCents?: number | null
+  sizeLabel: string
+  sku?: string | null
+  stockQuantity: number
+}
+
+export type UpdateAdminShopProductVariantPayload = {
+  colorHex?: string | null
+  colorName?: string
+  isActive?: boolean
+  priceCents?: number | null
+  sizeLabel?: string
+  sku?: string | null
+  stockQuantity?: number
+}

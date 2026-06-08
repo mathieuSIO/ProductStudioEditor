@@ -9,6 +9,17 @@ export type ShopProductApiRow = {
   price_cents: number
   slug: string
   updated_at: string
+  variants?: ShopProductVariantApiRow[]
+}
+
+export type ShopProductVariantApiRow = {
+  colorHex: string | null
+  colorName: string
+  id: number
+  isActive: boolean
+  priceCents: number | null
+  sizeLabel: string
+  stockQuantity: number
 }
 
 export type ShopProduct = {
@@ -22,6 +33,17 @@ export type ShopProduct = {
   priceCents: number
   slug: string
   updatedAt: string
+  variants: ShopProductVariant[]
+}
+
+export type ShopProductVariant = {
+  colorHex: string | null
+  colorName: string
+  id: number
+  isActive: boolean
+  priceCents: number | null
+  sizeLabel: string
+  stockQuantity: number
 }
 
 export type ShopProductsResponse = {

@@ -6,6 +6,7 @@ import { useAuth } from '../../auth'
 import {
   AdminShopProductsApiError,
   createAdminShopProduct,
+  createAdminShopProductVariant,
   fetchAdminShopProducts,
   updateAdminShopProduct,
   updateAdminShopProductStatus,
@@ -15,7 +16,10 @@ import {
   type AdminShopProductFormPayload,
 } from '../components/AdminShopProductForm'
 import { AdminShopProductsTable } from '../components/AdminShopProductsTable'
-import type { AdminShopProduct } from '../types/admin.types'
+import type {
+  AdminShopProduct,
+  CreateAdminShopProductVariantPayload,
+} from '../types/admin.types'
 
 export function AdminShopProductsPage() {
   const navigate = useNavigate()
@@ -76,13 +80,14 @@ export function AdminShopProductsPage() {
 
   async function handleCreateProduct(
     payload: AdminShopProductFormPayload,
+    variants: CreateAdminShopProductVariantPayload[],
   ): Promise<boolean> {
     setFormError(null)
     setSuccess(null)
     setIsCreating(true)
 
     try {
-      await createAdminShopProduct({
+      const createdProduct = await createAdminShopProduct({
         description: payload.description,
         imageStorageKey: payload.imageStorageKey,
         imageUrl: payload.imageUrl,
@@ -91,8 +96,26 @@ export function AdminShopProductsPage() {
         priceCents: requireNumber(payload.priceCents),
         slug: requireString(payload.slug),
       })
-      setSuccess('Produit boutique cree.')
+
+      const failedVariantsCount = await createProductVariants(
+        createdProduct.id,
+        variants,
+      )
+
       await loadProducts()
+
+      if (failedVariantsCount > 0) {
+        setFormError(
+          `Produit boutique cree, mais ${failedVariantsCount} variante${failedVariantsCount > 1 ? 's' : ''} n'ont pas ete ajoutee${failedVariantsCount > 1 ? 's' : ''}. Verifiez les doublons taille/couleur puis utilisez l'ecran Variantes.`,
+        )
+        return false
+      }
+
+      setSuccess(
+        variants.length > 0
+          ? `Produit boutique cree avec ${variants.length} variante${variants.length > 1 ? 's' : ''}.`
+          : 'Produit boutique cree.',
+      )
       return true
     } catch (createError) {
       setFormError(
@@ -157,6 +180,23 @@ export function AdminShopProductsPage() {
     } finally {
       setUpdatingProductId(null)
     }
+  }
+
+  async function createProductVariants(
+    productId: number,
+    variants: CreateAdminShopProductVariantPayload[],
+  ): Promise<number> {
+    let failedVariantsCount = 0
+
+    for (const variant of variants) {
+      try {
+        await createAdminShopProductVariant(productId, variant)
+      } catch {
+        failedVariantsCount += 1
+      }
+    }
+
+    return failedVariantsCount
   }
 
   return (
@@ -264,6 +304,9 @@ export function AdminShopProductsPage() {
               setFormError(null)
               setSuccess(null)
             }}
+            onOpenVariants={(product) =>
+              navigate(`/admin/shop-products/${product.id}/variants`)
+            }
             onToggleStatus={handleToggleStatus}
           />
         )}

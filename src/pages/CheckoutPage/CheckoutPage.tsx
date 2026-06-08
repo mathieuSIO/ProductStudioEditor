@@ -2,7 +2,13 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 
 import { useAuth } from '../../features/auth'
-import { type Cart, type CartItem, type CartTotals } from '../../features/cart'
+import {
+  isShopCartItem,
+  isStudioCartItem,
+  type Cart,
+  type CartItem,
+  type CartTotals,
+} from '../../features/cart'
 import {
   createCheckoutSession,
   createCheckoutDraft,
@@ -19,6 +25,7 @@ import {
   type ShippingEstimateItem,
 } from '../../features/checkout'
 import { formatEuro } from '../../shared/formatters/formatEuro'
+import { resolveShopProductImageUrl } from '../../features/shop/api/shopProductsApi'
 
 type CheckoutPageProps = {
   cart: Cart
@@ -543,24 +550,7 @@ export function CheckoutPage({
 
         <div className="mt-4 grid gap-2">
           {cart.items.map((item) => (
-            <div
-              key={item.id}
-              className="rounded-[0.95rem] border border-blue-100 bg-blue-50 px-3 py-2.5"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-blue-950">
-                    {item.product.name}
-                  </p>
-                  <p className="mt-1 text-xs font-medium text-blue-700">
-                    {item.pricing.totalQuantity} pièces · {item.color.label}
-                  </p>
-                </div>
-                <p className="shrink-0 text-sm font-semibold text-blue-950">
-                  {formatEuro(item.pricing.grandTotal)}
-                </p>
-              </div>
-            </div>
+            <CheckoutCartItemSummary key={item.id} item={item} />
           ))}
         </div>
 
@@ -796,10 +786,101 @@ function getPaymentRedirectMessage(totalPriceCents: number | null): string {
   return 'La commande est enregistree. Ouverture du paiement securise...'
 }
 
+type CheckoutCartItemSummaryProps = {
+  item: CartItem
+}
+
+function CheckoutCartItemSummary({ item }: CheckoutCartItemSummaryProps) {
+  if (isStudioCartItem(item)) {
+    return (
+      <div className="rounded-[0.95rem] border border-blue-100 bg-blue-50 px-3 py-2.5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-blue-950">
+              {item.product.name}
+            </p>
+            <p className="mt-1 text-xs font-medium text-blue-700">
+              {item.pricing.totalQuantity} pieces - {item.color.label}
+            </p>
+          </div>
+          <p className="shrink-0 text-sm font-semibold text-blue-950">
+            {formatEuro(item.pricing.grandTotal)}
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  const resolvedImageUrl = resolveShopProductImageUrl(item.imageUrl)
+
+  return (
+    <div className="rounded-[0.95rem] border border-blue-100 bg-blue-50 px-3 py-2.5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 gap-2">
+          <div className="h-12 w-12 shrink-0 overflow-hidden rounded-[0.75rem] border border-blue-100 bg-white">
+            {resolvedImageUrl ? (
+              <img
+                alt={item.name}
+                className="h-full w-full object-cover"
+                src={resolvedImageUrl}
+              />
+            ) : null}
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-blue-950">
+              {item.name}
+            </p>
+            <p className="mt-1 text-xs font-medium text-blue-700">
+              {item.quantity} piece{item.quantity > 1 ? 's' : ''} - Boutique
+            </p>
+            <p className="mt-1 text-xs font-medium text-blue-700">
+              {item.sizeLabel} - {item.colorName}
+            </p>
+          </div>
+        </div>
+        <p className="shrink-0 text-sm font-semibold text-blue-950">
+          {formatEuro((item.unitPriceCents * item.quantity) / 100)}
+        </p>
+      </div>
+    </div>
+  )
+}
+
 function createShippingEstimateItems(
   cartItems: CartItem[],
 ): ShippingEstimateItem[] {
   return cartItems.map((cartItem) => {
+    if (isShopCartItem(cartItem)) {
+      return createShopShippingEstimateItem(cartItem)
+    }
+
+    if (isStudioCartItem(cartItem)) {
+      return createStudioShippingEstimateItem(cartItem)
+    }
+
+    throw new Error("Impossible d'estimer la livraison : item panier invalide.")
+  })
+}
+
+function createShopShippingEstimateItem(
+  cartItem: Extract<CartItem, { kind: 'shop' }>,
+): ShippingEstimateItem {
+  if (!Number.isFinite(cartItem.shopProductId) || cartItem.shopProductId <= 0) {
+    throw new Error(
+      "Impossible d'estimer la livraison : un produit boutique du panier est invalide.",
+    )
+  }
+
+  return {
+    itemType: 'shop',
+    quantity: normalizeShippingQuantity(cartItem.quantity),
+    shopProductId: cartItem.shopProductId,
+  }
+}
+
+function createStudioShippingEstimateItem(
+  cartItem: Extract<CartItem, { kind: 'studio' }>,
+): ShippingEstimateItem {
     if (cartItem.product.catalogProductId === undefined) {
       throw new Error(
         "Impossible d'estimer la livraison : un produit du panier n'est pas relie au catalogue.",
@@ -807,10 +888,18 @@ function createShippingEstimateItems(
     }
 
     return {
+      itemType: 'studio',
       productId: cartItem.product.catalogProductId,
-      quantity: cartItem.pricing.totalQuantity,
+    quantity: normalizeShippingQuantity(cartItem.pricing.totalQuantity),
     }
-  })
+}
+
+function normalizeShippingQuantity(quantity: number): number {
+  if (!Number.isFinite(quantity) || quantity <= 0) {
+    return 1
+  }
+
+  return Math.floor(quantity)
 }
 
 function getShippingEstimateValue(

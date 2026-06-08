@@ -1,5 +1,5 @@
 import { env } from '../../../shared/config/env'
-import type { ShopProduct } from '../types/shop.types'
+import type { ShopProduct, ShopProductVariant } from '../types/shop.types'
 
 export async function fetchShopProducts(
   signal?: AbortSignal,
@@ -21,7 +21,7 @@ export async function fetchShopProductBySlug(
     `/api/shop/products/${encodeURIComponent(slug)}`,
     signal,
   )
-  const normalizedProduct = normalizeShopProduct(product)
+  const normalizedProduct = normalizeShopProductResource(product)
 
   if (!normalizedProduct) {
     throw new Error('Produit introuvable ou indisponible.')
@@ -129,11 +129,77 @@ function normalizeShopProduct(value: unknown): ShopProduct | null {
     priceCents,
     slug,
     updatedAt,
+    variants: normalizeShopProductVariants(value.variants),
   }
+}
+
+function normalizeShopProductResource(value: unknown): ShopProduct | null {
+  if (!isRecord(value) || !isRecord(value.product)) {
+    return normalizeShopProduct(value)
+  }
+
+  return normalizeShopProduct({
+    ...value.product,
+    variants: value.variants,
+  })
 }
 
 function isActiveShopProduct(value: ShopProduct | null): value is ShopProduct {
   return value !== null && value.isActive
+}
+
+function normalizeShopProductVariants(value: unknown): ShopProductVariant[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  return value.map(normalizeShopProductVariant).filter(isShopProductVariant)
+}
+
+function normalizeShopProductVariant(value: unknown): ShopProductVariant | null {
+  if (!isRecord(value)) {
+    return null
+  }
+
+  const id = readNumber(value, 'id')
+  const sizeLabel =
+    readString(value, 'sizeLabel') ?? readString(value, 'size_label')
+  const colorName =
+    readString(value, 'colorName') ?? readString(value, 'color_name')
+  const priceCents = readNullableNumberByKeys(value, 'priceCents', 'price_cents')
+  const stockQuantity =
+    readNumber(value, 'stockQuantity') ?? readNumber(value, 'stock_quantity')
+  const isActive =
+    readBoolean(value, 'isActive') ?? readBoolean(value, 'is_active')
+
+  if (
+    id === null ||
+    sizeLabel === null ||
+    colorName === null ||
+    priceCents === undefined ||
+    stockQuantity === null ||
+    isActive === null
+  ) {
+    return null
+  }
+
+  return {
+    colorHex:
+      readNullableString(value, 'colorHex') ??
+      readNullableString(value, 'color_hex'),
+    colorName,
+    id,
+    isActive,
+    priceCents,
+    sizeLabel,
+    stockQuantity,
+  }
+}
+
+function isShopProductVariant(
+  value: ShopProductVariant | null,
+): value is ShopProductVariant {
+  return value !== null
 }
 
 function isApiResponse<T>(value: unknown): value is
@@ -172,6 +238,29 @@ function readNumber(
   const value = record[key]
 
   return typeof value === 'number' && Number.isFinite(value) ? value : null
+}
+
+function readNullableNumber(
+  record: Record<string, unknown>,
+  key: string,
+): number | null | undefined {
+  const value = record[key]
+
+  if (value === null) {
+    return null
+  }
+
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined
+}
+
+function readNullableNumberByKeys(
+  record: Record<string, unknown>,
+  firstKey: string,
+  secondKey: string,
+): number | null | undefined {
+  const firstValue = readNullableNumber(record, firstKey)
+
+  return firstValue === undefined ? readNullableNumber(record, secondKey) : firstValue
 }
 
 function readNullableString(

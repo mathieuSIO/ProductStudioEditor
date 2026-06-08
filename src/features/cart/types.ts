@@ -58,17 +58,37 @@ export type CartItemPricingSnapshot = Pick<
   | 'totalQuantity'
 >
 
-export type CartItem = {
+export type StudioCartItem = {
   color: CartColorSnapshot
   createdAt: string
   design: CartDesignSnapshot
   finalPreviewUrl?: string | null
   id: CartItemId
+  kind: 'studio'
   pricing: CartItemPricingSnapshot
   product: CartProductSnapshot
   quantities: CartQuantitiesBySize
   updatedAt: string
 }
+
+export type ShopCartItem = {
+  colorHex: string | null
+  colorName: string
+  createdAt: string
+  id: CartItemId
+  imageUrl: string | null
+  kind: 'shop'
+  name: string
+  quantity: number
+  shopProductId: number
+  shopProductVariantId: number
+  sizeLabel: string
+  slug: string
+  unitPriceCents: number
+  updatedAt: string
+}
+
+export type CartItem = ShopCartItem | StudioCartItem
 
 export type CartOptions = {
   professionalLogoReview: boolean
@@ -89,4 +109,12 @@ export type CheckoutDraft = {
   items: CartItem[]
   options: CartOptions
   totals: CartTotals
+}
+
+export function isStudioCartItem(item: CartItem): item is StudioCartItem {
+  return item.kind === 'studio'
+}
+
+export function isShopCartItem(item: CartItem): item is ShopCartItem {
+  return item.kind === 'shop'
 }
