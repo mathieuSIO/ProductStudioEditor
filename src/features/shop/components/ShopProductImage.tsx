@@ -16,6 +16,8 @@ export function ShopProductImage({
     variant === 'detail'
       ? 'aspect-[4/3] rounded-[1.35rem]'
       : 'aspect-[4/3] rounded-[1rem]'
+  const imageFitClass =
+    variant === 'detail' ? 'bg-stone-50 object-contain' : 'object-cover'
 
   if (!resolvedImageUrl) {
     return (
@@ -32,7 +34,7 @@ export function ShopProductImage({
   return (
     <img
       alt={name}
-      className={`w-full border border-stone-200 object-cover ${className}`}
+      className={`w-full border border-stone-200 ${imageFitClass} ${className}`}
       src={resolvedImageUrl}
     />
   )
