@@ -16,8 +16,7 @@ export function ShopProductImage({
     variant === 'detail'
       ? 'aspect-[4/3] rounded-[1.35rem]'
       : 'aspect-[4/3] rounded-[1rem]'
-  const imageFitClass =
-    variant === 'detail' ? 'bg-stone-50 object-contain' : 'object-cover'
+  const imageFitClass = 'bg-stone-50 object-contain'
 
   if (!resolvedImageUrl) {
     return (
