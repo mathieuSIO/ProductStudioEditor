@@ -209,7 +209,7 @@ export function ShopProductPage() {
               selectedGalleryImageId={selectedGalleryImage?.id ?? null}
               onSelectImage={handleSelectGalleryImage}
             />
-            <div className="min-w-0 rounded-[1.15rem] border border-stone-200 bg-stone-50 px-4 py-5 sm:px-5">
+            <div className="min-w-0 rounded-[1.15rem] border border-stone-200 bg-stone-50 px-4 py-5 sm:px-5 whitespace-pre-line">
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-700">
                 Produit boutique
               </p>
@@ -217,7 +217,7 @@ export function ShopProductPage() {
                 {product.name}
               </h1>
               {product.description ? (
-                <p className="mt-4 text-sm leading-7 text-stone-600">
+                <p className="mt-4 text-sm leading-7 text-stone-600 whitespace-pre-line">
                   {product.description}
                 </p>
               ) : (

@@ -41,10 +41,10 @@ export function AdminShopProductsTable({
               <td className="px-4 py-3">
                 <ProductImage imageUrl={product.imageUrl} name={product.name} />
               </td>
-              <td className="px-4 py-3">
+              <td className="px-4 py-3 whitespace-pre-line">
                 <p className="font-semibold text-blue-950">{product.name}</p>
                 {product.description ? (
-                  <p className="mt-1 line-clamp-2 text-xs leading-5 text-stone-500">
+                  <p className="mt-1 line-clamp-2 text-xs leading-5 text-stone-500 whitespace-pre-line">
                     {product.description}
                   </p>
                 ) : null}

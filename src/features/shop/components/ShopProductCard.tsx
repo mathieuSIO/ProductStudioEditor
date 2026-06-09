@@ -12,12 +12,12 @@ export function ShopProductCard({ product }: ShopProductCardProps) {
   return (
     <article className="flex h-full flex-col rounded-[1.15rem] border border-stone-200 bg-white p-3 shadow-[0_18px_42px_-38px_rgba(15,23,42,0.35)]">
       <ShopProductImage imageUrl={product.imageUrl} name={product.name} />
-      <div className="flex flex-1 flex-col px-1 pb-1 pt-4">
+      <div className="flex flex-1 flex-col px-1 pb-1 pt-4 whitespace-pre-line">
         <h2 className="text-lg font-semibold tracking-tight text-blue-950">
           {product.name}
         </h2>
         {product.description ? (
-          <p className="mt-2 line-clamp-2 text-sm leading-6 text-stone-600">
+          <p className="mt-2 line-clamp-2 text-sm leading-6 text-stone-600 whitespace-pre-line">
             {product.description}
           </p>
         ) : null}
