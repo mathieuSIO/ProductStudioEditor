@@ -11,6 +11,7 @@ import {
   AdminOrderDetailsPage,
   AdminOrdersPage,
   AdminPromoCodesPage,
+  AdminShopProductGalleryPage,
   AdminShopProductVariantsPage,
   AdminShopProductsPage,
 } from '../features/admin'
@@ -88,6 +89,14 @@ function App() {
           element={
             <RequireAdmin>
               <AdminShopProductVariantsPage />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/admin/shop-products/:productId/gallery"
+          element={
+            <RequireAdmin>
+              <AdminShopProductGalleryPage />
             </RequireAdmin>
           }
         />

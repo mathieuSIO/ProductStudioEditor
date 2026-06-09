@@ -3,9 +3,12 @@ import type { ApiResponse } from '../../account'
 import { createAuthHeaders } from '../../auth'
 import type {
   AdminShopProduct,
+  AdminShopProductImage,
   AdminShopProductVariant,
+  CreateAdminShopProductImagePayload,
   CreateAdminShopProductPayload,
   CreateAdminShopProductVariantPayload,
+  UpdateAdminShopProductImagePayload,
   UpdateAdminShopProductPayload,
   UpdateAdminShopProductVariantPayload,
   UploadShopProductImageResponse,
@@ -84,6 +87,76 @@ export async function updateAdminShopProductStatus(
   )
 
   return normalizeShopProductOrThrow(product)
+}
+
+export async function fetchAdminShopProductImages(
+  productId: number,
+): Promise<AdminShopProductImage[]> {
+  const images = await fetchAdminShopProductsResource<unknown>(
+    `/api/admin/shop/products/${encodeURIComponent(String(productId))}/images`,
+  )
+
+  if (!Array.isArray(images)) {
+    throw new Error('La galerie produit est invalide.')
+  }
+
+  return images.map(normalizeShopProductImage).filter(isAdminShopProductImage)
+}
+
+export async function createAdminShopProductImage(
+  productId: number,
+  payload: CreateAdminShopProductImagePayload,
+): Promise<AdminShopProductImage> {
+  const image = await fetchAdminShopProductsResource<unknown>(
+    `/api/admin/shop/products/${encodeURIComponent(String(productId))}/images`,
+    {
+      body: JSON.stringify(payload),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+    },
+  )
+
+  return normalizeShopProductImageOrThrow(image)
+}
+
+export async function updateAdminShopProductImage(
+  productId: number,
+  imageId: number,
+  payload: UpdateAdminShopProductImagePayload,
+): Promise<AdminShopProductImage> {
+  const image = await fetchAdminShopProductsResource<unknown>(
+    `/api/admin/shop/products/${encodeURIComponent(String(productId))}/images/${encodeURIComponent(String(imageId))}`,
+    {
+      body: JSON.stringify(payload),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      method: 'PATCH',
+    },
+  )
+
+  return normalizeShopProductImageOrThrow(image)
+}
+
+export async function updateAdminShopProductImageStatus(
+  productId: number,
+  imageId: number,
+  isActive: boolean,
+): Promise<AdminShopProductImage> {
+  const image = await fetchAdminShopProductsResource<unknown>(
+    `/api/admin/shop/products/${encodeURIComponent(String(productId))}/images/${encodeURIComponent(String(imageId))}/status`,
+    {
+      body: JSON.stringify({ isActive }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      method: 'PATCH',
+    },
+  )
+
+  return normalizeShopProductImageOrThrow(image)
 }
 
 export async function uploadAdminShopProductImage(
@@ -296,6 +369,60 @@ function normalizeShopProduct(value: unknown): AdminShopProduct | null {
   }
 }
 
+function normalizeShopProductImageOrThrow(
+  value: unknown,
+): AdminShopProductImage {
+  const image = normalizeShopProductImage(value)
+
+  if (!image) {
+    throw new Error("L'image galerie est invalide.")
+  }
+
+  return image
+}
+
+function normalizeShopProductImage(
+  value: unknown,
+): AdminShopProductImage | null {
+  if (!isRecord(value)) {
+    return null
+  }
+
+  const id = readNumber(value, 'id')
+  const shopProductId =
+    readNumber(value, 'shopProductId') ?? readNumber(value, 'shop_product_id')
+  const imageUrl =
+    readString(value, 'imageUrl') ?? readString(value, 'image_url')
+  const displayOrder =
+    readNumber(value, 'displayOrder') ?? readNumber(value, 'display_order') ?? 0
+  const isActive =
+    readBoolean(value, 'isActive') ?? readBoolean(value, 'is_active') ?? true
+  const createdAt =
+    readString(value, 'createdAt') ?? readString(value, 'created_at') ?? ''
+  const updatedAt =
+    readString(value, 'updatedAt') ?? readString(value, 'updated_at') ?? ''
+
+  if (id === null || shopProductId === null || imageUrl === null) {
+    return null
+  }
+
+  return {
+    altText:
+      readNullableString(value, 'altText') ??
+      readNullableString(value, 'alt_text'),
+    createdAt,
+    displayOrder,
+    id,
+    imageStorageKey:
+      readNullableString(value, 'imageStorageKey') ??
+      readNullableString(value, 'image_storage_key'),
+    imageUrl,
+    isActive,
+    shopProductId,
+    updatedAt,
+  }
+}
+
 function normalizeUploadResponseOrThrow(
   value: unknown,
 ): UploadShopProductImageResponse {
@@ -395,6 +522,12 @@ function isAdminShopProduct(
 function isAdminShopProductVariant(
   value: AdminShopProductVariant | null,
 ): value is AdminShopProductVariant {
+  return value !== null
+}
+
+function isAdminShopProductImage(
+  value: AdminShopProductImage | null,
+): value is AdminShopProductImage {
   return value !== null
 }
 

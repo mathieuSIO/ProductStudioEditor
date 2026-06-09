@@ -9,7 +9,16 @@ export type ShopProductApiRow = {
   price_cents: number
   slug: string
   updated_at: string
+  images?: ShopProductGalleryImageApiRow[]
   variants?: ShopProductVariantApiRow[]
+}
+
+export type ShopProductGalleryImageApiRow = {
+  altText: string | null
+  displayOrder: number
+  id: number
+  imageStorageKey: string | null
+  imageUrl: string
 }
 
 export type ShopProductVariantApiRow = {
@@ -35,7 +44,16 @@ export type ShopProduct = {
   priceCents: number
   slug: string
   updatedAt: string
+  images: ShopProductGalleryImage[]
   variants: ShopProductVariant[]
+}
+
+export type ShopProductGalleryImage = {
+  altText: string | null
+  displayOrder: number
+  id: number
+  imageStorageKey: string | null
+  imageUrl: string
 }
 
 export type ShopProductVariant = {

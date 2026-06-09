@@ -304,6 +304,9 @@ export function AdminShopProductsPage() {
               setFormError(null)
               setSuccess(null)
             }}
+            onOpenGallery={(product) =>
+              navigate(`/admin/shop-products/${product.id}/gallery`)
+            }
             onOpenVariants={(product) =>
               navigate(`/admin/shop-products/${product.id}/variants`)
             }

@@ -1,5 +1,9 @@
 import { env } from '../../../shared/config/env'
-import type { ShopProduct, ShopProductVariant } from '../types/shop.types'
+import type {
+  ShopProduct,
+  ShopProductGalleryImage,
+  ShopProductVariant,
+} from '../types/shop.types'
 
 export async function fetchShopProducts(
   signal?: AbortSignal,
@@ -96,20 +100,17 @@ function normalizeShopProduct(value: unknown): ShopProduct | null {
   const priceCents =
     readNumber(value, 'priceCents') ?? readNumber(value, 'price_cents')
   const isActive =
-    readBoolean(value, 'isActive') ?? readBoolean(value, 'is_active')
+    readBoolean(value, 'isActive') ?? readBoolean(value, 'is_active') ?? true
   const createdAt =
-    readString(value, 'createdAt') ?? readString(value, 'created_at')
+    readString(value, 'createdAt') ?? readString(value, 'created_at') ?? ''
   const updatedAt =
-    readString(value, 'updatedAt') ?? readString(value, 'updated_at')
+    readString(value, 'updatedAt') ?? readString(value, 'updated_at') ?? ''
 
   if (
     id === null ||
     name === null ||
     slug === null ||
-    priceCents === null ||
-    isActive === null ||
-    createdAt === null ||
-    updatedAt === null
+    priceCents === null
   ) {
     return null
   }
@@ -124,6 +125,7 @@ function normalizeShopProduct(value: unknown): ShopProduct | null {
     imageUrl:
       readNullableString(value, 'imageUrl') ??
       readNullableString(value, 'image_url'),
+    images: normalizeShopProductGalleryImages(value.images),
     isActive,
     name,
     priceCents,
@@ -140,12 +142,66 @@ function normalizeShopProductResource(value: unknown): ShopProduct | null {
 
   return normalizeShopProduct({
     ...value.product,
+    images: value.images,
     variants: value.variants,
   })
 }
 
 function isActiveShopProduct(value: ShopProduct | null): value is ShopProduct {
   return value !== null && value.isActive
+}
+
+function normalizeShopProductGalleryImages(
+  value: unknown,
+): ShopProductGalleryImage[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  return value
+    .map(normalizeShopProductGalleryImage)
+    .filter(isShopProductGalleryImage)
+    .sort((firstImage, secondImage) => {
+      const orderComparison = firstImage.displayOrder - secondImage.displayOrder
+
+      return orderComparison === 0 ? firstImage.id - secondImage.id : orderComparison
+    })
+}
+
+function normalizeShopProductGalleryImage(
+  value: unknown,
+): ShopProductGalleryImage | null {
+  if (!isRecord(value)) {
+    return null
+  }
+
+  const id = readNumber(value, 'id')
+  const imageUrl =
+    readString(value, 'imageUrl') ?? readString(value, 'image_url')
+  const displayOrder =
+    readNumber(value, 'displayOrder') ?? readNumber(value, 'display_order') ?? 0
+
+  if (id === null || imageUrl === null) {
+    return null
+  }
+
+  return {
+    altText:
+      readNullableString(value, 'altText') ??
+      readNullableString(value, 'alt_text'),
+    displayOrder,
+    id,
+    imageStorageKey:
+      readNullableString(value, 'imageStorageKey') ??
+      readNullableString(value, 'image_storage_key'),
+    imageUrl,
+  }
+}
+
+function isShopProductGalleryImage(
+  value: ShopProductGalleryImage | null,
+): value is ShopProductGalleryImage {
+  return value !== null
 }
 
 function normalizeShopProductVariants(value: unknown): ShopProductVariant[] {

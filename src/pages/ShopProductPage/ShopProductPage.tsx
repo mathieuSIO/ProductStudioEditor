@@ -6,8 +6,10 @@ import { createCartItemFromShopProduct, useCart } from '../../features/cart'
 import { formatEuro } from '../../shared/formatters/formatEuro'
 import {
   fetchShopProductBySlug,
+  resolveShopProductImageUrl,
   ShopProductImage,
   type ShopProduct,
+  type ShopProductGalleryImage,
   type ShopProductVariant,
 } from '../../features/shop'
 
@@ -19,6 +21,12 @@ export function ShopProductPage() {
   const [quantity, setQuantity] = useState(1)
   const [selectedColorName, setSelectedColorName] = useState<string | null>(null)
   const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null)
+  const [selectedGalleryImageId, setSelectedGalleryImageId] = useState<
+    number | null
+  >(null)
+  const [selectedMainImageUrl, setSelectedMainImageUrl] = useState<string | null>(
+    null,
+  )
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -43,7 +51,10 @@ export function ShopProductPage() {
     activeVariants.find((variant) => variant.id === selectedVariantId) ?? null
   const displayedPriceCents =
     selectedVariant?.priceCents ?? product?.priceCents ?? 0
-  const displayedImageUrl = selectedVariant?.imageUrl ?? product?.imageUrl ?? null
+  const selectedGalleryImage =
+    product?.images.find((image) => image.id === selectedGalleryImageId) ??
+    product?.images[0] ??
+    null
   const maxQuantity = selectedVariant?.stockQuantity ?? 1
   const canAddToCart =
     Boolean(product?.isActive) &&
@@ -74,6 +85,10 @@ export function ShopProductPage() {
         setQuantity(1)
         setSelectedColorName(defaultVariant?.colorName ?? null)
         setSelectedVariantId(defaultVariant?.id ?? null)
+        setSelectedGalleryImageId(loadedProduct.images[0]?.id ?? null)
+        setSelectedMainImageUrl(
+          loadedProduct.images[0]?.imageUrl ?? loadedProduct.imageUrl,
+        )
         setSuccessMessage(null)
       } catch (loadError) {
         if (abortController.signal.aborted) {
@@ -124,6 +139,9 @@ export function ShopProductPage() {
 
     setSelectedColorName(colorName)
     setSelectedVariantId(nextVariant?.id ?? null)
+    setSelectedMainImageUrl(
+      getMainImageUrlForVariant(nextVariant, selectedGalleryImage, product),
+    )
     setQuantity(1)
     setSuccessMessage(null)
   }
@@ -134,8 +152,16 @@ export function ShopProductPage() {
     }
 
     setSelectedVariantId(variant.id)
+    setSelectedMainImageUrl(
+      getMainImageUrlForVariant(variant, selectedGalleryImage, product),
+    )
     setQuantity(1)
     setSuccessMessage(null)
+  }
+
+  function handleSelectGalleryImage(image: ShopProductGalleryImage) {
+    setSelectedGalleryImageId(image.id)
+    setSelectedMainImageUrl(image.imageUrl)
   }
 
   return (
@@ -176,10 +202,12 @@ export function ShopProductPage() {
           />
         ) : (
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(22rem,0.95fr)] lg:items-start">
-            <ShopProductImage
-              imageUrl={displayedImageUrl}
-              name={product.name}
-              variant="detail"
+            <ProductGallery
+              displayedImageUrl={selectedMainImageUrl}
+              images={product.images}
+              productName={product.name}
+              selectedGalleryImageId={selectedGalleryImage?.id ?? null}
+              onSelectImage={handleSelectGalleryImage}
             />
             <div className="min-w-0 rounded-[1.15rem] border border-stone-200 bg-stone-50 px-4 py-5 sm:px-5">
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-700">
@@ -268,6 +296,85 @@ export function ShopProductPage() {
         )}
       </section>
     </AppShell>
+  )
+}
+
+type ProductGalleryProps = {
+  displayedImageUrl: string | null
+  images: ShopProductGalleryImage[]
+  onSelectImage: (image: ShopProductGalleryImage) => void
+  productName: string
+  selectedGalleryImageId: number | null
+}
+
+function ProductGallery({
+  displayedImageUrl,
+  images,
+  onSelectImage,
+  productName,
+  selectedGalleryImageId,
+}: ProductGalleryProps) {
+  return (
+    <div className="grid gap-3">
+      <ShopProductImage
+        imageUrl={displayedImageUrl}
+        name={productName}
+        variant="detail"
+      />
+      {images.length > 0 ? (
+        <div className="flex gap-2 overflow-x-auto pb-1 sm:grid sm:grid-cols-5 sm:overflow-visible sm:pb-0">
+          {images.map((image) => (
+            <GalleryThumbnail
+              key={image.id}
+              image={image}
+              isSelected={image.id === selectedGalleryImageId}
+              productName={productName}
+              onSelect={() => onSelectImage(image)}
+            />
+          ))}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+type GalleryThumbnailProps = {
+  image: ShopProductGalleryImage
+  isSelected: boolean
+  onSelect: () => void
+  productName: string
+}
+
+function GalleryThumbnail({
+  image,
+  isSelected,
+  onSelect,
+  productName,
+}: GalleryThumbnailProps) {
+  const resolvedImageUrl = resolveShopProductImageUrl(image.imageUrl)
+
+  return (
+    <button
+      type="button"
+      className={`h-20 w-20 shrink-0 overflow-hidden rounded-[0.85rem] border bg-stone-50 transition focus:outline-none focus:ring-2 focus:ring-emerald-200 sm:h-auto sm:w-full ${
+        isSelected
+          ? 'border-emerald-400 ring-2 ring-emerald-100'
+          : 'border-stone-200 hover:border-emerald-200'
+      }`}
+      onClick={onSelect}
+    >
+      {resolvedImageUrl ? (
+        <img
+          alt={image.altText ?? productName}
+          className="h-full w-full object-cover sm:aspect-square"
+          src={resolvedImageUrl}
+        />
+      ) : (
+        <span className="flex h-full items-center justify-center px-2 text-center text-[10px] font-semibold text-stone-400 sm:aspect-square">
+          Image
+        </span>
+      )}
+    </button>
   )
 }
 
@@ -391,6 +498,14 @@ function getDefaultVariant(
     variants.find((variant) => variant.isActive) ??
     null
   )
+}
+
+function getMainImageUrlForVariant(
+  variant: ShopProductVariant | null,
+  selectedGalleryImage: ShopProductGalleryImage | null,
+  product: ShopProduct | null,
+): string | null {
+  return variant?.imageUrl ?? selectedGalleryImage?.imageUrl ?? product?.imageUrl ?? null
 }
 
 function normalizeQuantityInput(value: string, maxQuantity: number): number {

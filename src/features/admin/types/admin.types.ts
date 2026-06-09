@@ -94,6 +94,18 @@ export type AdminShopProductVariant = {
   updatedAt: string
 }
 
+export type AdminShopProductImage = {
+  altText: string | null
+  createdAt: string
+  displayOrder: number
+  id: number
+  imageStorageKey: string | null
+  imageUrl: string
+  isActive: boolean
+  shopProductId: number
+  updatedAt: string
+}
+
 export type CreateAdminShopProductVariantPayload = {
   colorHex?: string | null
   colorName: string
@@ -106,6 +118,14 @@ export type CreateAdminShopProductVariantPayload = {
   stockQuantity: number
 }
 
+export type CreateAdminShopProductImagePayload = {
+  altText?: string | null
+  displayOrder?: number
+  imageStorageKey?: string | null
+  imageUrl: string
+  isActive?: boolean
+}
+
 export type UpdateAdminShopProductVariantPayload = {
   colorHex?: string | null
   colorName?: string
@@ -116,4 +136,12 @@ export type UpdateAdminShopProductVariantPayload = {
   sizeLabel?: string
   sku?: string | null
   stockQuantity?: number
+}
+
+export type UpdateAdminShopProductImagePayload = {
+  altText?: string | null
+  displayOrder?: number
+  imageStorageKey?: string | null
+  imageUrl?: string
+  isActive?: boolean
 }
