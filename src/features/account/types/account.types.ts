@@ -113,13 +113,21 @@ export type OrderItemDetails = {
   finalPreviewUrl?: string | null
   finalPreviewUrls?: FinalPreviewUrls | null
   id: string
+  itemType?: 'shop' | 'studio' | string | null
   productId?: number | null
   priceTotal?: number | null
   productName: string
   quantity: number
+  shopProductId?: number | null
+  shopProductVariantId?: number | null
   totalPriceCents?: number | null
   unitPrice?: number | null
   unitPriceCents?: number | null
+  variantColorHex?: string | null
+  variantColorName?: string | null
+  variantImageUrl?: string | null
+  variantSizeLabel?: string | null
+  variantSku?: string | null
 }
 
 export type OrderDetails = OrderSummary & {

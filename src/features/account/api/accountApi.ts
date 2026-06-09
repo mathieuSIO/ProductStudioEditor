@@ -376,11 +376,17 @@ function normalizeOrderItem(
       readFinalPreviewUrls(value, 'finalPreviewUrls') ??
       readFinalPreviewUrls(value, 'final_preview_urls'),
     id,
+    itemType: readString(value, 'itemType') ?? readString(value, 'item_type'),
     productId,
     priceTotal:
       readNumber(value, 'priceTotal') ?? readNumber(value, 'price_total'),
     productName,
     quantity,
+    shopProductId:
+      readNumber(value, 'shopProductId') ?? readNumber(value, 'shop_product_id'),
+    shopProductVariantId:
+      readNumber(value, 'shopProductVariantId') ??
+      readNumber(value, 'shop_product_variant_id'),
     totalPriceCents:
       readNumber(value, 'totalPriceCents') ??
       readNumber(value, 'total_price_cents'),
@@ -389,6 +395,20 @@ function normalizeOrderItem(
     unitPriceCents:
       readNumber(value, 'unitPriceCents') ??
       readNumber(value, 'unit_price_cents'),
+    variantColorHex:
+      readString(value, 'variantColorHex') ??
+      readString(value, 'variant_color_hex'),
+    variantColorName:
+      readString(value, 'variantColorName') ??
+      readString(value, 'variant_color_name'),
+    variantImageUrl:
+      readString(value, 'variantImageUrl') ??
+      readString(value, 'variant_image_url'),
+    variantSizeLabel:
+      readString(value, 'variantSizeLabel') ??
+      readString(value, 'variant_size_label'),
+    variantSku:
+      readString(value, 'variantSku') ?? readString(value, 'variant_sku'),
   }
 }
 

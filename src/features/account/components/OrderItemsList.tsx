@@ -1,4 +1,5 @@
 import { PanelCard } from '../../../components/ui/PanelCard'
+import { env } from '../../../shared/config/env'
 import type { OrderItemDetails } from '../types/account.types'
 import {
   getOrderItemCustomizationDetails,
@@ -28,6 +29,10 @@ export function OrderItemsList({ items }: OrderItemsListProps) {
       ) : (
         <div className="grid min-w-0 gap-3">
           {items.map((item) => {
+            if (isShopOrderItem(item)) {
+              return <ShopOrderItemCard key={item.id} item={item} />
+            }
+
             const customizationDetails = getOrderItemCustomizationDetails(item)
             const previewImages = getOrderItemPreviewImages(item)
 
@@ -72,6 +77,81 @@ export function OrderItemsList({ items }: OrderItemsListProps) {
         </div>
       )}
     </PanelCard>
+  )
+}
+
+type ShopOrderItemCardProps = {
+  item: OrderItemDetails
+}
+
+function ShopOrderItemCard({ item }: ShopOrderItemCardProps) {
+  return (
+    <article className="grid min-w-0 gap-4 rounded-[1rem] border border-stone-200 bg-white p-3 sm:grid-cols-[7rem_minmax(0,1fr)]">
+      <OrderShopImage imageUrl={item.variantImageUrl ?? null} name={item.productName} />
+
+      <div className="min-w-0">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="break-words text-base font-semibold text-blue-950">
+                {item.productName}
+              </h3>
+              <span className="rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-emerald-700">
+                Boutique
+              </span>
+            </div>
+            <div className="mt-2 grid gap-1.5 text-sm text-stone-600">
+              <p>Quantite : {item.quantity}</p>
+              <p>Taille : {item.variantSizeLabel ?? 'Non renseignee'}</p>
+              <p className="inline-flex flex-wrap items-center gap-2">
+                Couleur :
+                <span
+                  className="h-3.5 w-3.5 rounded-full border border-stone-200"
+                  style={{
+                    backgroundColor: item.variantColorHex ?? '#ffffff',
+                  }}
+                />
+                <span>{item.variantColorName ?? 'Non renseignee'}</span>
+              </p>
+              <p>SKU : {item.variantSku ?? 'Non renseigne'}</p>
+            </div>
+          </div>
+          <div className="grid min-w-0 gap-1 text-sm sm:text-right">
+            <p className="break-words font-semibold text-blue-950">
+              {formatItemTotal(item)}
+            </p>
+            <p className="break-words text-stone-500">
+              {formatItemUnitPrice(item)} / piece
+            </p>
+          </div>
+        </div>
+      </div>
+    </article>
+  )
+}
+
+type OrderShopImageProps = {
+  imageUrl: string | null
+  name: string
+}
+
+function OrderShopImage({ imageUrl, name }: OrderShopImageProps) {
+  const resolvedImageUrl = resolveOrderImageUrl(imageUrl)
+
+  if (!resolvedImageUrl) {
+    return (
+      <div className="flex aspect-square min-h-28 items-center justify-center rounded-[0.85rem] border border-dashed border-stone-200 bg-stone-50 px-3 py-4 text-center text-xs font-semibold text-stone-400 sm:min-h-0">
+        Image produit
+      </div>
+    )
+  }
+
+  return (
+    <img
+      alt={name}
+      className="aspect-square w-full rounded-[0.85rem] border border-stone-200 object-cover"
+      src={resolvedImageUrl}
+    />
   )
 }
 
@@ -162,4 +242,24 @@ function CustomizationDetails({
       )}
     </div>
   )
+}
+
+function isShopOrderItem(item: OrderItemDetails): boolean {
+  return item.itemType === 'shop'
+}
+
+function resolveOrderImageUrl(imageUrl: string | null): string | null {
+  if (!imageUrl) {
+    return null
+  }
+
+  if (imageUrl.startsWith('http')) {
+    return imageUrl
+  }
+
+  if (imageUrl.startsWith('/uploads')) {
+    return `${env.apiBaseUrl}${imageUrl}`
+  }
+
+  return imageUrl
 }
