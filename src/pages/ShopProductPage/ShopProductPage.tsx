@@ -9,6 +9,7 @@ import {
   fetchShopProductBySlug,
   resolveShopProductImageUrl,
   ShopProductImage,
+  sortShopProductVariantsBySize,
   type ShopProduct,
   type ShopProductGalleryImage,
   type ShopProductVariant,
@@ -42,8 +43,10 @@ export function ShopProductPage() {
   const variantsForSelectedColor = useMemo(
     () =>
       selectedColorName
-        ? activeVariants.filter(
-          (variant) => variant.colorName === selectedColorName,
+        ? sortShopProductVariantsBySize(
+          activeVariants.filter(
+            (variant) => variant.colorName === selectedColorName,
+          ),
         )
         : [],
     [activeVariants, selectedColorName],
