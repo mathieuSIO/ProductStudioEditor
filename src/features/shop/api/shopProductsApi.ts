@@ -14,7 +14,11 @@ export async function fetchShopProducts(
     throw new Error('Impossible de charger les produits boutique.')
   }
 
-  return products.map(normalizeShopProduct).filter(isActiveShopProduct)
+  const activeProducts = products.map(normalizeShopProduct).filter(isActiveShopProduct)
+
+  return Promise.all(
+    activeProducts.map((product) => fetchShopProductDetails(product, signal)),
+  )
 }
 
 export async function fetchShopProductBySlug(
@@ -73,6 +77,17 @@ async function fetchShopResource<T>(
   }
 
   return responseBody.data
+}
+
+async function fetchShopProductDetails(
+  product: ShopProduct,
+  signal?: AbortSignal,
+): Promise<ShopProduct> {
+  try {
+    return await fetchShopProductBySlug(product.slug, signal)
+  } catch {
+    return product
+  }
 }
 
 async function readResponseBody(response: Response): Promise<unknown> {
