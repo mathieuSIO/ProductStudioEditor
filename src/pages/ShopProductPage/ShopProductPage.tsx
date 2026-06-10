@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
+import boutiqueLogoUrl from '../../assets/images/boutique/boutiqueLogo.png'
 import { AppShell } from '../../components/layout/AppShell'
 import { createCartItemFromShopProduct, useCart } from '../../features/cart'
 import { formatEuro } from '../../shared/formatters/formatEuro'
@@ -166,8 +167,12 @@ export function ShopProductPage() {
 
   return (
     <AppShell
-      title="Boutique"
-      subtitle="Produits prets a porter et creations Mon Petit Matos."
+      title=""
+      subtitle=""
+      secondaryLogo={{
+        alt: 'Logo Boutique Mon Petit Matos',
+        src: boutiqueLogoUrl,
+      }}
       action={
         <div className="flex flex-wrap gap-2">
           <button
