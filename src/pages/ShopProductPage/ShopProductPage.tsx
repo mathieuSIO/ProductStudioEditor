@@ -42,8 +42,8 @@ export function ShopProductPage() {
     () =>
       selectedColorName
         ? activeVariants.filter(
-            (variant) => variant.colorName === selectedColorName,
-          )
+          (variant) => variant.colorName === selectedColorName,
+        )
         : [],
     [activeVariants, selectedColorName],
   )
@@ -216,6 +216,22 @@ export function ShopProductPage() {
               <h1 className="mt-2 text-2xl font-semibold tracking-tight text-blue-950 sm:text-3xl">
                 {product.name}
               </h1>
+              <p className="mt-5 text-3xl font-semibold tracking-tight text-red-600">
+                {formatEuro(displayedPriceCents / 100)}
+              </p>
+              {!product.isActive ? (
+                <p className="mt-3 rounded-[0.95rem] border border-stone-200 bg-white px-3 py-2 text-sm font-semibold text-stone-600">
+                  Produit actuellement indisponible.
+                </p>
+              ) : null}
+              <ProductVariantSelector
+                availableColors={availableColors}
+                selectedColorName={selectedColorName}
+                selectedVariantId={selectedVariantId}
+                variants={variantsForSelectedColor}
+                onSelectColor={handleSelectColor}
+                onSelectVariant={handleSelectVariant}
+              />
               {product.description ? (
                 <p className="mt-4 text-sm leading-7 text-stone-600 whitespace-pre-line">
                   {product.description}
@@ -225,23 +241,7 @@ export function ShopProductPage() {
                   Description detaillee a venir.
                 </p>
               )}
-              <p className="mt-5 text-3xl font-semibold tracking-tight text-red-600">
-                {formatEuro(displayedPriceCents / 100)}
-              </p>
-              {!product.isActive ? (
-                <p className="mt-3 rounded-[0.95rem] border border-stone-200 bg-white px-3 py-2 text-sm font-semibold text-stone-600">
-                  Produit actuellement indisponible.
-                </p>
-              ) : null}
               <div className="mt-5 grid gap-3">
-                <ProductVariantSelector
-                  availableColors={availableColors}
-                  selectedColorName={selectedColorName}
-                  selectedVariantId={selectedVariantId}
-                  variants={variantsForSelectedColor}
-                  onSelectColor={handleSelectColor}
-                  onSelectVariant={handleSelectVariant}
-                />
                 <label className="grid max-w-36 gap-1.5 text-sm font-semibold text-blue-950">
                   Quantite
                   <input
@@ -356,11 +356,10 @@ function GalleryThumbnail({
   return (
     <button
       type="button"
-      className={`h-20 w-20 shrink-0 overflow-hidden rounded-[0.85rem] border bg-stone-50 transition focus:outline-none focus:ring-2 focus:ring-emerald-200 sm:h-auto sm:w-full ${
-        isSelected
+      className={`h-20 w-20 shrink-0 overflow-hidden rounded-[0.85rem] border bg-stone-50 transition focus:outline-none focus:ring-2 focus:ring-emerald-200 sm:h-auto sm:w-full ${isSelected
           ? 'border-emerald-400 ring-2 ring-emerald-100'
           : 'border-stone-200 hover:border-emerald-200'
-      }`}
+        }`}
       onClick={onSelect}
     >
       {resolvedImageUrl ? (
@@ -422,11 +421,10 @@ function ProductVariantSelector({
               <button
                 key={color.colorName}
                 type="button"
-                className={`inline-flex min-h-11 items-center gap-2 rounded-[0.95rem] border px-3 py-2 text-sm font-semibold transition ${
-                  isSelected
+                className={`inline-flex min-h-11 items-center gap-2 rounded-[0.95rem] border px-3 py-2 text-sm font-semibold transition ${isSelected
                     ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
                     : 'border-stone-200 bg-white text-blue-950 hover:border-emerald-200 hover:bg-emerald-50'
-                }`}
+                  }`}
                 onClick={() => onSelectColor(color.colorName)}
               >
                 <span
@@ -452,11 +450,10 @@ function ProductVariantSelector({
                 <button
                   key={variant.id}
                   type="button"
-                  className={`inline-flex min-h-11 min-w-14 items-center justify-center rounded-[0.95rem] border px-3 py-2 text-sm font-semibold transition ${
-                    isSelected
+                  className={`inline-flex min-h-11 min-w-14 items-center justify-center rounded-[0.95rem] border px-3 py-2 text-sm font-semibold transition ${isSelected
                       ? 'border-blue-950 bg-blue-950 text-white'
                       : 'border-stone-200 bg-white text-blue-950 hover:border-emerald-200 hover:bg-emerald-50'
-                  } disabled:cursor-not-allowed disabled:border-stone-200 disabled:bg-stone-100 disabled:text-stone-400`}
+                    } disabled:cursor-not-allowed disabled:border-stone-200 disabled:bg-stone-100 disabled:text-stone-400`}
                   disabled={isOutOfStock}
                   onClick={() => onSelectVariant(variant)}
                 >
