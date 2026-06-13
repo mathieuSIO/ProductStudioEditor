@@ -136,7 +136,7 @@ export function AdminOrderDetailsPage() {
               onShippingUpdate={handleShippingUpdate}
             />
           </PanelCard>
-          <OrderDetailsPanel order={order} />
+          <OrderDetailsPanel order={order} showCustomerPhone />
           <PanelCard
             eyebrow="Uploads"
             title="Fichiers clients"

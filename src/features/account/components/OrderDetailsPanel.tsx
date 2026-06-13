@@ -13,9 +13,17 @@ import { OrderStatusBadge } from './OrderStatusBadge'
 
 type OrderDetailsPanelProps = {
   order: OrderDetails
+  showCustomerPhone?: boolean
 }
 
-export function OrderDetailsPanel({ order }: OrderDetailsPanelProps) {
+export function OrderDetailsPanel({
+  order,
+  showCustomerPhone = false,
+}: OrderDetailsPanelProps) {
+  const detailsGridClassName = showCustomerPhone
+    ? 'grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-5'
+    : 'grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-4'
+
   return (
     <PanelCard
       eyebrow="Commande"
@@ -23,9 +31,12 @@ export function OrderDetailsPanel({ order }: OrderDetailsPanelProps) {
       description="Informations de suivi et de livraison."
       aside={<OrderStatusBadge status={order.status} />}
     >
-      <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className={detailsGridClassName}>
         <DetailStat label="Client" value={formatCustomerName(order)} />
         <DetailStat label="Email" value={formatCustomerEmail(order)} />
+        {showCustomerPhone ? (
+          <DetailStat label="Téléphone" value={formatCustomerPhone(order)} />
+        ) : null}
         <DetailStat label="Date" value={formatOrderDate(order.createdAt)} />
         <DetailStat label="Total" value={formatOrderTotal(order)} />
       </div>
@@ -194,6 +205,10 @@ function OptionStat({ label, value }: DetailStatProps) {
       </p>
     </div>
   )
+}
+
+function formatCustomerPhone(order: OrderDetails): string {
+  return order.customerPhone ?? order.customer?.phone ?? 'Non renseigné'
 }
 
 function hasPromoCodeDetails(order: OrderDetails): boolean {
