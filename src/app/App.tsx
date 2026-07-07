@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import {
   BrowserRouter,
   Navigate,
@@ -32,6 +33,7 @@ import {
   AdminCustomRequestDetailsPage,
   AdminCustomRequestsPage,
 } from '../features/customRequests'
+import { initializeMetaPixel, trackMetaPageView } from '../lib/metaPixel'
 import { CheckoutCancelPage } from '../pages/CheckoutCancelPage'
 import { CheckoutSuccessPage } from '../pages/CheckoutSuccessPage'
 import { HomePage } from '../pages/HomePage'
@@ -41,6 +43,7 @@ import { ShopProductPage } from '../pages/ShopProductPage'
 function App() {
   return (
     <BrowserRouter>
+      <MetaPixelRouteTracker />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/boutique" element={<ShopPage />} />
@@ -151,6 +154,21 @@ function App() {
       </Routes>
     </BrowserRouter>
   )
+}
+
+function MetaPixelRouteTracker() {
+  const location = useLocation()
+
+  useEffect(() => {
+    // TODO: conditionner le declenchement du Pixel au consentement cookies/RGPD.
+    initializeMetaPixel({ trackPageView: false })
+  }, [])
+
+  useEffect(() => {
+    trackMetaPageView(`${location.pathname}${location.search}`)
+  }, [location.pathname, location.search])
+
+  return null
 }
 
 type RequireAuthProps = {

@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import boutiqueLogoUrl from '../../assets/images/boutique/boutiqueLogo.png'
 import { AppShell } from '../../components/layout/AppShell'
 import { createCartItemFromShopProduct, useCart } from '../../features/cart'
+import { trackMetaEvent } from '../../lib/metaPixel'
 import { formatEuro } from '../../shared/formatters/formatEuro'
 import {
   fetchShopProductBySlug,
@@ -32,6 +33,7 @@ export function ShopProductPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const viewedProductIdRef = useRef<number | null>(null)
   const activeVariants = useMemo(
     () => product?.variants.filter((variant) => variant.isActive) ?? [],
     [product],
@@ -116,6 +118,21 @@ export function ShopProductPage() {
     return () => abortController.abort()
   }, [slug])
 
+  useEffect(() => {
+    if (!product || viewedProductIdRef.current === product.id) {
+      return
+    }
+
+    viewedProductIdRef.current = product.id
+    trackMetaEvent('ViewContent', {
+      content_ids: [product.id],
+      content_name: product.name,
+      content_type: 'product',
+      currency: 'EUR',
+      value: product.priceCents / 100,
+    })
+  }, [product])
+
   function handleAddToCart() {
     if (!product || !canAddToCart || !selectedVariant) {
       return
@@ -128,6 +145,13 @@ export function ShopProductPage() {
         variant: selectedVariant,
       }),
     )
+    trackMetaEvent('AddToCart', {
+      content_ids: [product.id],
+      content_name: product.name,
+      content_type: 'product',
+      currency: 'EUR',
+      value: displayedPriceCents / 100,
+    })
     setSuccessMessage(
       `Produit ajoute au panier : ${selectedVariant.colorName}, taille ${selectedVariant.sizeLabel}.`,
     )

@@ -8,6 +8,7 @@ import {
   type CreateCartItemFromEditorInput,
 } from '../../features/cart'
 import { EditorLayout } from '../../features/editor'
+import { trackMetaEvent } from '../../lib/metaPixel'
 import { CartPage } from '../CartPage'
 import { CheckoutPage } from '../CheckoutPage'
 
@@ -29,7 +30,16 @@ export function HomePage() {
   )
 
   function handleAddToCart(configuration: CreateCartItemFromEditorInput) {
-    addItem(createCartItemFromEditor(configuration))
+    const cartItem = createCartItemFromEditor(configuration)
+
+    addItem(cartItem)
+    trackMetaEvent('AddToCart', {
+      content_ids: [configuration.product.id],
+      content_name: configuration.product.name,
+      content_type: 'product',
+      currency: 'EUR',
+      value: configuration.pricing.grandTotal,
+    })
   }
 
   function handleContinueToCheckout() {
@@ -37,6 +47,11 @@ export function HomePage() {
       return
     }
 
+    trackMetaEvent('InitiateCheckout', {
+      currency: 'EUR',
+      num_items: cart.items.length,
+      value: totals.total,
+    })
     setCurrentView('checkout')
   }
 
