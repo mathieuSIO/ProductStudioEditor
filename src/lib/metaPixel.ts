@@ -1,4 +1,6 @@
-const metaPixelId = import.meta.env.VITE_META_PIXEL_ID;
+import { env } from "../shared/config/env";
+
+const metaPixelId = env.metaPixelId;
 const metaPixelScriptId = 'meta-pixel-script'
 const metaPixelScriptSrc = 'https://connect.facebook.net/en_US/fbevents.js'
 
