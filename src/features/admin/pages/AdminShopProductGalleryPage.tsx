@@ -113,7 +113,8 @@ export function AdminShopProductGalleryPage() {
   }
 
   async function handleUpload(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.currentTarget.files?.[0]
+    const input = event.currentTarget
+    const file = input.files?.[0]
 
     if (!file) {
       return
@@ -139,7 +140,7 @@ export function AdminShopProductGalleryPage() {
       )
     } finally {
       setIsUploading(false)
-      event.currentTarget.value = ''
+      input.value = ''
     }
   }
 
