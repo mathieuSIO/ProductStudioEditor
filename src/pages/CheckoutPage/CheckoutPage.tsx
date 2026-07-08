@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 
-import { useAuth } from '../../features/auth'
+import { useAuth, type AuthUser } from '../../features/auth'
 import {
   isShopCartItem,
   isStudioCartItem,
@@ -10,11 +10,11 @@ import {
   type CartTotals,
 } from '../../features/cart'
 import {
-  createCheckoutSession,
+  createCheckout,
   createCheckoutDraft,
-  createOrder,
   createOrderPayloadFromCheckoutDraft,
   createShippingEstimate,
+  pendingCheckoutCustomerFirstNameStorageKey,
   pendingCheckoutOrderIdStorageKey,
   validatePromoCode,
   type CheckoutFormData,
@@ -56,6 +56,24 @@ const initialFormData: CheckoutFormData = {
   phone: '',
 }
 
+function createInitialFormData(user: AuthUser | null): CheckoutFormData {
+  if (!user) {
+    return initialFormData
+  }
+
+  return {
+    ...initialFormData,
+    adresse: user.addressLine1 ?? '',
+    codePostal: user.postalCode ?? '',
+    email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    pays: user.country,
+    phone: user.phone ?? '',
+    ville: user.city ?? '',
+  }
+}
+
 const reassuranceItems = [
   'Paiement securise Stripe',
   'Commande verifiee avant production',
@@ -63,8 +81,8 @@ const reassuranceItems = [
 ]
 
 const authRequiredMessage = 'Connectez-vous pour finaliser votre commande.'
-const stripeSessionErrorMessage =
-  "La session de paiement Stripe n'a pas pu etre creee."
+const guestStudioMessage =
+  'La commande invitee est disponible pour la boutique. Connectez-vous pour finaliser un panier contenant une personnalisation studio.'
 
 const productionOptions = [
   {
@@ -92,8 +110,10 @@ export function CheckoutPage({
   onReturnToCart,
   totals,
 }: CheckoutPageProps) {
-  const { isAuthenticated } = useAuth()
-  const [formData, setFormData] = useState<CheckoutFormData>(initialFormData)
+  const { isAuthenticated, user } = useAuth()
+  const [formData, setFormData] = useState<CheckoutFormData>(() =>
+    createInitialFormData(user),
+  )
   const [productionOption, setProductionOption] =
     useState<ProductionOption>('standard')
   const [submitStatus, setSubmitStatus] = useState<SubmitStatus>('idle')
@@ -119,11 +139,8 @@ export function CheckoutPage({
   const isSubmitting =
     submitStatus === 'creating-order' || submitStatus === 'redirecting-payment'
   const isRedirectingPayment = submitStatus === 'redirecting-payment'
-  const shouldShowLoginAction = errorMessage === authRequiredMessage
-  const canRetryPaymentRedirect =
-    submitStatus === 'error' &&
-    createdOrderId !== null &&
-    errorMessage === stripeSessionErrorMessage
+  const shouldShowLoginAction =
+    errorMessage === authRequiredMessage || errorMessage === guestStudioMessage
   const selectedProductionOption = getProductionOptionDetails(productionOption)
   const productionSupplementCents = Math.round(
     totals.subtotal * 100 * selectedProductionOption.percentage,
@@ -239,9 +256,9 @@ export function CheckoutPage({
       return
     }
 
-    if (!isAuthenticated) {
+    if (!isAuthenticated && cart.items.some(isStudioCartItem)) {
       setSubmitStatus('error')
-      setErrorMessage(authRequiredMessage)
+      setErrorMessage(guestStudioMessage)
       return
     }
 
@@ -258,12 +275,16 @@ export function CheckoutPage({
         appliedPromoCode,
       )
 
-      const createdOrder = await createOrder(payloadWithPromoCode)
+      const checkout = await createCheckout(payloadWithPromoCode)
 
-      setCreatedOrderId(createdOrder.orderId)
-      setBackendTotalPriceCents(createdOrder.totalPriceCents ?? null)
-      savePendingCheckoutOrderId(createdOrder.orderId)
-      await redirectToStripeCheckout(createdOrder.orderId)
+      setCreatedOrderId(checkout.orderId)
+      setBackendTotalPriceCents(checkout.totalPriceCents ?? null)
+      savePendingCheckoutState({
+        firstName: formData.firstName,
+        isAuthenticated,
+        orderId: checkout.orderId,
+      })
+      redirectToStripeCheckout(checkout.checkoutUrl)
     } catch (error) {
       setSubmitStatus('error')
       setErrorMessage(
@@ -274,27 +295,13 @@ export function CheckoutPage({
     }
   }
 
-  async function redirectToStripeCheckout(orderId: number) {
+  function redirectToStripeCheckout(checkoutUrl: string) {
     setSubmitStatus('redirecting-payment')
     setErrorMessage(null)
 
-    try {
-      const checkoutSession = await createCheckoutSession(orderId)
-
-      window.location.assign(checkoutSession.checkoutUrl)
-    } catch {
-      setSubmitStatus('error')
-      setErrorMessage(stripeSessionErrorMessage)
-    }
+    window.location.assign(checkoutUrl)
   }
 
-  async function handleRetryPaymentRedirect() {
-    if (createdOrderId === null || isSubmitting) {
-      return
-    }
-
-    await redirectToStripeCheckout(createdOrderId)
-  }
   return (
     <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
       <form
@@ -359,7 +366,6 @@ export function CheckoutPage({
                 helpText="Utile pour la livraison"
                 label="Téléphone"
                 name="phone"
-                required
                 disabled={isSubmitting || createdOrderId !== null}
                 type="tel"
                 value={formData.phone}
@@ -394,6 +400,7 @@ export function CheckoutPage({
             <FormField
               label="Numero et nom de rue"
               name="adresse"
+              required
               disabled={isSubmitting || createdOrderId !== null}
               value={formData.adresse}
               onChange={(value) => handleFieldChange('adresse', value)}
@@ -525,15 +532,6 @@ export function CheckoutPage({
                 >
                   Se connecter
                 </Link>
-              ) : null}
-              {canRetryPaymentRedirect ? (
-                <button
-                  type="button"
-                  className="mt-3 inline-flex min-h-10 items-center justify-center rounded-[0.9rem] bg-blue-950 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-200"
-                  onClick={handleRetryPaymentRedirect}
-                >
-                  Reessayer le paiement
-                </button>
               ) : null}
             </div>
           ) : null}
@@ -713,15 +711,38 @@ function createOrderPayloadWithPromoCode(
   }
 }
 
-function savePendingCheckoutOrderId(orderId: number): void {
+type PendingCheckoutState = {
+  firstName: string
+  isAuthenticated: boolean
+  orderId: number
+}
+
+function savePendingCheckoutState({
+  firstName,
+  isAuthenticated,
+  orderId,
+}: PendingCheckoutState): void {
   if (typeof window === 'undefined') {
     return
   }
 
-  window.localStorage.setItem(
-    pendingCheckoutOrderIdStorageKey,
-    String(orderId),
-  )
+  if (isAuthenticated) {
+    window.localStorage.setItem(
+      pendingCheckoutOrderIdStorageKey,
+      String(orderId),
+    )
+  } else {
+    window.localStorage.removeItem(pendingCheckoutOrderIdStorageKey)
+  }
+
+  const normalizedFirstName = firstName.trim()
+
+  if (normalizedFirstName) {
+    window.sessionStorage.setItem(
+      pendingCheckoutCustomerFirstNameStorageKey,
+      normalizedFirstName,
+    )
+  }
 }
 
 type FormFieldProps = {

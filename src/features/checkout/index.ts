@@ -1,5 +1,7 @@
 export {
+  createCheckout,
   createCheckoutSession,
+  pendingCheckoutCustomerFirstNameStorageKey,
   pendingCheckoutOrderIdStorageKey,
 } from './api/createCheckoutSession'
 export { createOrder } from './api/createOrder'
@@ -9,7 +11,10 @@ export {
   createCheckoutDraft,
   createOrderPayloadFromCheckoutDraft,
 } from './utils/createCheckoutDraft'
-export type { CreateCheckoutSessionResponse } from './api/createCheckoutSession'
+export type {
+  CreateCheckoutResponse,
+  CreateCheckoutSessionResponse,
+} from './api/createCheckoutSession'
 export type { CreateOrderResponse } from './api/createOrder'
 export type {
   ShippingEstimate,

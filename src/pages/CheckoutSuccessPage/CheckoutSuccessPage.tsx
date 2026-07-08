@@ -3,7 +3,10 @@ import { Link, useSearchParams } from 'react-router-dom'
 
 import { fetchUserOrderDetails } from '../../features/account/api/accountApi'
 import { createEmptyCart, saveCart } from '../../features/cart'
-import { pendingCheckoutOrderIdStorageKey } from '../../features/checkout'
+import {
+  pendingCheckoutCustomerFirstNameStorageKey,
+  pendingCheckoutOrderIdStorageKey,
+} from '../../features/checkout'
 
 type PaymentConfirmationStatus =
   | 'checking'
@@ -20,12 +23,21 @@ export function CheckoutSuccessPage() {
   const [pendingOrderId] = useState<string | null>(() =>
     readPendingCheckoutOrderId(),
   )
+  const [customerFirstName] = useState<string | null>(() =>
+    readPendingCheckoutCustomerFirstName(),
+  )
   const [confirmationStatus, setConfirmationStatus] =
     useState<PaymentConfirmationStatus>(() =>
-      pendingOrderId ? 'checking' : 'missing-order',
+      pendingOrderId ? 'checking' : sessionId ? 'paid' : 'missing-order',
     )
+  const isGuestSuccess = !pendingOrderId && Boolean(sessionId)
 
   useEffect(() => {
+    if (!pendingOrderId && sessionId) {
+      clearConfirmedCheckoutCart()
+      return undefined
+    }
+
     if (!pendingOrderId) {
       return undefined
     }
@@ -72,7 +84,7 @@ export function CheckoutSuccessPage() {
         window.clearTimeout(timeoutId)
       }
     }
-  }, [pendingOrderId])
+  }, [pendingOrderId, sessionId])
 
   return (
     <main className="min-h-screen bg-blue-50/55 px-4 py-6 text-blue-950">
@@ -83,19 +95,19 @@ export function CheckoutSuccessPage() {
               Paiement
             </p>
             <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-              {getStatusTitle(confirmationStatus)}
+              {getStatusTitle(confirmationStatus, customerFirstName)}
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-6">
-              {getStatusDescription(confirmationStatus, sessionId)}
+              {getStatusDescription(confirmationStatus, sessionId, isGuestSuccess)}
             </p>
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
             <Link
-              to="/account"
+              to={isGuestSuccess ? '/register' : '/account'}
               className="inline-flex min-h-11 items-center justify-center rounded-[1rem] bg-blue-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-200"
             >
-              Voir mes commandes
+              {isGuestSuccess ? 'Créer mon espace client' : 'Voir mes commandes'}
             </Link>
             <Link
               to="/"
@@ -120,6 +132,18 @@ function readPendingCheckoutOrderId(): string | null {
   return orderId && orderId.trim().length > 0 ? orderId : null
 }
 
+function readPendingCheckoutCustomerFirstName(): string | null {
+  if (typeof window === 'undefined') {
+    return null
+  }
+
+  const firstName = window.sessionStorage.getItem(
+    pendingCheckoutCustomerFirstNameStorageKey,
+  )
+
+  return firstName && firstName.trim().length > 0 ? firstName : null
+}
+
 function clearConfirmedCheckoutCart(): void {
   if (typeof window === 'undefined') {
     return
@@ -127,6 +151,7 @@ function clearConfirmedCheckoutCart(): void {
 
   saveCart(createEmptyCart())
   window.localStorage.removeItem(pendingCheckoutOrderIdStorageKey)
+  window.sessionStorage.removeItem(pendingCheckoutCustomerFirstNameStorageKey)
 }
 
 function getStatusPanelClassName(status: PaymentConfirmationStatus): string {
@@ -141,9 +166,14 @@ function getStatusPanelClassName(status: PaymentConfirmationStatus): string {
   return 'rounded-[1.1rem] border border-blue-100 bg-blue-50 px-4 py-4 text-blue-950'
 }
 
-function getStatusTitle(status: PaymentConfirmationStatus): string {
+function getStatusTitle(
+  status: PaymentConfirmationStatus,
+  customerFirstName: string | null,
+): string {
   if (status === 'paid') {
-    return 'Paiement confirme'
+    return customerFirstName
+      ? `Merci ${customerFirstName} !`
+      : 'Merci pour votre commande !'
   }
 
   if (status === 'missing-order') {
@@ -160,8 +190,13 @@ function getStatusTitle(status: PaymentConfirmationStatus): string {
 function getStatusDescription(
   status: PaymentConfirmationStatus,
   sessionId: string | null,
+  isGuestSuccess: boolean,
 ): string {
   if (status === 'paid') {
+    if (isGuestSuccess) {
+      return 'Votre commande est confirmee. Vous allez recevoir un email de confirmation dans quelques minutes.'
+    }
+
     return 'Votre paiement est confirme. Votre panier a ete vide et votre commande est disponible dans votre espace client.'
   }
 
