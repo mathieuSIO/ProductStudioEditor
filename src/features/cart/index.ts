@@ -1,5 +1,6 @@
 export { professionalLogoReviewPrice } from './constants'
 export { CartItemCard } from './components/CartItemCard'
+export { HeaderCartButton } from './components/HeaderCartButton'
 export { CartSummaryPanel } from './components/CartSummaryPanel'
 export { calculateCartTotals } from './pricing/calculateCartTotals'
 export { isShopCartItem, isStudioCartItem } from './types'

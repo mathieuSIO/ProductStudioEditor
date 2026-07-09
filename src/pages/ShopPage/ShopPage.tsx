@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom'
 
 import boutiqueLogoUrl from '../../assets/images/boutique/boutiqueLogo.png'
 import { AppShell } from '../../components/layout/AppShell'
+import { HeaderCartButton, useCart } from '../../features/cart'
 import { fetchShopProducts, ShopProductCard, type ShopProduct } from '../../features/shop'
 
 export function ShopPage() {
   const navigate = useNavigate()
+  const { itemCount } = useCart()
   const [products, setProducts] = useState<ShopProduct[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -67,6 +69,10 @@ export function ShopPage() {
           >
             Mon Compte
           </button>
+          <HeaderCartButton
+            itemCount={itemCount}
+            onClick={() => navigate('/?view=cart')}
+          />
         </div>
       }
       onReturnToStudio={() => navigate('/')}

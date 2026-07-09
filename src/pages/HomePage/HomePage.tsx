@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { AppShell } from '../../components/layout/AppShell'
 import {
   createCartItemFromEditor,
+  HeaderCartButton,
   useCart,
   type CreateCartItemFromEditorInput,
 } from '../../features/cart'
@@ -73,15 +74,6 @@ export function HomePage() {
     setCurrentView('studio')
   }
 
-  const headerActionLabel =
-    currentView === 'cart' ? 'Studio' : `Panier (${itemCount})`
-  const headerActionAriaLabel =
-    currentView === 'cart'
-      ? 'Retourner au studio'
-      : `Ouvrir le panier, ${itemCount} configuration${
-          itemCount > 1 ? 's' : ''
-        }`
-
   return (
     <AppShell
       title="Mon Petit Matos"
@@ -102,19 +94,11 @@ export function HomePage() {
           >
             Mon Compte
           </button>
-          <button
-            type="button"
-            aria-label={headerActionAriaLabel}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-[1rem] bg-blue-950 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_16px_32px_-24px_rgba(15,23,42,0.75)] transition hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300"
+          <HeaderCartButton
+            isCartOpen={currentView === 'cart'}
+            itemCount={itemCount}
             onClick={handleHeaderActionClick}
-          >
-            <span>{headerActionLabel}</span>
-            {currentView !== 'cart' ? (
-              <span className="rounded-full bg-red-600 px-2 py-0.5 text-xs font-semibold text-white ring-1 ring-white/20">
-                {itemCount}
-              </span>
-            ) : null}
-          </button>
+          />
         </div>
       }
       onReturnToStudio={handleReturnToStudio}

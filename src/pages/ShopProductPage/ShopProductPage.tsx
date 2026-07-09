@@ -3,7 +3,11 @@ import { useNavigate, useParams } from 'react-router-dom'
 
 import boutiqueLogoUrl from '../../assets/images/boutique/boutiqueLogo.png'
 import { AppShell } from '../../components/layout/AppShell'
-import { createCartItemFromShopProduct, useCart } from '../../features/cart'
+import {
+  createCartItemFromShopProduct,
+  HeaderCartButton,
+  useCart,
+} from '../../features/cart'
 import { trackMetaEvent } from '../../lib/metaPixel'
 import { formatEuro } from '../../shared/formatters/formatEuro'
 import {
@@ -19,7 +23,7 @@ import {
 export function ShopProductPage() {
   const navigate = useNavigate()
   const { slug } = useParams()
-  const { addItem } = useCart()
+  const { addItem, itemCount } = useCart()
   const [product, setProduct] = useState<ShopProduct | null>(null)
   const [quantity, setQuantity] = useState(1)
   const [selectedColorName, setSelectedColorName] = useState<string | null>(null)
@@ -216,6 +220,10 @@ export function ShopProductPage() {
           >
             Studio
           </button>
+          <HeaderCartButton
+            itemCount={itemCount}
+            onClick={() => navigate('/?view=cart')}
+          />
         </div>
       }
       onReturnToStudio={() => navigate('/')}
