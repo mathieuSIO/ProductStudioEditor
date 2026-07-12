@@ -249,7 +249,7 @@ export function ShopProductPage() {
               selectedGalleryImageId={selectedGalleryImage?.id ?? null}
               onSelectImage={handleSelectGalleryImage}
             />
-            <div className="min-w-0 rounded-[1.15rem] border border-stone-200 bg-stone-50 px-4 py-5 sm:px-5 whitespace-pre-line">
+            <div className="min-w-0 rounded-[1.15rem] border border-stone-200 bg-stone-50 px-4 py-5 sm:px-5">
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-700">
                 Produit boutique
               </p>
@@ -259,6 +259,7 @@ export function ShopProductPage() {
               <p className="mt-5 text-3xl font-semibold tracking-tight text-red-600">
                 {formatEuro(displayedPriceCents / 100)}
               </p>
+              <ProductBenefits colorCount={availableColors.length} />
               {!product.isActive ? (
                 <p className="mt-3 rounded-[0.95rem] border border-stone-200 bg-white px-3 py-2 text-sm font-semibold text-stone-600">
                   Produit actuellement indisponible.
@@ -272,15 +273,6 @@ export function ShopProductPage() {
                 onSelectColor={handleSelectColor}
                 onSelectVariant={handleSelectVariant}
               />
-              {product.description ? (
-                <p className="mt-4 text-sm leading-7 text-stone-600 whitespace-pre-line">
-                  {product.description}
-                </p>
-              ) : (
-                <p className="mt-4 text-sm leading-7 text-stone-500">
-                  Description detaillee a venir.
-                </p>
-              )}
               <div className="mt-5 grid gap-3">
                 <label className="grid max-w-36 gap-1.5 text-sm font-semibold text-blue-950">
                   Quantite
@@ -291,6 +283,8 @@ export function ShopProductPage() {
                     min={1}
                     type="number"
                     value={quantity}
+                    onClick={(event) => event.currentTarget.select()}
+                    onFocus={(event) => event.currentTarget.select()}
                     onChange={(event) =>
                       setQuantity(
                         normalizeQuantityInput(
@@ -303,7 +297,7 @@ export function ShopProductPage() {
                 </label>
                 <button
                   type="button"
-                  className="inline-flex min-h-11 items-center justify-center rounded-[1rem] bg-blue-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-stone-300 disabled:text-stone-600"
+                  className="inline-flex min-h-12 w-full items-center justify-center rounded-[1rem] bg-blue-950 px-5 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-200 disabled:cursor-not-allowed disabled:bg-stone-300 disabled:text-stone-600 disabled:shadow-none"
                   disabled={!canAddToCart}
                   onClick={handleAddToCart}
                 >
@@ -331,11 +325,77 @@ export function ShopProductPage() {
                   </div>
                 </div>
               ) : null}
+              <PurchaseReassurance />
+              <div className="mt-6 border-t border-stone-200 pt-5">
+                {product.description ? (
+                  <p className="whitespace-pre-line text-sm leading-7 text-stone-600">
+                    {product.description}
+                  </p>
+                ) : (
+                  <p className="text-sm leading-7 text-stone-500">
+                    Description detaillee a venir.
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         )}
       </section>
     </AppShell>
+  )
+}
+
+type ProductBenefitsProps = {
+  colorCount: number
+}
+
+function ProductBenefits({ colorCount }: ProductBenefitsProps) {
+  const colorBenefit = `${colorCount} coloris ${colorCount > 1 ? 'disponibles' : 'disponible'}`
+
+  return (
+    <ul
+      aria-label="Points forts du produit"
+      className="mt-5 grid grid-cols-1 gap-x-4 gap-y-2 border-y border-stone-200 py-4 min-[420px]:grid-cols-2"
+    >
+      <ProductHighlight>100 % coton</ProductHighlight>
+      <ProductHighlight>Impression haute qualité</ProductHighlight>
+      <ProductHighlight>{colorBenefit}</ProductHighlight>
+      <ProductHighlight>Expédition rapide</ProductHighlight>
+    </ul>
+  )
+}
+
+type ProductHighlightProps = {
+  children: string
+  compact?: boolean
+}
+
+function ProductHighlight({ children, compact = false }: ProductHighlightProps) {
+  return (
+    <li
+      className={`flex min-w-0 items-center gap-2 font-medium text-stone-700 ${compact ? 'text-xs' : 'text-sm'}`}
+    >
+      <span
+        aria-hidden="true"
+        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-800"
+      >
+        ✓
+      </span>
+      <span>{children}</span>
+    </li>
+  )
+}
+
+function PurchaseReassurance() {
+  return (
+    <ul
+      aria-label="Informations de confiance"
+      className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs font-medium text-stone-600"
+    >
+      <ProductHighlight compact>Paiement sécurisé</ProductHighlight>
+      <ProductHighlight compact>Impression en France</ProductHighlight>
+      <ProductHighlight compact>Service client réactif</ProductHighlight>
+    </ul>
   )
 }
 
@@ -441,14 +501,14 @@ function ProductVariantSelector({
 }: ProductVariantSelectorProps) {
   if (availableColors.length === 0) {
     return (
-      <div className="rounded-[0.95rem] border border-stone-200 bg-white px-3 py-3 text-sm font-semibold text-stone-600">
+      <div className="mt-5 rounded-[0.95rem] border border-stone-200 bg-white px-3 py-3 text-sm font-semibold text-stone-600">
         Aucune variante disponible pour ce produit.
       </div>
     )
   }
 
   return (
-    <div className="grid gap-4">
+    <div className="mt-5 grid gap-4">
       <fieldset className="grid gap-2">
         <legend className="text-sm font-semibold text-blue-950">
           Couleur
@@ -461,14 +521,16 @@ function ProductVariantSelector({
               <button
                 key={color.colorName}
                 type="button"
-                className={`inline-flex min-h-11 items-center gap-2 rounded-[0.95rem] border px-3 py-2 text-sm font-semibold transition ${isSelected
-                    ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
+                aria-pressed={isSelected}
+                className={`inline-flex min-h-11 items-center gap-2 rounded-[0.95rem] border px-3 py-2 text-sm font-semibold transition focus:outline-none focus:ring-4 focus:ring-emerald-100 ${isSelected
+                    ? 'border-emerald-700 bg-emerald-50 text-emerald-900 ring-1 ring-emerald-700'
                     : 'border-stone-200 bg-white text-blue-950 hover:border-emerald-200 hover:bg-emerald-50'
                   }`}
                 onClick={() => onSelectColor(color.colorName)}
               >
                 <span
-                  className="h-4 w-4 rounded-full border border-stone-200"
+                  aria-hidden="true"
+                  className="h-4 w-4 rounded-full border border-stone-300"
                   style={{ backgroundColor: color.colorHex ?? '#ffffff' }}
                 />
                 {color.colorName}
@@ -490,7 +552,9 @@ function ProductVariantSelector({
                 <button
                   key={variant.id}
                   type="button"
-                  className={`inline-flex min-h-11 min-w-14 items-center justify-center rounded-[0.95rem] border px-3 py-2 text-sm font-semibold transition ${isSelected
+                  aria-label={`${variant.sizeLabel}${isOutOfStock ? ' - indisponible' : ''}`}
+                  aria-pressed={isSelected}
+                  className={`inline-flex min-h-11 min-w-14 items-center justify-center rounded-[0.95rem] border px-3 py-2 text-sm font-semibold transition focus:outline-none focus:ring-4 focus:ring-emerald-100 ${isSelected
                       ? 'border-blue-950 bg-blue-950 text-white'
                       : 'border-stone-200 bg-white text-blue-950 hover:border-emerald-200 hover:bg-emerald-50'
                     } disabled:cursor-not-allowed disabled:border-stone-200 disabled:bg-stone-100 disabled:text-stone-400`}

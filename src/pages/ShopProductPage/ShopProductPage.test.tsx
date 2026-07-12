@@ -7,11 +7,12 @@ import { renderWithRouter } from '../../test/utils/render'
 import type { ShopProduct } from '../../features/shop'
 import { ShopProductPage } from './ShopProductPage'
 
-const { addItemMock, fetchShopProductBySlugMock } = vi.hoisted(() => ({
+const { addItemMock, fetchShopProductBySlugMock, trackMetaEventMock } = vi.hoisted(() => ({
   addItemMock: vi.fn(),
   fetchShopProductBySlugMock: vi.fn<
     (slug: string, signal?: AbortSignal) => Promise<ShopProduct>
   >(),
+  trackMetaEventMock: vi.fn(),
 }))
 
 vi.mock('../../features/cart', async (importOriginal) => {
@@ -35,7 +36,7 @@ vi.mock('../../features/shop', async (importOriginal) => {
 })
 
 vi.mock('../../lib/metaPixel', () => ({
-  trackMetaEvent: vi.fn(),
+  trackMetaEvent: trackMetaEventMock,
 }))
 
 function createProductForPage(): ShopProduct {
@@ -109,6 +110,7 @@ describe('ShopProductPage', () => {
   beforeEach(() => {
     addItemMock.mockReset()
     fetchShopProductBySlugMock.mockReset()
+    trackMetaEventMock.mockReset()
   })
 
   it('affiche le produit et les couleurs disponibles', async () => {
@@ -127,7 +129,7 @@ describe('ShopProductPage', () => {
     await renderLoadedProductPage()
 
     const sizeM = screen.getByRole('button', { name: 'M' })
-    const sizeL = screen.getByRole('button', { name: 'L' })
+    const sizeL = screen.getByRole('button', { name: 'L - indisponible' })
 
     expect(sizeM).toBeEnabled()
     expect(sizeL).toBeDisabled()
@@ -168,7 +170,7 @@ describe('ShopProductPage', () => {
     vi.stubGlobal('crypto', {
       randomUUID: () => 'shop-cart-item-id',
     })
-    await renderLoadedProductPage()
+    const product = await renderLoadedProductPage()
 
     await userEvent.click(screen.getByRole('button', { name: /Noir/ }))
     await userEvent.click(screen.getByRole('button', { name: 'Ajouter au panier' }))
@@ -179,6 +181,49 @@ describe('ShopProductPage', () => {
         kind: 'shop',
         shopProductVariantId: 203,
       }),
+    )
+    expect(trackMetaEventMock).toHaveBeenCalledWith(
+      'AddToCart',
+      expect.objectContaining({
+        content_ids: [product.id],
+        value: 27,
+      }),
+    )
+  })
+
+  it("place l'achat et la reassurance avant la description", async () => {
+    await renderLoadedProductPage()
+
+    const addToCartButton = screen.getByRole('button', {
+      name: 'Ajouter au panier',
+    })
+    const reassurance = screen.getByRole('list', {
+      name: 'Informations de confiance',
+    })
+    const description = screen.getByText(
+      'Produit confortable pour la personnalisation.',
+    )
+
+    expect(
+      addToCartButton.compareDocumentPosition(reassurance) &
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
+    expect(
+      reassurance.compareDocumentPosition(description) &
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
+  })
+
+  it('conserve la quantite choisie lors de l ajout au panier', async () => {
+    await renderLoadedProductPage()
+
+    const quantityInput = screen.getByRole('spinbutton', { name: 'Quantite' })
+    await userEvent.click(quantityInput)
+    await userEvent.type(quantityInput, '2')
+    await userEvent.click(screen.getByRole('button', { name: 'Ajouter au panier' }))
+
+    expect(addItemMock).toHaveBeenCalledWith(
+      expect.objectContaining({ quantity: 2 }),
     )
   })
 })
