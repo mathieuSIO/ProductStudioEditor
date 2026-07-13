@@ -366,6 +366,7 @@ export function CheckoutPage({
                 helpText="Utile pour la livraison"
                 label="Téléphone"
                 name="phone"
+                required
                 disabled={isSubmitting || createdOrderId !== null}
                 type="tel"
                 value={formData.phone}
