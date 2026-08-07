@@ -1,11 +1,18 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
 import { fetchUserOrderDetails } from '../../features/account/api/accountApi'
 import { createEmptyCart, saveCart } from '../../features/cart'
 import {
+  fetchRelaySelection,
+  MondialRelayPicker,
   pendingCheckoutCustomerFirstNameStorageKey,
   pendingCheckoutOrderIdStorageKey,
+  selectRelayPoint,
+} from '../../features/checkout'
+import type {
+  MondialRelaySelection,
+  RelaySelectionDetails,
 } from '../../features/checkout'
 
 type PaymentConfirmationStatus =
@@ -14,8 +21,9 @@ type PaymentConfirmationStatus =
   | 'paid'
   | 'unconfirmed'
 
-const maxPaymentStatusChecks = 10
-const paymentStatusPollingDelayMs = 1000
+const maxLegacyPaymentStatusChecks = 10
+const legacyPaymentStatusPollingDelayMs = 1000
+const relayPaymentRetryDelaysMs = [1000, 2000, 3000, 5000] as const
 
 export function CheckoutSuccessPage() {
   const [searchParams] = useSearchParams()
@@ -28,17 +36,28 @@ export function CheckoutSuccessPage() {
   )
   const [confirmationStatus, setConfirmationStatus] =
     useState<PaymentConfirmationStatus>(() =>
-      pendingOrderId ? 'checking' : sessionId ? 'paid' : 'missing-order',
+      pendingOrderId || sessionId ? 'checking' : 'missing-order',
     )
+  const [relayDetails, setRelayDetails] =
+    useState<RelaySelectionDetails | null>(null)
+  const [relayError, setRelayError] = useState<string | null>(null)
+  const [relayCheckKey, setRelayCheckKey] = useState(0)
+  const [canRetryRelayCheck, setCanRetryRelayCheck] = useState(false)
+  const [isSavingRelayPoint, setIsSavingRelayPoint] = useState(false)
+  const isSavingRelayPointRef = useRef(false)
+  const isMountedRef = useRef(true)
   const isGuestSuccess = !pendingOrderId && Boolean(sessionId)
 
   useEffect(() => {
-    if (!pendingOrderId && sessionId) {
-      clearConfirmedCheckoutCart()
-      return undefined
-    }
+    isMountedRef.current = true
 
-    if (!pendingOrderId) {
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
+
+  useEffect(() => {
+    if (sessionId || !pendingOrderId) {
       return undefined
     }
 
@@ -65,14 +84,14 @@ export function CheckoutSuccessPage() {
         }
       }
 
-      if (attempt >= maxPaymentStatusChecks) {
+      if (attempt >= maxLegacyPaymentStatusChecks) {
         setConfirmationStatus('unconfirmed')
         return
       }
 
       timeoutId = window.setTimeout(() => {
         void checkPaymentStatus(attempt + 1)
-      }, paymentStatusPollingDelayMs)
+      }, legacyPaymentStatusPollingDelayMs)
     }
 
     void checkPaymentStatus(1)
@@ -86,6 +105,140 @@ export function CheckoutSuccessPage() {
     }
   }, [pendingOrderId, sessionId])
 
+  useEffect(() => {
+    if (!sessionId) {
+      return undefined
+    }
+
+    const checkoutSessionId = sessionId
+    let isCurrentCheck = true
+    let timeoutId: number | null = null
+
+    async function checkRelaySelection(attempt: number) {
+      try {
+        const details = await fetchRelaySelection(checkoutSessionId)
+
+        if (!isCurrentCheck) {
+          return
+        }
+
+        setRelayDetails(details)
+        setRelayError(null)
+
+        if (details.paymentStatus === 'paid') {
+          clearConfirmedCheckoutCart()
+          setConfirmationStatus('paid')
+          setCanRetryRelayCheck(false)
+          return
+        }
+
+        setConfirmationStatus('checking')
+
+        if (attempt >= relayPaymentRetryDelaysMs.length) {
+          setConfirmationStatus('unconfirmed')
+          setCanRetryRelayCheck(true)
+          return
+        }
+
+        timeoutId = window.setTimeout(() => {
+          void checkRelaySelection(attempt + 1)
+        }, relayPaymentRetryDelaysMs[attempt])
+      } catch {
+        if (!isCurrentCheck) {
+          return
+        }
+
+        setConfirmationStatus('unconfirmed')
+        setCanRetryRelayCheck(true)
+        setRelayError(
+          'La vérification de votre commande est momentanément indisponible.',
+        )
+      }
+    }
+
+    void checkRelaySelection(0)
+
+    return () => {
+      isCurrentCheck = false
+
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId)
+      }
+    }
+  }, [relayCheckKey, sessionId])
+
+  const retryRelayCheck = () => {
+    setConfirmationStatus('checking')
+    setCanRetryRelayCheck(false)
+    setRelayError(null)
+    setRelayCheckKey((key) => key + 1)
+  }
+
+  const handleRelaySelection = async (
+    selection: MondialRelaySelection,
+  ): Promise<void> => {
+    if (!sessionId || isSavingRelayPointRef.current) {
+      return
+    }
+
+    isSavingRelayPointRef.current = true
+    setIsSavingRelayPoint(true)
+    setRelayError(null)
+    let patchError: unknown = null
+
+    try {
+      await selectRelayPoint({
+        checkoutSessionId: sessionId,
+        relayPoint: {
+          id: selection.id,
+          country: selection.country,
+        },
+      })
+    } catch (error) {
+      patchError = error
+    }
+
+    try {
+      const officialDetails = await fetchRelaySelection(sessionId)
+
+      if (!isMountedRef.current) {
+        return
+      }
+
+      setRelayDetails(officialDetails)
+
+      if (officialDetails.relaySelectionStatus === 'selected') {
+        setRelayError(null)
+      } else if (patchError) {
+        setRelayError("Le Point Relais n'a pas pu être enregistré.")
+      }
+    } catch {
+      if (isMountedRef.current) {
+        setRelayError(
+          patchError
+            ? "Le Point Relais n'a pas pu être enregistré."
+            : 'Le Point Relais a été enregistré, mais sa confirmation officielle n’a pas pu être récupérée.',
+        )
+        setCanRetryRelayCheck(true)
+      }
+    } finally {
+      isSavingRelayPointRef.current = false
+
+      if (isMountedRef.current) {
+        setIsSavingRelayPoint(false)
+      }
+    }
+  }
+
+  const showRelayPicker =
+    relayDetails?.paymentStatus === 'paid' &&
+    relayDetails.shippingMethod === 'mondial_relay' &&
+    relayDetails.relaySelectionStatus === 'pending'
+  const showSelectedRelayPoint =
+    relayDetails?.paymentStatus === 'paid' &&
+    relayDetails.shippingMethod === 'mondial_relay' &&
+    relayDetails.relaySelectionStatus === 'selected'
+
   return (
     <main className="min-h-screen bg-blue-50/55 px-4 py-6 text-blue-950">
       <section className="mx-auto grid min-h-[calc(100vh-3rem)] max-w-3xl place-items-center">
@@ -98,9 +251,63 @@ export function CheckoutSuccessPage() {
               {getStatusTitle(confirmationStatus, customerFirstName)}
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-6">
-              {getStatusDescription(confirmationStatus, sessionId, isGuestSuccess)}
+              {getStatusDescription(
+                confirmationStatus,
+                sessionId,
+                isGuestSuccess,
+              )}
             </p>
+            {canRetryRelayCheck && sessionId ? (
+              <button
+                type="button"
+                onClick={retryRelayCheck}
+                className="mt-3 inline-flex min-h-10 items-center justify-center rounded-[0.8rem] border border-amber-300 bg-white px-3 py-2 text-sm font-semibold text-amber-900 transition hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-200"
+              >
+                Vérifier à nouveau
+              </button>
+            ) : null}
           </div>
+
+          {relayError ? (
+            <p
+              role="alert"
+              className="mt-4 rounded-[0.9rem] border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800"
+            >
+              {relayError}
+            </p>
+          ) : null}
+
+          {showRelayPicker ? (
+            <section className="mt-4 min-w-0 rounded-[1.1rem] border border-blue-100 bg-blue-50/60 p-4">
+              <h2 className="text-xl font-semibold tracking-tight">
+                Choisissez votre Point Relais
+              </h2>
+              <p className="mt-1 text-sm leading-6 text-blue-800">
+                Sélectionnez le Point Relais ou Locker où vous souhaitez retirer
+                votre commande.
+              </p>
+              <div className="mt-4 min-w-0 max-w-full overflow-x-hidden">
+                <MondialRelayPicker
+                  disabled={isSavingRelayPoint}
+                  onSelect={(selection) => {
+                    void handleRelaySelection(selection)
+                  }}
+                />
+              </div>
+              {isSavingRelayPoint ? (
+                <p
+                  role="status"
+                  className="mt-3 rounded-[0.8rem] border border-blue-200 bg-white px-3 py-2 text-sm font-semibold text-blue-900"
+                >
+                  Enregistrement du Point Relais…
+                </p>
+              ) : null}
+            </section>
+          ) : null}
+
+          {showSelectedRelayPoint ? (
+            <SelectedRelayPoint details={relayDetails} />
+          ) : null}
 
           <div className="mt-4 flex flex-wrap gap-2">
             <Link
@@ -119,6 +326,43 @@ export function CheckoutSuccessPage() {
         </div>
       </section>
     </main>
+  )
+}
+
+function SelectedRelayPoint({
+  details,
+}: {
+  details: RelaySelectionDetails
+}) {
+  const relayPoint = details.relayPoint
+
+  if (!relayPoint) {
+    return (
+      <p
+        role="alert"
+        className="mt-4 rounded-[0.9rem] border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800"
+      >
+        Le Point Relais sélectionné n’a pas pu être affiché.
+      </p>
+    )
+  }
+
+  return (
+    <section className="mt-4 rounded-[1.1rem] border border-emerald-200 bg-emerald-50 p-4 text-emerald-950">
+      <h2 className="text-xl font-semibold tracking-tight">
+        Votre Point Relais
+      </h2>
+      <address className="mt-3 text-sm not-italic leading-6">
+        <strong className="block">{relayPoint.name}</strong>
+        <span className="block">{relayPoint.addressLine1}</span>
+        {relayPoint.addressLine2 ? (
+          <span className="block">{relayPoint.addressLine2}</span>
+        ) : null}
+        <span className="block">
+          {relayPoint.postalCode} {relayPoint.city}
+        </span>
+      </address>
+    </section>
   )
 }
 
@@ -177,14 +421,14 @@ function getStatusTitle(
   }
 
   if (status === 'missing-order') {
-    return 'Commande a verifier'
+    return 'Commande à vérifier'
   }
 
   if (status === 'unconfirmed') {
     return 'Paiement encore en confirmation'
   }
 
-  return 'Paiement en cours de confirmation'
+  return 'Confirmation de votre paiement en cours…'
 }
 
 function getStatusDescription(
@@ -194,21 +438,21 @@ function getStatusDescription(
 ): string {
   if (status === 'paid') {
     if (isGuestSuccess) {
-      return 'Votre commande est confirmee. Vous allez recevoir un email de confirmation dans quelques minutes.'
+      return 'Votre commande est confirmée. Vous allez recevoir un email de confirmation dans quelques minutes.'
     }
 
-    return 'Votre paiement est confirme. Votre panier a ete vide et votre commande est disponible dans votre espace client.'
+    return 'Votre paiement est confirmé. Votre panier a été vidé et votre commande est disponible dans votre espace client.'
   }
 
   if (status === 'missing-order') {
-    return "Nous n'avons pas trouve d'identifiant de commande local a verifier. Votre panier n'a pas ete modifie."
+    return "Nous n'avons pas trouvé d'identifiant de commande local à vérifier. Votre panier n'a pas été modifié."
   }
 
   if (status === 'unconfirmed') {
-    return "La confirmation Stripe n'est pas encore visible cote espace client. Votre panier n'a pas ete modifie."
+    return "La confirmation Stripe n'est pas encore disponible. Votre panier n'a pas été modifié."
   }
 
   return sessionId
-    ? 'Merci, Stripe a renvoye votre session. Nous verifions maintenant que la commande est bien payee avant de vider le panier.'
-    : 'Merci, nous verifions maintenant que la commande est bien payee avant de vider le panier.'
+    ? 'Merci, Stripe a renvoyé votre session. Nous vérifions maintenant que la commande est bien payée avant de vider le panier.'
+    : 'Merci, nous vérifions maintenant que la commande est bien payée avant de vider le panier.'
 }

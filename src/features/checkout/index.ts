@@ -6,7 +6,13 @@ export {
 } from './api/createCheckoutSession'
 export { createOrder } from './api/createOrder'
 export { createShippingEstimate } from './api/createShippingEstimate'
+export {
+  fetchRelaySelection,
+  RelaySelectionApiError,
+  selectRelayPoint,
+} from './api/relaySelectionApi'
 export { validatePromoCode } from './api/validatePromoCode'
+export { MondialRelayPicker } from './components/MondialRelayPicker'
 export {
   createCheckoutDraft,
   createOrderPayloadFromCheckoutDraft,
@@ -30,4 +36,9 @@ export type {
   CheckoutFormData,
   CreateOrderPayload,
   ProductionOption,
+  RelayPoint,
+  RelaySelectionDetails,
+  RelaySelectionStatus,
+  SelectRelayPointPayload,
 } from './types'
+export type { MondialRelaySelection } from './components/MondialRelayPicker'
