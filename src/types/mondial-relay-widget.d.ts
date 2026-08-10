@@ -6,6 +6,8 @@ type MondialRelayParcelShopData = {
 type MondialRelayPickerOptions = {
   Brand: string
   Country: 'FR'
+  ColLivMod:string
+
   OnParcelShopSelected: (data: MondialRelayParcelShopData) => void
   Responsive: true
   ShowResultsOnMap: true

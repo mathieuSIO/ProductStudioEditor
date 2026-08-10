@@ -43,7 +43,12 @@ export function MondialRelayPicker({
   disabledRef.current = disabled
 
   useEffect(() => {
-    const brand = env.mondialRelayBrand?.trim()
+    const rawBrand = env.mondialRelayBrand?.trim()
+
+    const brand =
+      rawBrand && rawBrand.length <= 8
+        ? rawBrand.padEnd(8, ' ')
+        : undefined
     const container = containerRef.current
     let isActive = true
     let widgetHost: HTMLDivElement | null = null
@@ -79,6 +84,7 @@ export function MondialRelayPicker({
         jquery(widgetHost).MR_ParcelShopPicker({
           Brand: brand,
           Country: 'FR',
+          ColLivMod: '24R',
           OnParcelShopSelected: (data) => {
             if (!isActive || disabledRef.current) {
               return
@@ -128,13 +134,12 @@ export function MondialRelayPicker({
 
   return (
     <div className="grid min-w-0 gap-3">
-      <input id={targetId} type="hidden" />
+      <input id={targetId} type="hidden" readOnly aria-hidden="true" />
       <div
         ref={containerRef}
         aria-busy={loadStatus === 'loading'}
-        className={`min-h-72 min-w-0 max-w-full overflow-x-hidden rounded-[1rem] border border-blue-100 bg-white p-2 sm:p-3 ${
-          disabled ? 'pointer-events-none opacity-60' : ''
-        }`}
+        className={`min-h-72 min-w-0 max-w-full overflow-x-hidden rounded-[1rem] border border-blue-100 bg-white p-2 sm:p-3 ${disabled ? 'pointer-events-none opacity-60' : ''
+          }`}
       />
 
       {loadStatus === 'loading' ? (

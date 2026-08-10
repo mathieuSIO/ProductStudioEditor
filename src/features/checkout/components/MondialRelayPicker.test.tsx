@@ -31,19 +31,34 @@ describe('MondialRelayPicker', () => {
       </StrictMode>,
     )
 
-    await waitFor(() => expect(widgetInitializer).toHaveBeenCalledTimes(1))
+    await waitFor(() =>
+      expect(widgetInitializer).toHaveBeenCalledTimes(1),
+    )
 
     const options = widgetInitializer.mock.calls[0]?.[0]
-    options?.OnParcelShopSelected({ ID: 123, Pays: 'fr' })
 
-    expect(onSelect).toHaveBeenCalledWith({ country: 'FR', id: '000123' })
+    options?.OnParcelShopSelected({
+      ID: 123,
+      Pays: 'fr',
+    })
+
+    expect(onSelect).toHaveBeenCalledWith({
+      country: 'FR',
+      id: '000123',
+    })
+
     expect(options).toMatchObject({
-      Brand: 'BDTEST',
+      Brand: 'BDTEST  ',
       Country: 'FR',
+      ColLivMod: '24R',
       Responsive: true,
       ShowResultsOnMap: true,
       Theme: 'mondialrelay',
     })
+
+    expect(options?.Target).toMatch(
+      /^#mondial-relay-target-/,
+    )
   })
 
   it('shows a controlled loading error and retries without reloading the page', async () => {
