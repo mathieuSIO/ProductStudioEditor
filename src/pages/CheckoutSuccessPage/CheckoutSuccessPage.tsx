@@ -40,6 +40,8 @@ export function CheckoutSuccessPage() {
     )
   const [relayDetails, setRelayDetails] =
     useState<RelaySelectionDetails | null>(null)
+  const [pendingRelaySelection, setPendingRelaySelection] =
+    useState<MondialRelaySelection | null>(null)
   const [relayError, setRelayError] = useState<string | null>(null)
   const [relayCheckKey, setRelayCheckKey] = useState(0)
   const [canRetryRelayCheck, setCanRetryRelayCheck] = useState(false)
@@ -125,6 +127,13 @@ export function CheckoutSuccessPage() {
         setRelayDetails(details)
         setRelayError(null)
 
+        if (
+          details.relaySelectionStatus === 'selected' &&
+          details.relayPoint
+        ) {
+          setPendingRelaySelection(null)
+        }
+
         if (details.paymentStatus === 'paid') {
           clearConfirmedCheckoutCart()
           setConfirmationStatus('paid')
@@ -174,13 +183,16 @@ export function CheckoutSuccessPage() {
     setRelayCheckKey((key) => key + 1)
   }
 
-  const handleRelaySelection = async (
-    selection: MondialRelaySelection,
-  ): Promise<void> => {
-    if (!sessionId || isSavingRelayPointRef.current) {
+  const confirmRelaySelection = async (): Promise<void> => {
+    if (
+      !sessionId ||
+      !pendingRelaySelection ||
+      isSavingRelayPointRef.current
+    ) {
       return
     }
 
+    const selection = pendingRelaySelection
     isSavingRelayPointRef.current = true
     setIsSavingRelayPoint(true)
     setRelayError(null)
@@ -207,16 +219,22 @@ export function CheckoutSuccessPage() {
 
       setRelayDetails(officialDetails)
 
-      if (officialDetails.relaySelectionStatus === 'selected') {
+      if (
+        officialDetails.relaySelectionStatus === 'selected' &&
+        officialDetails.relayPoint
+      ) {
+        setPendingRelaySelection(null)
         setRelayError(null)
       } else if (patchError) {
-        setRelayError("Le Point Relais n'a pas pu être enregistré.")
+        setRelayError(
+          'Votre Point Relais n’a pas pu être enregistré. Veuillez réessayer.',
+        )
       }
     } catch {
       if (isMountedRef.current) {
         setRelayError(
           patchError
-            ? "Le Point Relais n'a pas pu être enregistré."
+            ? 'Votre Point Relais n’a pas pu être enregistré. Veuillez réessayer.'
             : 'Le Point Relais a été enregistré, mais sa confirmation officielle n’a pas pu être récupérée.',
         )
         setCanRetryRelayCheck(true)
@@ -290,10 +308,27 @@ export function CheckoutSuccessPage() {
                 <MondialRelayPicker
                   disabled={isSavingRelayPoint}
                   onSelect={(selection) => {
-                    void handleRelaySelection(selection)
+                    setPendingRelaySelection(selection)
+                    setRelayError(null)
                   }}
                 />
               </div>
+              {pendingRelaySelection ? (
+                <p className="mt-3 text-sm font-medium text-blue-900">
+                  Un Point Relais a été sélectionné. Validez votre choix pour
+                  continuer.
+                </p>
+              ) : null}
+              <button
+                type="button"
+                disabled={!pendingRelaySelection || isSavingRelayPoint}
+                onClick={() => {
+                  void confirmRelaySelection()
+                }}
+                className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-[0.9rem] bg-blue-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-200 disabled:cursor-not-allowed disabled:bg-stone-300 disabled:text-stone-600 sm:w-auto"
+              >
+                Valider ce Point Relais
+              </button>
               {isSavingRelayPoint ? (
                 <p
                   role="status"

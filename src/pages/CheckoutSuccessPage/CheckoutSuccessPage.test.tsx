@@ -27,13 +27,22 @@ vi.mock('../../features/checkout', () => ({
     disabled?: boolean
     onSelect: (selection: MondialRelaySelection) => void
   }) => (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={() => onSelect({ country: 'FR', id: '033594' })}
-    >
-      Sélectionner le relais test
-    </button>
+    <div>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => onSelect({ country: 'FR', id: '033594' })}
+      >
+        Sélectionner le relais test
+      </button>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => onSelect({ country: 'FR', id: '099999' })}
+      >
+        Sélectionner le relais B
+      </button>
+    </div>
   ),
   pendingCheckoutCustomerFirstNameStorageKey:
     'pendingCheckoutCustomerFirstName',
@@ -122,9 +131,33 @@ describe('CheckoutSuccessPage relay selection', () => {
     expect(
       screen.getByRole('button', { name: 'Sélectionner le relais test' }),
     ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Valider ce Point Relais' }),
+    ).toBeDisabled()
   })
 
-  it('sends the exact minimal PATCH payload selected by the widget', async () => {
+  it('keeps the widget selection local until explicit confirmation', async () => {
+    apiMocks.fetchRelaySelection.mockResolvedValue(paidRelayPendingDetails)
+
+    renderCheckoutSuccess()
+    fireEvent.click(
+      await screen.findByRole('button', {
+        name: 'Sélectionner le relais test',
+      }),
+    )
+
+    expect(apiMocks.selectRelayPoint).not.toHaveBeenCalled()
+    expect(
+      screen.getByText(
+        'Un Point Relais a été sélectionné. Validez votre choix pour continuer.',
+      ),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Valider ce Point Relais' }),
+    ).toBeEnabled()
+  })
+
+  it('sends only the latest temporary selection in the exact PATCH payload', async () => {
     apiMocks.fetchRelaySelection
       .mockResolvedValueOnce(paidRelayPendingDetails)
       .mockResolvedValueOnce(selectedDetails)
@@ -136,11 +169,19 @@ describe('CheckoutSuccessPage relay selection', () => {
         name: 'Sélectionner le relais test',
       }),
     )
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Sélectionner le relais B' }),
+    )
+
+    expect(apiMocks.selectRelayPoint).not.toHaveBeenCalled()
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Valider ce Point Relais' }),
+    )
 
     await waitFor(() =>
       expect(apiMocks.selectRelayPoint).toHaveBeenCalledWith({
         checkoutSessionId: 'cs_test_42',
-        relayPoint: { country: 'FR', id: '033594' },
+        relayPoint: { country: 'FR', id: '099999' },
       }),
     )
 
@@ -162,6 +203,9 @@ describe('CheckoutSuccessPage relay selection', () => {
         name: 'Sélectionner le relais test',
       }),
     )
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Valider ce Point Relais' }),
+    )
 
     expect(
       await screen.findByRole('heading', { name: 'Votre Point Relais' }),
@@ -170,6 +214,12 @@ describe('CheckoutSuccessPage relay selection', () => {
     expect(screen.getByText('LOCKER OFFICIEL BACKEND')).toBeInTheDocument()
     expect(screen.getByText('10 rue Officielle')).toBeInTheDocument()
     expect(screen.getByText('59000 Lille')).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Sélectionner le relais test' }),
+    ).toBeNull()
+    expect(
+      screen.queryByRole('button', { name: 'Valider ce Point Relais' }),
+    ).toBeNull()
   })
 
   it('renders official relay details directly when already selected', async () => {
@@ -183,9 +233,12 @@ describe('CheckoutSuccessPage relay selection', () => {
     expect(
       screen.queryByRole('button', { name: 'Sélectionner le relais test' }),
     ).toBeNull()
+    expect(
+      screen.queryByRole('button', { name: 'Valider ce Point Relais' }),
+    ).toBeNull()
   })
 
-  it('ignores a duplicate widget callback while PATCH is in flight', async () => {
+  it('ignores a double confirmation while PATCH is in flight', async () => {
     let resolvePatch: (() => void) | undefined
     apiMocks.fetchRelaySelection
       .mockResolvedValueOnce(paidRelayPendingDetails)
@@ -198,13 +251,19 @@ describe('CheckoutSuccessPage relay selection', () => {
     )
 
     renderCheckoutSuccess()
-    const selectButton = await screen.findByRole('button', {
-      name: 'Sélectionner le relais test',
+    fireEvent.click(
+      await screen.findByRole('button', {
+        name: 'Sélectionner le relais test',
+      }),
+    )
+    const confirmButton = screen.getByRole('button', {
+      name: 'Valider ce Point Relais',
     })
 
-    fireEvent.click(selectButton)
-    fireEvent.click(selectButton)
+    fireEvent.click(confirmButton)
+    fireEvent.click(confirmButton)
     expect(apiMocks.selectRelayPoint).toHaveBeenCalledTimes(1)
+    expect(screen.getByText('Enregistrement du Point Relais…')).toBeInTheDocument()
 
     resolvePatch?.()
     await screen.findByText('LOCKER OFFICIEL BACKEND')
@@ -222,11 +281,45 @@ describe('CheckoutSuccessPage relay selection', () => {
         name: 'Sélectionner le relais test',
       }),
     )
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Valider ce Point Relais' }),
+    )
 
     expect(
       await screen.findByText('LOCKER OFFICIEL BACKEND'),
     ).toBeInTheDocument()
     expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('keeps the temporary selection and allows retry after a PATCH error', async () => {
+    apiMocks.fetchRelaySelection
+      .mockResolvedValueOnce(paidRelayPendingDetails)
+      .mockResolvedValueOnce(paidRelayPendingDetails)
+    apiMocks.selectRelayPoint.mockRejectedValue(new Error('Network error'))
+
+    renderCheckoutSuccess()
+    fireEvent.click(
+      await screen.findByRole('button', {
+        name: 'Sélectionner le relais test',
+      }),
+    )
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Valider ce Point Relais' }),
+    )
+
+    expect(
+      await screen.findByText(
+        'Votre Point Relais n’a pas pu être enregistré. Veuillez réessayer.',
+      ),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Un Point Relais a été sélectionné. Validez votre choix pour continuer.',
+      ),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Valider ce Point Relais' }),
+    ).toBeEnabled()
   })
 
   it('cancels pending payment retries when unmounted', async () => {
