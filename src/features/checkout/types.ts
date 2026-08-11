@@ -7,6 +7,13 @@ import type {
   CartTotals,
 } from '../cart'
 import type { ProductId } from '../editor/types'
+import type { RelayPointSelection } from '../../shared/types/relay'
+
+export type {
+  RelayPoint,
+  RelaySelectionDetails,
+  RelaySelectionStatus,
+} from '../../shared/types/relay'
 
 export type CheckoutFormData = {
   comment: string
@@ -23,38 +30,9 @@ export type CheckoutFormData = {
 
 export type ProductionOption = 'premium' | 'rapide' | 'standard'
 
-export type RelaySelectionStatus =
-  | 'not_required'
-  | 'pending'
-  | 'selected'
-
-export type RelayPoint = {
-  id: string
-  name: string
-  addressLine1: string
-  addressLine2: string | null
-  postalCode: string
-  city: string
-  country: string
-  latitude: number | null
-  longitude: number | null
-}
-
-export type RelaySelectionDetails = {
-  orderId: number
-  orderStatus: string
-  paymentStatus: string
-  shippingMethod: string
-  relaySelectionStatus: RelaySelectionStatus
-  relayPoint: RelayPoint | null
-}
-
 export type SelectRelayPointPayload = {
   checkoutSessionId: string
-  relayPoint: {
-    id: string
-    country: string
-  }
+  relayPoint: RelayPointSelection
 }
 
 export type CheckoutDraft = {

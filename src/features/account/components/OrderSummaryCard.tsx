@@ -1,4 +1,4 @@
-import type { OrderSummary } from '../types/account.types'
+import type { CustomerOrderSummary } from '../types/account.types'
 import {
   formatCustomerEmail,
   formatCustomerName,
@@ -7,10 +7,11 @@ import {
   formatOrderTotal,
 } from '../utils/orderFormatters'
 import { OrderStatusBadge } from './OrderStatusBadge'
+import { OrderRelaySelectionStatus } from './OrderRelaySelectionStatus'
 
 type OrderSummaryCardProps = {
   onSelectOrder: (orderId: string) => void
-  order: OrderSummary
+  order: CustomerOrderSummary
 }
 
 export function OrderSummaryCard({
@@ -39,6 +40,8 @@ export function OrderSummaryCard({
         <InfoRow label="Date" value={formatOrderDate(order.createdAt)} />
         <InfoRow label="Total" value={formatOrderTotal(order)} />
       </div>
+
+      <OrderRelaySelectionStatus className="mt-4" order={order} />
 
       <button
         type="button"

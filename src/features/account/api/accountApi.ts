@@ -4,12 +4,12 @@ import { createAuthHeaders } from '../../auth'
 import type {
   AccountProfile,
   ApiResponse,
+  CustomerOrderSummary,
   OrderCustomer,
   OrderDetails,
   OrderItemDetails,
   OrderOptions,
   OrderShipment,
-  OrderSummary,
   OrderStatus,
   ShippingAddress,
   UpdateAccountPasswordPayload,
@@ -26,14 +26,14 @@ export class AccountApiError extends Error {
   }
 }
 
-export async function fetchUserOrders(): Promise<OrderSummary[]> {
+export async function fetchUserOrders(): Promise<CustomerOrderSummary[]> {
   const orders = await fetchAccountResource<unknown>('/api/me/orders')
 
   if (!Array.isArray(orders)) {
     throw new Error('La liste des commandes est invalide.')
   }
 
-  return orders.map(normalizeOrderSummary).filter(isOrderSummary)
+  return orders.map(normalizeOrderSummary).filter(isCustomerOrderSummary)
 }
 
 export async function fetchAccountProfile(): Promise<AccountProfile> {
@@ -288,7 +288,7 @@ function normalizeOrderOptions(value: Record<string, unknown>): OrderOptions | n
   }
 }
 
-function normalizeOrderSummary(value: unknown): OrderSummary | null {
+function normalizeOrderSummary(value: unknown): CustomerOrderSummary | null {
   if (!isRecord(value)) {
     return null
   }
@@ -335,6 +335,12 @@ function normalizeOrderSummary(value: unknown): OrderSummary | null {
     orderNumber:
       readString(value, 'orderNumber') ?? readString(value, 'order_number'),
     promoCode: readString(value, 'promoCode') ?? readString(value, 'promo_code'),
+    relaySelectionStatus:
+      readRelaySelectionStatus(value, 'relaySelectionStatus') ??
+      readRelaySelectionStatus(value, 'relay_selection_status'),
+    shippingMethod:
+      readString(value, 'shippingMethod') ??
+      readString(value, 'shipping_method'),
     status: status as OrderStatus,
     totalAmount:
       readNumber(value, 'totalAmount') ?? readNumber(value, 'total_amount'),
@@ -566,7 +572,9 @@ function readFirstRecord(
   return isRecord(firstValue) ? firstValue : null
 }
 
-function isOrderSummary(value: OrderSummary | null): value is OrderSummary {
+function isCustomerOrderSummary(
+  value: CustomerOrderSummary | null,
+): value is CustomerOrderSummary {
   return value !== null
 }
 
@@ -663,6 +671,17 @@ function isApiResponse<T>(value: unknown): value is ApiResponse<T> {
   }
 
   return value.success === false && typeof value.message === 'string'
+}
+
+function readRelaySelectionStatus(
+  record: Record<string, unknown>,
+  key: string,
+): CustomerOrderSummary['relaySelectionStatus'] {
+  const value = record[key]
+
+  return value === 'not_required' || value === 'pending' || value === 'selected'
+    ? value
+    : null
 }
 
 function isMessageApiResponse(

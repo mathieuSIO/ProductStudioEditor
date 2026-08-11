@@ -1,4 +1,4 @@
-import type { OrderSummary } from '../types/account.types'
+import type { CustomerOrderSummary } from '../types/account.types'
 import {
   formatCustomerEmail,
   formatCustomerName,
@@ -7,10 +7,11 @@ import {
   formatOrderTotal,
 } from '../utils/orderFormatters'
 import { OrderStatusBadge } from './OrderStatusBadge'
+import { OrderRelaySelectionStatus } from './OrderRelaySelectionStatus'
 
 type OrderSummaryTableProps = {
   onSelectOrder: (orderId: string) => void
-  orders: OrderSummary[]
+  orders: CustomerOrderSummary[]
 }
 
 export function OrderSummaryTable({
@@ -22,12 +23,13 @@ export function OrderSummaryTable({
       <table className="w-full table-fixed border-collapse text-left text-sm">
         <thead className="bg-stone-50 text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">
           <tr>
-            <th className="w-[22%] px-4 py-3">Commande</th>
-            <th className="w-[23%] px-4 py-3">Client</th>
-            <th className="w-[16%] px-4 py-3">Date</th>
-            <th className="w-[14%] px-4 py-3">Total</th>
-            <th className="w-[14%] px-4 py-3">Statut</th>
-            <th className="w-[11%] px-4 py-3 text-right">Détail</th>
+            <th className="w-[17%] px-4 py-3">Commande</th>
+            <th className="w-[18%] px-4 py-3">Client</th>
+            <th className="w-[13%] px-4 py-3">Date</th>
+            <th className="w-[11%] px-4 py-3">Total</th>
+            <th className="w-[11%] px-4 py-3">Statut</th>
+            <th className="w-[22%] px-4 py-3">Livraison</th>
+            <th className="w-[8%] px-4 py-3 text-right">Détail</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-stone-100">
@@ -60,6 +62,9 @@ export function OrderSummaryTable({
               </td>
               <td className="px-4 py-3">
                 <OrderStatusBadge status={order.status} />
+              </td>
+              <td className="px-4 py-3">
+                <OrderRelaySelectionStatus compact order={order} />
               </td>
               <td className="px-4 py-3 text-right">
                 <button

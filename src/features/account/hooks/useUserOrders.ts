@@ -1,18 +1,18 @@
 import { useEffect, useState } from 'react'
 
 import { AccountApiError, fetchUserOrders } from '../api/accountApi'
-import type { OrderSummary } from '../types/account.types'
+import type { CustomerOrderSummary } from '../types/account.types'
 import { compareOrdersByCreatedAtDesc } from '../utils/orderFormatters'
 
 type UseUserOrdersResult = {
-  data: OrderSummary[]
+  data: CustomerOrderSummary[]
   error: string | null
   errorStatus: number | null
   isLoading: boolean
 }
 
 export function useUserOrders(): UseUserOrdersResult {
-  const [orders, setOrders] = useState<OrderSummary[]>([])
+  const [orders, setOrders] = useState<CustomerOrderSummary[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [errorStatus, setErrorStatus] = useState<number | null>(null)

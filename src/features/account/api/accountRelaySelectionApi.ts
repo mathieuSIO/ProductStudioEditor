@@ -1,26 +1,17 @@
 import { env } from '../../../shared/config/env'
+import type {
+  RelayPointSelection,
+  RelaySelectionDetails,
+} from '../../../shared/types/relay'
 import { parseRelaySelectionDetails } from '../../../shared/utils/parseRelaySelectionDetails'
 import { createAuthHeaders } from '../../auth'
-import type {
-  RelaySelectionDetails,
-  SelectRelayPointPayload,
-} from '../types'
+import { AccountApiError } from './accountApi'
 
-export class RelaySelectionApiError extends Error {
-  readonly status: number
-
-  constructor(message: string, status: number) {
-    super(message)
-    this.name = 'RelaySelectionApiError'
-    this.status = status
-  }
-}
-
-export async function fetchRelaySelection(
-  checkoutSessionId: string,
+export async function fetchMyOrderRelaySelection(
+  orderId: number,
 ): Promise<RelaySelectionDetails> {
   const response = await fetch(
-    `${env.apiBaseUrl}/api/orders/relay-selection?checkoutSessionId=${encodeURIComponent(checkoutSessionId)}`,
+    `${env.apiBaseUrl}/api/me/orders/${orderId}/relay-selection`,
     {
       headers: createAuthHeaders(),
       method: 'GET',
@@ -29,16 +20,16 @@ export async function fetchRelaySelection(
   const responseBody = await readResponseBody(response)
 
   if (!isRecord(responseBody) || responseBody.success !== true) {
-    throw new RelaySelectionApiError(
+    throw new AccountApiError(
       readApiErrorMessage(responseBody) ??
-        'La verification de la commande est momentanement indisponible.',
+        'Impossible de charger les informations de livraison.',
       response.status,
     )
   }
 
   if (!response.ok) {
-    throw new RelaySelectionApiError(
-      'La verification de la commande est momentanement indisponible.',
+    throw new AccountApiError(
+      'Impossible de charger les informations de livraison.',
       response.status,
     )
   }
@@ -46,29 +37,36 @@ export async function fetchRelaySelection(
   const details = parseRelaySelectionDetails(responseBody.data)
 
   if (!details) {
-    throwInvalidResponse()
+    throw new AccountApiError(
+      'La réponse de sélection du Point Relais est invalide.',
+      response.status,
+    )
   }
 
   return details
 }
 
-export async function selectRelayPoint(
-  payload: SelectRelayPointPayload,
+export async function selectMyOrderRelayPoint(
+  orderId: number,
+  relayPoint: RelayPointSelection,
 ): Promise<void> {
-  const response = await fetch(`${env.apiBaseUrl}/api/orders/relay-point`, {
-    body: JSON.stringify(payload),
-    headers: {
-      ...createAuthHeaders(),
-      'Content-Type': 'application/json',
+  const response = await fetch(
+    `${env.apiBaseUrl}/api/me/orders/${orderId}/relay-point`,
+    {
+      body: JSON.stringify({ relayPoint }),
+      headers: {
+        ...createAuthHeaders(),
+        'Content-Type': 'application/json',
+      },
+      method: 'PATCH',
     },
-    method: 'PATCH',
-  })
+  )
   const responseBody = await readResponseBody(response)
 
   if (!response.ok || isFailureResponse(responseBody)) {
-    throw new RelaySelectionApiError(
+    throw new AccountApiError(
       readApiErrorMessage(responseBody) ??
-        "Le Point Relais n'a pas pu etre enregistre.",
+        "Votre Point Relais n'a pas pu être enregistré.",
       response.status,
     )
   }
@@ -96,13 +94,6 @@ function readApiErrorMessage(value: unknown): string | null {
   return isRecord(value) && typeof value.message === 'string'
     ? value.message
     : null
-}
-
-function throwInvalidResponse(): never {
-  throw new RelaySelectionApiError(
-    'La reponse de selection du Point Relais ne respecte pas le contrat attendu.',
-    200,
-  )
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

@@ -18,6 +18,7 @@ import {
 } from '../features/admin'
 import {
   AccountDashboardPage,
+  AccountOrderRelaySelectionPage,
   AccountPage,
   OrderDetailsPage,
 } from '../features/account'
@@ -140,6 +141,14 @@ function App() {
           element={
             <RequireAuth>
               <AccountPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/compte/commandes/:orderId/relais"
+          element={
+            <RequireAuth>
+              <AccountOrderRelaySelectionPage />
             </RequireAuth>
           }
         />
