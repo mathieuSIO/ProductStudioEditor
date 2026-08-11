@@ -11,6 +11,19 @@ const frenchDateFormatter = new Intl.DateTimeFormat('fr-FR', {
   year: 'numeric',
 })
 
+const frenchNumericDateFormatter = new Intl.DateTimeFormat('fr-FR', {
+  day: '2-digit',
+  month: '2-digit',
+  timeZone: 'Europe/Paris',
+  year: 'numeric',
+})
+
+const frenchTimeFormatter = new Intl.DateTimeFormat('fr-FR', {
+  hour: '2-digit',
+  minute: '2-digit',
+  timeZone: 'Europe/Paris',
+})
+
 export function compareOrdersByCreatedAtDesc(
   firstOrder: OrderSummary,
   secondOrder: OrderSummary,
@@ -53,6 +66,18 @@ export function formatOrderDate(value?: string | null) {
   return Number.isNaN(date.getTime())
     ? 'Date non renseignée'
     : frenchDateFormatter.format(date)
+}
+
+export function formatOrderDateTime(value?: string | null): string | null {
+  if (!value) {
+    return null
+  }
+
+  const date = new Date(value)
+
+  return Number.isNaN(date.getTime())
+    ? null
+    : `${frenchNumericDateFormatter.format(date)} à ${frenchTimeFormatter.format(date)}`
 }
 
 export function formatOrderTotal(order: OrderSummary) {

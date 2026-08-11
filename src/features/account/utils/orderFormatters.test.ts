@@ -62,12 +62,14 @@ describe('orderFormatters', () => {
     const order: OrderDetails = {
       id: '42',
       items: [],
+      relayPoint: null,
       shippingAddress: {
         addressLine1: '12 rue des Tests',
         city: 'Paris',
         country: 'France',
         postalCode: '75001',
       },
+      shippingMethod: 'home',
       status: 'paid',
     }
 

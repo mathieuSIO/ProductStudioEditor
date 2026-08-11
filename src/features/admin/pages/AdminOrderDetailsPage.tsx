@@ -6,6 +6,7 @@ import { OrderItemsList } from '../../account/components/OrderItemsList'
 import { formatOrderReference } from '../../account/utils/orderFormatters'
 import { useAuth } from '../../auth'
 import { AdminOrderFilesPanel } from '../components/AdminOrderFilesPanel'
+import { AdminOrderRelayPointPanel } from '../components/AdminOrderRelayPointPanel'
 import { AdminOrderShippingControl } from '../components/AdminOrderShippingControl'
 import { AdminOrderStatusControl } from '../components/AdminOrderStatusControl'
 import { useAdminOrderDetails } from '../hooks/useAdminOrderDetails'
@@ -137,6 +138,7 @@ export function AdminOrderDetailsPage() {
             />
           </PanelCard>
           <OrderDetailsPanel order={order} showCustomerPhone />
+          <AdminOrderRelayPointPanel order={order} />
           <PanelCard
             eyebrow="Uploads"
             title="Fichiers clients"

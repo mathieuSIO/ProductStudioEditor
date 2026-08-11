@@ -28,3 +28,15 @@ export type RelayPointSelection = {
   id: string
   country: string
 }
+
+export type OrderRelayPointDetails = {
+  selectionStatus: RelaySelectionStatus
+  id: string | null
+  name: string | null
+  addressLine1: string | null
+  addressLine2: string | null
+  postalCode: string | null
+  city: string | null
+  country: string | null
+  selectedAt: string | null
+}

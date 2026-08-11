@@ -2,6 +2,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 
 import { useAuth } from '../../auth'
 import { AccountSidebar } from '../components/AccountSidebar'
+import { CustomerOrderRelayPointPanel } from '../components/CustomerOrderRelayPointPanel'
 import { OrderDetailsPanel } from '../components/OrderDetailsPanel'
 import { OrderItemsList } from '../components/OrderItemsList'
 import { useUserOrderDetails } from '../hooks/useUserOrderDetails'
@@ -79,6 +80,7 @@ export function OrderDetailsPage() {
         ) : order ? (
           <div className="grid min-w-0 gap-4">
             <OrderDetailsPanel order={order} />
+            <CustomerOrderRelayPointPanel order={order} />
             <OrderItemsList items={order.items} />
           </div>
         ) : (

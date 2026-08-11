@@ -1,5 +1,6 @@
 import { env } from '../../../shared/config/env'
 import type { FinalPreviewUrls } from '../../../shared/utils/previewImages'
+import { parseOrderRelayPointDetails } from '../../../shared/utils/parseOrderRelayPointDetails'
 import { createAuthHeaders } from '../../auth'
 import type {
   AccountProfile,
@@ -198,6 +199,7 @@ function normalizeOrderDetails(value: unknown): OrderDetails | null {
   const shippingAddress = normalizeShippingAddress(rawShippingAddress)
   const customerPhone =
     readString(value, 'customerPhone') ?? readString(value, 'customer_phone')
+  const relayDetails = parseOrderRelayPointDetails(value)
 
   return {
     ...summary,
@@ -206,12 +208,14 @@ function normalizeOrderDetails(value: unknown): OrderDetails | null {
       .map((rawItem, index) => normalizeOrderItem(rawItem, index))
       .filter(isOrderItemDetails),
     options: normalizeOrderOptions(value),
+    relayPoint: relayDetails.relayPoint,
     shippingAddress,
     shippingAddressLine1: shippingAddress?.addressLine1,
     shippingAddressLine2: shippingAddress?.addressLine2,
     shippingCity: shippingAddress?.city,
     shippingCountry: shippingAddress?.country,
     shippingPostalCode: shippingAddress?.postalCode,
+    shippingMethod: relayDetails.shippingMethod,
     shipment: normalizeOrderShipment(value),
   }
 }

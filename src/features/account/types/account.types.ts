@@ -1,5 +1,8 @@
 import type { FinalPreviewUrls } from '../../../shared/utils/previewImages'
-import type { RelaySelectionStatus } from '../../../shared/types/relay'
+import type {
+  OrderRelayPointDetails,
+  RelaySelectionStatus,
+} from '../../../shared/types/relay'
 
 export type AccountProfile = {
   addressLine1: string | null
@@ -146,5 +149,7 @@ export type OrderDetails = OrderSummary & {
   shippingCountry?: string | null
   shippingPostalCode?: string | null
   shippingAddress?: ShippingAddress | null
+  shippingMethod: string | null
+  relayPoint: OrderRelayPointDetails | null
   shipment?: OrderShipment | null
 }

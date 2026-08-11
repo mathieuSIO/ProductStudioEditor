@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import { apiBaseUrl } from '../../../test/fixtures/api'
-import { mockFetchJson } from '../../../test/utils/http'
+import { fetchUserOrderDetails } from '../../account/api/accountApi'
+import { mockFetchJson, mockFetchJsonSequence } from '../../../test/utils/http'
 import {
   fetchAdminOrderDetails,
   fetchAdminOrders,
@@ -130,4 +131,142 @@ describe('adminOrdersApi', () => {
     })
     expect(order.status).toBe('shipped')
   })
+
+  it('normalizes a pending Mondial Relay order with null relay fields', async () => {
+    mockAdminOrderDetails({
+      relay_point_address_line1: null,
+      relay_point_address_line2: null,
+      relay_point_city: null,
+      relay_point_country: null,
+      relay_point_id: null,
+      relay_point_name: null,
+      relay_point_postal_code: null,
+      relay_point_selected_at: null,
+      relay_selection_status: 'pending',
+      shipping_method: 'mondial_relay',
+    })
+
+    const order = await fetchAdminOrderDetails('42')
+
+    expect(order.relayPoint).toEqual({
+      addressLine1: null,
+      addressLine2: null,
+      city: null,
+      country: null,
+      id: null,
+      name: null,
+      postalCode: null,
+      selectedAt: null,
+      selectionStatus: 'pending',
+    })
+  })
+
+  it('normalizes complete selected relay fields to camelCase', async () => {
+    mockAdminOrderDetails(createSelectedRelayFixture())
+
+    const order = await fetchAdminOrderDetails('42')
+
+    expect(order.shippingMethod).toBe('mondial_relay')
+    expect(order.relayPoint).toEqual({
+      addressLine1: '171 route de Launaguet',
+      addressLine2: 'Locker extérieur',
+      city: 'Toulouse',
+      country: 'FR',
+      id: '033594',
+      name: 'Locker Le Fournil',
+      postalCode: '31200',
+      selectedAt: '2026-08-11T12:32:00.000Z',
+      selectionStatus: 'selected',
+    })
+  })
+
+  it('preserves a null relay address line 2', async () => {
+    mockAdminOrderDetails({
+      ...createSelectedRelayFixture(),
+      relay_point_address_line2: null,
+    })
+
+    const order = await fetchAdminOrderDetails('42')
+
+    expect(order.relayPoint?.addressLine2).toBeNull()
+  })
+
+  it('does not expose relay details for another shipping method', async () => {
+    mockAdminOrderDetails({
+      ...createSelectedRelayFixture(),
+      shipping_method: 'home',
+    })
+
+    const order = await fetchAdminOrderDetails('42')
+
+    expect(order.shippingMethod).toBe('home')
+    expect(order.relayPoint).toBeNull()
+  })
+
+  it('does not expose relay details without a selection status', async () => {
+    mockAdminOrderDetails({
+      ...createSelectedRelayFixture(),
+      relay_selection_status: null,
+    })
+
+    const order = await fetchAdminOrderDetails('42')
+
+    expect(order.relayPoint).toBeNull()
+  })
+
+  it('preserves a null selected-at value', async () => {
+    mockAdminOrderDetails({
+      ...createSelectedRelayFixture(),
+      relay_point_selected_at: null,
+    })
+
+    const order = await fetchAdminOrderDetails('42')
+
+    expect(order.relayPoint?.selectedAt).toBeNull()
+  })
+
+  it('produces compatible account and admin relay point details', async () => {
+    const response = {
+      data: {
+        id: 42,
+        items: [],
+        status: 'paid',
+        ...createSelectedRelayFixture(),
+      },
+      success: true,
+    }
+    mockFetchJsonSequence([response, response])
+
+    const accountOrder = await fetchUserOrderDetails('42')
+    const adminOrder = await fetchAdminOrderDetails('42')
+
+    expect(adminOrder.relayPoint).toEqual(accountOrder.relayPoint)
+  })
 })
+
+function mockAdminOrderDetails(fields: Record<string, unknown>) {
+  return mockFetchJson({
+    data: {
+      id: 42,
+      items: [],
+      status: 'paid',
+      ...fields,
+    },
+    success: true,
+  })
+}
+
+function createSelectedRelayFixture(): Record<string, unknown> {
+  return {
+    relay_point_address_line1: '171 route de Launaguet',
+    relay_point_address_line2: 'Locker extérieur',
+    relay_point_city: 'Toulouse',
+    relay_point_country: 'FR',
+    relay_point_id: '033594',
+    relay_point_name: 'Locker Le Fournil',
+    relay_point_postal_code: '31200',
+    relay_point_selected_at: '2026-08-11T12:32:00.000Z',
+    relay_selection_status: 'selected',
+    shipping_method: 'mondial_relay',
+  }
+}
